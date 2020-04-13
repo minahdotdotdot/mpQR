@@ -1,0 +1,100 @@
+%TODO: Introduce this section
+\subsection{Householder QR (HQR)}
+The HQR algorithm uses Householder transformations to zero out elements below the diagonal of a matrix. 
+We present this as zeroing out all but the first element of some vector, $\bb{x}\in\R^m$.
+% TODO: this part could be expository, not a lemma. -GEOFF
+\begin{lemma}
+	Given vector $\bb{x}\in\R^{m}$, there exist Householder vector, $\bb{v}$, and Householder transformation matrix, $\bb{P}_{\bb{v}}$, such that $\bb{P}_{\bb{v}}$ zeros out $\bb{x}$ below the first element. 
+	\begin{equation}
+	\begin{alignedat}{3} 
+	\sigma =& -\rm{sign}(\bb{x}_1)\|\bb{x}\|_2, &&\quad  \bb{v} = \bb{x} -\sigma \hat{e_1},\\
+	\beta = & \frac{2}{\bb{v}^{\top}\bb{v}}=-\frac{1}{\sigma\bb{v}_1}, && \quad \bb{P}_{\bb{v}}=  \bb{I}_{m} - \beta \bb{v}\bb{v}^{\top}.
+	\end{alignedat}
+	\label{eqn:HH} 
+	\end{equation}
+	The transformed vector, $\bb{P_vx}$, has the same 2-norm as $\bb{x}$ since Householder transformations are orthogonal: $\bb{P}_{\bb{v}}\bb{x} = \sigma\hat{\bb{e}_1}$.
+	In addition, $\bb{P}_{\bb{v}}$ is symmetric and orthogonal, $\bb{P}_{\bb{v}}=\bb{P}_{\bb{v}}^{\top}=\bb{P}_{\bb{v}}^{-1}$.
+	\label{lem:hhvec}
+\end{lemma}
+Given $\bb{A}\in\R^{m\times n}$ and Lemma \ref{lem:hhvec}, HQR is done by repeating the following processes until only an upper triangle matrix remains.
+For $i = 1, 2, \cdots, n,$
+\begin{enumerate}[Step 1)]
+	\item Compute $\bb{v}$ and $\beta$ that zeros out the $i^{th}$ column of $\bb{A}$ beneath $a_{ii}$ (see \cref{algo:hh_v2}), and
+	\item Apply $\bb{P}_{\bb{v}}$ to the bottom right partition, $\bb{A}[i:m, i:n]$ (lines 4-6 of \cref{algo:hhQR}).
+\end{enumerate}
+%%% until only an upper triangular matrix remains. 
+
+Consider the following $4$-by-$3$ matrix example adapted from \cite{Higham2002}. 
+Let $\bb{P_i}$ represent the $i^{th}$ Householder transformation of this algorithm. 
+\[\bb{A} = \left[ \begin{array}{ccc}
+\times & \times & \times \\
+\times & \times & \times \\
+\times & \times & \times \\
+\times & \times & \times
+\end{array}
+\right]\xrightarrow{\text{apply $\bb{P_1}$ to $\bb{A}$}}\left[ \begin{array}{c|cc}
+\times & \times & \times \\ \hline
+0 & \times & \times \\
+0 & \times & \times \\
+0 & \times & \times
+\end{array}
+\right]
+\xrightarrow{\text{apply $\bb{P_2}$ to $\bb{P_1}\bb{A}$}}\]
+\[ \left[
+\begin{array}{cc|c}
+\times & \times & \times \\
+0 & \times & \times \\ \hline
+0 & 0 & \times \\
+0 & 0 & \times 
+\end{array} \right]
+\xrightarrow{\text{apply $\bb{P_3}$ to $\bb{P_2}\bb{P_1}\bb{A}$}} \left[ \begin{array}{ccc}
+\times & \times & \times \\
+0 & \times & \times \\
+0 & 0 & \times \\
+0 & 0 & 0 
+\end{array}\right] = \bb{P_3}\bb{P_2}\bb{P_1}\bb{A}=:\bb{R} \] 
+Then, the $\bb{Q}$ factor for a full QR factorization is $\bb{Q}:=\bb{P_1}\bb{P_2}\bb{P_3}$ since $\bb{P_i}$'s are symmetric, and the thin factors for a general matrix $\bb{A}\in\R^{m\times n}$ are
+\begin{equation}
+\bb{Q}_{\text{thin}} = \bb{P_1} \cdots \bb{P_n}\bb{I}_{m\times n}\quad \text{and} \quad \bb{R}_{\text{thin}} = \bb{I}_{m\times n}^{\top}\bb{P_n}\cdots \bb{P_1}\bb{A}.
+\end{equation}
+
+\begin{algorithm2e}[H]
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$\bb{x}\in\R^m$}
+	\KwOut{$\bb{v}\in\R^m$, and $\sigma, \beta\in\R$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} = \pm \|\bb{x}\|_2 \hat{e_1} = \sigma\hat{e_1}$ }
+	%\tcc{We choose the sign of sigma to avoid cancellation of $\bb{x}_1$ (As is the standard in LAPACK, LINPACK packages \cite{Higham2002}). This makes $\beta>0$.}
+	$\bb{v}\gets$ {\tt copy}($\bb{x}$)\\
+	$\sigma \gets -\rm{sign}(\bb{x}_1)\|\bb{x}\|_2$\\
+	$\bb{v}_1 \gets \bb{x}_1-\sigma$ \\
+	%\tcp*{This is referred to as $\bb{\tilde{v}}_1$ later on.} 
+	$\beta \gets -\frac{\bb{v}_1}{\sigma}$\\
+	%$\bb{v} \gets \frac{1}{\bb{v}_1}\bb{v}$\\
+	\Return $\beta$, $\bb{v}/\bb{v}_1$, $\sigma$
+	\caption{$\beta$, $\bb{v}$, $\sigma = {\tt hh\_vec}(\bb{x})$. Given a vector $\bb{x}\in\R^n$, return $\bb{v}$, $\beta$, $\sigma$ that satisfy $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} =\sigma\hat{e_1}$ and $\bb{v}_1=1$ (see \cite{LAPACK, Higham2002}).}
+	\label{algo:hh_v2}
+\end{algorithm2e}
+
+\begin{algorithm2e}
+	\DontPrintSemicolon
+	\KwIn{$A\in\R^{m \times n}$ where $m \geq n$.}
+	
+	\KwOut{$\bb{V}$,$\bm{\beta}$, $\bb{R}$}
+	%	\tcc{$\bb{v}_i = V[i:m, i] \in \R^{m-(i-1)}$ and $\bb{B}_i = \bb{B}[i:m, i:d] \in \R^{(m-(i-1))\times(d-(i-1))}$.}
+	$\bb{V}, \bm{\beta} \gets \bb{0}_{m\times n}, \bb{0}_m$ \\
+	
+	\For{$i=1 : n$}{
+		$\bb{v}, \beta, \sigma \gets \mathrm{hh\_vec}(\bb{A}[i:\mathrm{end}, i])$\\	
+		$\bb{V}[i:\mathrm{end},i]$, $\bm{\beta}_i$,  $\bb{A}[i,i] \gets \bb{v}, \beta, \sigma$\\
+		%\tcp*{Stores the Householder vectors and constants.}
+		%\tcc{The next two steps update $\bb{A}$.}
+		$\bb{A}[i+1:\mathrm{end}, i]\gets \mathrm{zeros}(m-i)$\\
+		$\bb{A}[i:\mathrm{end}, i+1:\mathrm{end}]\gets \bb{A}[i:\mathrm{end}, i+1:\mathrm{end}] - \beta \bb{v} \bb{v}^{\top}\bb{A}[i:\mathrm{end}, i+1:\mathrm{end}]$
+		
+	}
+	\Return $\bb{V}$, $\bm{\beta}$, $\bb{A}[1:n, 1:n]$
+	\caption{$\bb{V}$, $\bm{\beta}$, $\bb{R}$ = ${\tt householder\_qr}(A)$. Given a matrix $\bb{A}\in\R^{m\times n}$ where $m\geq n$, return matrix $\bb{V}\in\R^{m\times n}$, vector $\bm{\beta}\in\R^{n}$, and upper triangular matrix $\bb{R}$. An orthogonal matrix $\bb{Q}$ can be generated from $\bb{V}$ and $\bm{\beta}$, and $\bb{QR}=\bb{A}$.}
+	
+	\label{algo:hhQR}
+\end{algorithm2e}
+\subsection{Block HQR with partitioned columns}
+\subsection{Block HQR with partitioned rows : Tall-and-Skinny QR (TSQR)}
