@@ -13,9 +13,10 @@ The above formulation is a \emph{full} QR factorization, whereas a more efficien
 If $\bb{A}$ is full rank then the columns of $\bb{Q}_{1}$ are orthonormal (i.e. $\bb{Q}_{1}^{\top}\bb{Q}_{1}=\bb{I}_{n\times n}$) and $\bb{R}_1$ is upper triangular.
 In many applications, computing the \emph{thin} decomposition requires less computation and is sufficient in performance. 
 While important definitions are stated explicitly in the text, Table~\ref{table:notation} serves to establish basic notation.
-\begin{table}[h!]
+\begin{table}[H]
 	\centering
-	\begin{tabular}{|m{3cm}|m{9cm}|c|}
+	%\begin{tabular}{|m{3cm}|m{9cm}|c|}
+	\begin{tabular}{|m{1.7cm}|m{10.3cm}|c|}
 		\hline
 		%DONE: change table have the following 3 columns, add sections
 		Symbol(s) & Definition(s) & Section(s) \\ \hline
@@ -29,16 +30,16 @@ While important definitions are stated explicitly in the text, Table~\ref{table:
 		%$\bb{A}[a:b, c:d]$ &Rows $a$ to $b$ and columns $c$ to $d$ of matrix $\bb{A}$ & \ref{sec:HQRfA}\\
 		%$\bb{A}[a:b,:]$, $\bb{A}[:,c:d]$ & Rows $a$ to $b$, columns $c$ to $d$ of matrix $\bb{A}$& \ref{sec:HQRfA}\\
 		\hline
-		$\bb{Q}$  & Orthogonal factor of matrix $\bb{A}\in\R^{m\times n}$: $m$-by-$m$ (full) or $m$-by-$n$ (thin)  & \ref{sec:background}\\
-		$\bb{R}$ & Upper triangular or trapezoidal factor of matrix $\bb{A}\in\R^{m\times n}$:  $m$-by-$n$ (full) or $n$-by-$n$ (thin)  &  \ref{sec:background}\\ 
+		$\bb{Q}$  & Orthogonal factor $\bb{A}\in\R^{m\times n}$: $m$-by-$m$ (full) or $m$-by-$n$ (thin)  & \ref{sec:background}\\
+		$\bb{R}$ & Upper triangular or trapezoidal factor of $\bb{A}\in\R^{m\times n}$:  $m$-by-$n$ (full) or $n$-by-$n$ (thin)  &  \ref{sec:background}\\ 
 		%$\bb{A}^{(k)}$ & Matrix $\bb{A}$ after $k$ Householder transformations. &\ref{sec:HQRfA}\\
 		\hline
 		$\fl(\bb{x})$, $\hat{\bb{x}}$ & Quantity $\bb{x}$ calculated from floating point operations & \ref{sec:backgroundRE} \\
 		$b$, $t$, $\mu$, $\eta$  & Base/precision/mantissa/exponent bits & \ref{sec:backgroundRE} \\
 		%\tt{Inf} & Values outside the range of representable numbers & \ref{sssec:NormalizeHV} \\ %https://www.doc.ic.ac.uk/~eedwards/compsys/float/nan.html
 		$k$ & Number of successive FLOPs &  \ref{sec:backgroundRE}\\
-		$u$ & Unit round-off for precision $t$ and base $b$: $\frac{1}{2}b^{1-t}$ & \ref{sec:backgroundRE} \\ 
-		$\dd^{q}$ &Quantity bounded by: $|\dd_{q}| < u_q$ &  \ref{sec:backgroundRE} \\
+		$u^q$ & Unit round-off for precision $t_q$ and base $b_q$: $\frac{1}{2}b_q^{1-t_q}$ & \ref{sec:backgroundRE} \\ 
+		$\dd^{q}$ &Quantity bounded by: $|\dd^{q}| < u^q$ &  \ref{sec:backgroundRE} \\
 		$\gamma^{q}_{k}$,  $\tth^{q}_{k}$& $\frac{ku^q}{1-ku^q}$, Quantity bounded by: $|\tth^{q}_{k}|\leq\gamma^q_{k}$ &  \ref{sec:backgroundRE} \\
 		%$\tth_{q}^{(k)}$ & Quantity bounded by: $|\tth_{q}^{(k)}|\leq\gamma_q^{(k)}$ &  \ref{sec:FPREA} \\ 
 		\hline
@@ -72,7 +73,7 @@ We adopt the rounding error analysis tools described in \cite{Higham2002}, which
 A short analysis of FLOPs (see Theorem 2.2 \cite{Higham2002}) shows that the relative error is 
 controlled by the unit round-off, $u:=\frac{1}{2}b^{1-t}$. \par 
 \vspace{.2cm}
-\begin{center}
+\begin{table}[H]
 	\begin{tabular}{||l|c|c|c|c|c|c||} 
 		\hline 
 		Name & $b$ & $t$ & \# of exponent bits & $\eta_{\text{min}}$ & $\eta_{\text{max}}$ & unit round-off $u$ \\ \hline 
@@ -80,10 +81,10 @@ controlled by the unit round-off, $u:=\frac{1}{2}b^{1-t}$. \par
 		fp32 (IEEE754 single)& 2 & 24 & 8 & -127 & 128  & {\tt 5.960e-08} \\ \hline 
 		fp64 (IEEE754 double)& 2 & 53 & 11 & -1023 & 1024 & {\tt 1.110e-16} \\ \hline 
 	\end{tabular}
-\end{center}
-%%%	\caption{IEEE754 formats and their primary attributes.} % with $j$ exponent bits ranging from $1-2^{j-1}$ to $2^{j-1}$.}
-%%%	\label{table:ieee}
-%%%\end{table}
+%\end{center}
+	\caption{IEEE754 formats and their primary attributes.} % with $j$ exponent bits ranging from $1-2^{j-1}$ to $2^{j-1}$.}
+	\label{table:ieee}
+\end{table}
 \vspace{.2cm}
 
 Let `op' be any basic operation from the set OP $=\{+, -, \times, \div\}$ and let $x,y\in \R$.
@@ -286,15 +287,51 @@ The rules for $\tth$ allows us to keep track of the two precision types separate
 
 We use these principles to establish a mixed-precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
 Let us define an ad hoc mixed-precision setting that is similar to the TensorCore Fused Multiply-Add (FMA) block but works at the level of a dot product. 
-While the FMA blocks are for matrix-matrix products (level-3 BLAS), we consider a FMA for vector inner products (level-2 BLAS) as defined in Assumption~\ref{assump:mp}.
+While the FMA block in TensorCore is for matrix-matrix products (level-3 BLAS), we consider a vector inner product(level-2 BLAS) FMA as defined in Assumption~\ref{assump:mp}.
 %TODO: BLAS and FMA should have been introduced in the introduction section.
 %TODO: talk more about other FMA operations and cite properly.
 \begin{assump}
 	\label{assump:mp}
 	Let $l$ and $h$ each denote low and high precision types with unit round-off values $u^l$ and $u^h$, where $1 \gg u^l \gg u^h >0$.
 	Consider an FMA operation for inner products that take vectors stored in precision $l$, compute products in full precision, and sum the products in precision $h$. 
-	Finally, the result is then cast back down to precision $l$.  
-%	Let $w$, $p$, and $s$ each represent floating point precisions for storage, product, and summation, where the varying precisions are defined by their unit round-off values denoted by $u_w$, $u_p$, and $u_s$, and we can assume $1\gg u_w \gg u_s$ and $u_p\in (0, u_w]$. 
-%	Within the inner product subroutine, products are done in precision $p$, summation is done in precision $s$, and the result stored in precision $w$.
-%	All operations other than inner products are done in the storage precision, $w$.
+	Finally, the result is then cast back down to precision $l$.
 \end{assump}
+The full precision multiplication in Assumption~\ref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their specifications for precision and exponent range. 
+As a quick proof, consider $x^{\text{fp16}} = \pm\mu_x2^{\eta_x -11},y^{\text{fp16}} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$.
+Then the product in exact arithmetic is
+$$
+x^{\text{fp16}}y^{\text{fp16}} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},
+$$
+where  $\mu_x\mu_y \in[0,(2^{11}-1)^2] \subseteq [0,2^{24}-1]$ and $\eta_x+\eta_y +2\in[-28,34]\subseteq[-127,128]$.
+Thus, the summation and the final cast down operations are the only sources of rounding error.\par
+Let $\bb{x}^{\text{fp16}},\bb{y}^{\text{fp16}}$ be $m$-length vectors stored in fp16, $s_k$ b the $k^{th}$ partial sum, and $\hat{s_k}$ be $s_k$ computed with FLOPs.
+Then,
+\begin{align*}
+\hat{s_1} &= \fl (\bb{x}_1\bb{y}_1) = \bb{x}_1\bb{y}_1,\\
+\hat{s_2} &= \fl(\hat{s_1} + \bb{x}_2\bb{y}_2) = \left(\bb{x}_1\bb{y}_1+ \bb{x}_2\bb{y}_2\right)(1+\dd_{1}^h),\\
+\hat{s_3} &= \fl(\hat{s_2}+\bb{x}_3\bb{y}_3) = \left[\left(\bb{x}_1\bb{y}_1 + \bb{x}_2\bb{y}_2\right)(1+\dd_{1}^h)  + \bb{x}_3\bb{y}_3\right](1+\dd_{2}^h).
+\end{align*}
+We can see a pattern emerging. 
+The error for a general $m$-length vector dot product is then
+\begin{equation}
+\label{eqn:dperr_2}
+\hat{s_m} = (\bb{x}_1\bb{y}_1+\bb{x}_2\bb{y}_2)\prod_{k=1}^{m-1}(1+\dd_{k}^h) + \sum_{i=3}^n \bb{x}_i\bb{y}_i\left(\prod_{k=i-1}^{m-1}(1+\dd_{k}^{h})\right).
+\end{equation}
+Using Lemma \ref{lem:gamma}, we further simplify to
+\begin{equation}
+\fl(\bb{x}^{\top}\bb{y}) = \hat{s_m} = (1+\tth^h_{m-1})\bb{x}^{\top}\bb{y}. \label{eqn:beforecd}
+\end{equation}
+Casting this down to fp16, then we incur a rounding error quantified by $d:=\lfloor\frac{(m-1)u^h}{u^l}\rfloor$. 
+The resulting backward errors are
+\begin{equation}
+\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}), \label{eqn:aftercd}
+\end{equation}
+where $|\Delta \bb{x}| \leq \gamma^l_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^l|\bb{y}| $ componentwise.\par
+
+\Cref{eqn:beforecd,eqn:aftercd} are crucial for our analysis in \cref{sec:mpanalysis} since the TensorCore technology outputs a matrix product in fp16 or fp32. 
+Consider matrices $\bb{A}\in\F_{\text{fp16}}^{p\times m}$ and $\bb{B}\in\F_{\text{fp16}}^{m\times q}$, and $\bb{D}=\bb{A}\bb{B}\in\F_{\text{fp16}}^{p\times q}$.
+If $\fl(\bb{D})$ is desired in fp16, then each component of that matrix incur rounding errors as shown in \cref{eqn:aftercd} and if it is desired in fp32, the componentwise rounding error is given by \cref{eqn:beforecd}.
+Similarly, we could consider other mixed-precision algorithms that cast down at various points within the algorithm to take advantage of better storage properties of lower precision types. 
+Error bounds in the fashion of \cref{eqn:beforecd} can be used before the cast down operations, and the action of the cast down is best represented by error bounds similar to \cref{eqn:aftercd}.\par
+
+In \cref{sec:algo}, we introduce various Householder QR algorithms as well as skeletons for rounding error analysis that we will then modify for different mixed precision assumptions in \cref{sec:mpanalysis}.
