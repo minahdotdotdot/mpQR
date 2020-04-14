@@ -37,8 +37,7 @@ While important definitions are stated explicitly in the text, Table~\ref{table:
 		$b$, $t$, $\mu$, $\eta$  & Base/precision/mantissa/exponent bits & \ref{sec:backgroundRE} \\
 		%\tt{Inf} & Values outside the range of representable numbers & \ref{sssec:NormalizeHV} \\ %https://www.doc.ic.ac.uk/~eedwards/compsys/float/nan.html
 		$k$ & Number of successive FLOPs &  \ref{sec:backgroundRE}\\
-		$u$ & Unit round-off for precision $t$ and base $b$: $\frac{1}{2}b^{1-t}$ & \ref{sec:backgroundRE} \\  
-		%TODO: this beta is different from householder beta.
+		$u$ & Unit round-off for precision $t$ and base $b$: $\frac{1}{2}b^{1-t}$ & \ref{sec:backgroundRE} \\ 
 		$\dd^{q}$ &Quantity bounded by: $|\dd_{q}| < u_q$ &  \ref{sec:backgroundRE} \\
 		$\gamma^{q}_{k}$,  $\tth^{q}_{k}$& $\frac{ku^q}{1-ku^q}$, Quantity bounded by: $|\tth^{q}_{k}|\leq\gamma^q_{k}$ &  \ref{sec:backgroundRE} \\
 		%$\tth_{q}^{(k)}$ & Quantity bounded by: $|\tth_{q}^{(k)}|\leq\gamma_q^{(k)}$ &  \ref{sec:FPREA} \\ 
@@ -67,7 +66,11 @@ y = \pm \mu\times b^{\eta-t},
 \label{eqn:FPbasic}
 \end{equation} 
 where $\mu$ is any integer in $[0,b^{t}-1]$ and $\eta$ is an integer in  $[\eta_{\text{min}}, \eta_{\text{max}}]$.
-While base, precision, and exponent range are fixed and define a floating point number:
+While base, precision, and exponent range are fixed and define a floating point number,the sign, significand, and exponent identifies a unique number within that system.
+Although operations we use on $\R$ cannot be replicated exactly due to the finite cardinality of $\F$, we can still approximate the accuracy of analogous floating point operations (FLOPs).
+We adopt the rounding error analysis tools described in \cite{Higham2002}, which allow a relatively simple framework for formulating error bounds for complex linear algebra operations. 
+A short analysis of FLOPs (see Theorem 2.2 \cite{Higham2002}) shows that the relative error is 
+controlled by the unit round-off, $u:=\frac{1}{2}b^{1-t}$. \par 
 \vspace{.2cm}
 \begin{center}
 	\begin{tabular}{||l|c|c|c|c|c|c||} 
@@ -82,11 +85,6 @@ While base, precision, and exponent range are fixed and define a floating point 
 %%%	\label{table:ieee}
 %%%\end{table}
 \vspace{.2cm}
-the sign, significand, and exponent identifies a unique number within that system.
-Although operations we use on $\R$ cannot be replicated exactly due to the finite cardinality of $\F$, we can still approximate the accuracy of analogous floating point operations (FLOPs).
-We adopt the rounding error analysis tools described in \cite{Higham2002}, which allow a relatively simple framework for formulating error bounds for complex linear algebra operations. 
-A short analysis of FLOPs (see Theorem 2.2 \cite{Higham2002}) shows that the relative error is 
-controlled by the unit round-off, $u:=\frac{1}{2}b^{1-t}$. \par 
 
 Let `op' be any basic operation from the set OP $=\{+, -, \times, \div\}$ and let $x,y\in \R$.
 The true value $(x\text{ op }y)$ lies in $\R$, and it is rounded using some conversion to a floating point number, $\fl(x\text{ op }y)$, admitting a rounding error. 
@@ -157,7 +155,7 @@ Thus, accumulated rounding errors in lower precision types can lead to an instab
 %As $k$ represents the number of FLOPs, this constraint restricts low-precision floating point operations to smaller problem sizes and lower complexity algorithms.\par
 %TODO: mention in comment to reviewers 
 
-\subsubsection{Rounding Error Example for the Inner Product}\label{sec:backgroundRE}
+\subsection{Rounding Error Example for the Inner Product}\label{sec:backgroundIP}
 We now consider computing the inner product of two vectors to clearly illustrate how this situation restricts rounding error analysis in fp16. 
 An error bound for an inner product of $m$-length vectors is
 \begin{equation}
@@ -167,7 +165,7 @@ as shown in \cite{Higham2002}.
 While this result does not guarantee a high relative accuracy when $|\bb{x}^{\top}\bb{y}| \ll |\bb{x}|^{\top}|\bb{y}|$, high relative accuracy is expected in some special cases.
 For example, let $\bb{x}=\bb{y}$.
 Then we have exactly $|\bb{x}^{\top}\bb{x}| = |\bb{x}|^{\top}|\bb{x}|=\|\bb{x}\|_2^2$, which leads to a forward error: $\left|\|\bb{x}\|_2^2 - \fl(\|\bb{x}\|_2^2)\right| \leq \gamma_m \|\bb{x}\|_2^2$.
-Since vectors of length $m$ accumulate rounding errors that are bounded by $\gamma_{m}$, the dot products of vectors computed in fp16 already face a 100\% relative error bound in the worst-case scenario ($\gamma_{512}^\text{fp16}=1$). \par
+Since vectors of length $m$ accumulate rounding errors that are bounded by $\gamma_{m}$, the dot products of vectors computed in fp16 already face a 100\% relative error bound in the worst-case scenario ($\gamma_{512}^\text{\text{fp16}}=1$). \par
 
 We present a simple numerical experiment that shows that the standard deterministic error bound is too pessimistic and cannot be practically used to approximate rounding error for half-precision arithmetic. 
 In this experiment, we generated 2 million random half-precision vectors of length $512$ from two random distributions: the standard normal distribution, $N(0,1)$, and the uniform distribution over $(0,1)$.
@@ -179,15 +177,16 @@ We see that the inner products of vectors sampled from the standard normal distr
 Even so, the theoretical upper error bound of 100\% is far too pessimistic as the maximum relative error does not even meet 2\% in this experiment.
 %TODO: comment reviewer
 Recent work in developing probabilistic bounds on rounding errors of floating point operations (see \cite{Higham2019a,Ipsen2019}) have shown that the inner product relative backward error for the conditions used for this experiment is bounded by {\tt 5.466e-2} with probability 0.99. \par
+%TODO: MINAH check this statement!
 \begin{algorithm2e}
 	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
-	\KwIn{$\bb{x}_{\text{half}}, \bb{y}_{\text{half}}\in\F_{\text{half}}^m$, $f:\R^{m}\times \R^m \rightarrow \R^n$}
-	\KwOut{$\fl(f(\bb{x}_{\text{half}}, \bb{y}_{\text{half}}))\in\F_{\text{half}}^n$}
-	$\bb{x}_{\text{single}}, \bb{y}_{\text{single}} \gets$ {\tt castup}$([\bb{x}_{\text{half}},\bb{y}_{\text{half}}])$\\
-	$\bb{z}_{\text{single}} \gets \fl(f(\bb{x}_{\text{single}}, \bb{y}_{\text{single}}))$\\
-	$\bb{z}_{\text{half}} \gets$ {\tt castdown}$(\bb{z}_{\text{single}})$\\
-	\Return $\bb{z}_{\text{half}}$\\
-	\caption{$\bb{z}_{\text{half}} = {\tt simHalf}(f, \bb{x}_{\text{half}}, \bb{y}_{\text{half}})$ Simulate function $f\in$ OP$\cup \{{\tt dot\_product} \}$ in half precision arithmetic given input variables $\bb{x},\bb{y}$. Function {\tt castup} converts half precision floats to single precision floats, and {\tt castdown} converts single precision floats to half precision floats by rounding to the nearest half precision float.}
+	\KwIn{$\bb{x}^{\text{fp16}}, \bb{y}^{\text{fp16}}\in\F_{\text{fp16}}^m$, $f:\R^{m}\times \R^m \rightarrow \R^n$}
+	\KwOut{$\fl(f(\bb{x}^{\text{fp16}}, \bb{y}^{\text{fp16}}))\in\F_{\text{fp16}}^n$}
+	$\bb{x}^{\text{fp32}}, \bb{y}^{\text{fp32}} \gets$ {\tt castup}$([\bb{x}^{\text{fp16}},\bb{y}^{\text{fp16}}])$\\
+	$\bb{z}^{\text{fp32}} \gets \fl(f(\bb{x}^{\text{fp32}}, \bb{y}^{\text{fp32}}))$\\
+	$\bb{z}^{\text{fp16}} \gets$ {\tt castdown}$(\bb{z}^{\text{fp32}})$\\
+	\Return $\bb{z}^{\text{fp16}}$\\
+	\caption{$\bb{z}^{\text{fp16}} = {\tt simHalf}(f, \bb{x}^{\text{fp16}}, \bb{y}^{\text{fp16}})$. Simulate function $f\in$ OP$\cup \{{\tt dot\_product} \}$ in half precision arithmetic given input variables $\bb{x},\bb{y}$. Function {\tt castup} converts half precision floats to single precision floats, and {\tt castdown} converts single precision floats to half precision floats by rounding to the nearest half precision float.}
 	\label{algo:simulate}
 \end{algorithm2e}
 \begin{table}
@@ -286,3 +285,16 @@ The rules for $\tth$ allows us to keep track of the two precision types separate
 %TODO: Do you think this proof should be here? 
 
 We use these principles to establish a mixed-precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
+Let us define an ad hoc mixed-precision setting that is similar to the TensorCore Fused Multiply-Add (FMA) block but works at the level of a dot product. 
+While the FMA blocks are for matrix-matrix products (level-3 BLAS), we consider a FMA for vector inner products (level-2 BLAS) as defined in Assumption~\ref{assump:mp}.
+%TODO: BLAS and FMA should have been introduced in the introduction section.
+%TODO: talk more about other FMA operations and cite properly.
+\begin{assump}
+	\label{assump:mp}
+	Let $l$ and $h$ each denote low and high precision types with unit round-off values $u^l$ and $u^h$, where $1 \gg u^l \gg u^h >0$.
+	Consider an FMA operation for inner products that take vectors stored in precision $l$, compute products in full precision, and sum the products in precision $h$. 
+	Finally, the result is then cast back down to precision $l$.  
+%	Let $w$, $p$, and $s$ each represent floating point precisions for storage, product, and summation, where the varying precisions are defined by their unit round-off values denoted by $u_w$, $u_p$, and $u_s$, and we can assume $1\gg u_w \gg u_s$ and $u_p\in (0, u_w]$. 
+%	Within the inner product subroutine, products are done in precision $p$, summation is done in precision $s$, and the result stored in precision $w$.
+%	All operations other than inner products are done in the storage precision, $w$.
+\end{assump}
