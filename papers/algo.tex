@@ -1,8 +1,10 @@
-%TODO: Introduce this section
-\subsection{Householder QR (HQR)}
-The HQR algorithm uses Householder transformations to zero out elements below the diagonal of a matrix. 
+We introduce the Householder QR factorization algorithm (HQR) in \cref{sec:HQR} and two block variants that use HQR within the block in \cref{sec:BQR,sec:TSQR}. 
+The blocked HQR (BQR) in \cref{sec:BQR} partitions the columns of the target matrix and utilizes mainly level-3 BLAS operations and is a well-known algorithm that uses the WY representation of \cite{Bischof1987}.
+%\cite{Schreiber1989}.
+In contrast, the Tall-and-Skinny QR (TSQR) in \cref{sec:TSQR} partitions rows of the matrix and takes a communication-avoiding divide-and-conquer approach that can be easily parallelized (see \cite{Demmel2007}).
+\subsection{Householder QR (HQR)}\label{sec:HQR}
+The HQR algorithm uses Householder transformations to zero out elements below the diagonal of a matrix (see \cite{Householder1958}). 
 We present this as zeroing out all but the first element of some vector, $\bb{x}\in\R^m$.
-% TODO: this part could be expository, not a lemma. -GEOFF
 \begin{lemma}
 	Given vector $\bb{x}\in\R^{m}$, there exist Householder vector, $\bb{v}$, and Householder transformation matrix, $\bb{P}_{\bb{v}}$, such that $\bb{P}_{\bb{v}}$ zeros out $\bb{x}$ below the first element. 
 	\begin{equation}
@@ -22,7 +24,6 @@ For $i = 1, 2, \cdots, n,$
 	\item Compute $\bb{v}$ and $\beta$ that zeros out the $i^{th}$ column of $\bb{A}$ beneath $a_{ii}$ (see \cref{algo:hh_v2}), and
 	\item Apply $\bb{P}_{\bb{v}}$ to the bottom right partition, $\bb{A}[i:m, i:n]$ (lines 4-6 of \cref{algo:hhQR}).
 \end{enumerate}
-%%% until only an upper triangular matrix remains. 
 
 Consider the following $4$-by-$3$ matrix example adapted from \cite{Higham2002}. 
 Let $\bb{P_i}$ represent the $i^{th}$ Householder transformation of this algorithm. 
@@ -93,8 +94,8 @@ Then, the $\bb{Q}$ factor for a full QR factorization is $\bb{Q}:=\bb{P_1}\bb{P_
 	}
 	\Return $\bb{V}$, $\bm{\beta}$, $\bb{A}[1:n, 1:n]$
 	\caption{$\bb{V}$, $\bm{\beta}$, $\bb{R}$ = ${\tt householder\_qr}(A)$. Given a matrix $\bb{A}\in\R^{m\times n}$ where $m\geq n$, return matrix $\bb{V}\in\R^{m\times n}$, vector $\bm{\beta}\in\R^{n}$, and upper triangular matrix $\bb{R}$. An orthogonal matrix $\bb{Q}$ can be generated from $\bb{V}$ and $\bm{\beta}$, and $\bb{QR}=\bb{A}$.}
-	
 	\label{algo:hhQR}
 \end{algorithm2e}
-\subsection{Block HQR with partitioned columns}
-\subsection{Block HQR with partitioned rows : Tall-and-Skinny QR (TSQR)}
+
+\subsection{Block HQR with partitioned columns}\label{sec:BQR}
+\subsection{Block HQR with partitioned rows : Tall-and-Skinny QR (TSQR)}\label{sec:TSQR}

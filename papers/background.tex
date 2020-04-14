@@ -330,8 +330,8 @@ where $|\Delta \bb{x}| \leq \gamma^l_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \g
 
 \Cref{eqn:beforecd,eqn:aftercd} are crucial for our analysis in \cref{sec:mpanalysis} since the TensorCore technology outputs a matrix product in fp16 or fp32. 
 Consider matrices $\bb{A}\in\F_{\text{fp16}}^{p\times m}$ and $\bb{B}\in\F_{\text{fp16}}^{m\times q}$, and $\bb{D}=\bb{A}\bb{B}\in\F_{\text{fp16}}^{p\times q}$.
-If $\fl(\bb{D})$ is desired in fp16, then each component of that matrix incur rounding errors as shown in \cref{eqn:aftercd} and if it is desired in fp32, the componentwise rounding error is given by \cref{eqn:beforecd}.
+If $\fl(\bb{D})$ is desired in fp16, then each component of that matrix incurs rounding errors as shown in \cref{eqn:aftercd} and if it is desired in fp32, the componentwise rounding error is given by \cref{eqn:beforecd}.
 Similarly, we could consider other mixed-precision algorithms that cast down at various points within the algorithm to take advantage of better storage properties of lower precision types. 
 Error bounds in the fashion of \cref{eqn:beforecd} can be used before the cast down operations, and the action of the cast down is best represented by error bounds similar to \cref{eqn:aftercd}.\par
 
-In \cref{sec:algo}, we introduce various Householder QR algorithms as well as skeletons for rounding error analysis that we will then modify for different mixed precision assumptions in \cref{sec:mpanalysis}.
+In \cref{sec:algo}, we introduce various Householder QR algorithms as well as a skeleton for rounding error analysis for these algorithms that we will modify for different mixed precision assumptions in \cref{sec:mpanalysis}.
