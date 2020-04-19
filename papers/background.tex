@@ -317,16 +317,16 @@ The error for a general $m$-length vector dot product is then
 \label{eqn:dperr_2}
 \hat{s_m} = (\bb{x}_1\bb{y}_1+\bb{x}_2\bb{y}_2)\prod_{k=1}^{m-1}(1+\dd_{k}^h) + \sum_{i=3}^n \bb{x}_i\bb{y}_i\left(\prod_{k=i-1}^{m-1}(1+\dd_{k}^{h})\right).
 \end{equation}
-Using Lemma \ref{lem:gamma}, we further simplify to
+Using Lemma \ref{lem:gamma}, we further simplify and form componentwise backward errors with
 \begin{equation}
-\fl(\bb{x}^{\top}\bb{y}) = \hat{s_m} = (1+\tth^h_{m-1})\bb{x}^{\top}\bb{y}. \label{eqn:beforecd}
+\fl(\bb{x}^{\top}\bb{y}) =(\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}),\quad\text{for }|\Delta \bb{x}| \leq \gamma^h_{m-1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{m-1}^h|\bb{y}|. \label{eqn:beforecd}
 \end{equation}
 Casting this down to fp16, then we incur a rounding error quantified by $d:=\lfloor\frac{(m-1)u^h}{u^l}\rfloor$. 
-The resulting backward errors are
+The resulting componentwise backward errors are
 \begin{equation}
-\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}), \label{eqn:aftercd}
+\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}),\quad\text{for }|\Delta \bb{x}| \leq \gamma^l_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^l|\bb{y}|. \label{eqn:aftercd}
 \end{equation}
-where $|\Delta \bb{x}| \leq \gamma^l_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^l|\bb{y}| $ componentwise.\par
+%where $|\Delta \bb{x}| \leq \gamma^l_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^l|\bb{y}| $ componentwise.\par
 
 \Cref{eqn:beforecd,eqn:aftercd} are crucial for our analysis in \cref{sec:mpanalysis} since the TensorCore technology outputs a matrix product in fp16 or fp32. 
 Consider matrices $\bb{A}\in\F_{\text{fp16}}^{p\times m}$ and $\bb{B}\in\F_{\text{fp16}}^{m\times q}$, and $\bb{D}=\bb{A}\bb{B}\in\F_{\text{fp16}}^{p\times q}$.

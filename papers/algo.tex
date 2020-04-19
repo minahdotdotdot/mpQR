@@ -2,6 +2,8 @@ We introduce the Householder QR factorization algorithm (HQR) in \cref{sec:HQR} 
 The blocked HQR (BQR) in \cref{sec:BQR} partitions the columns of the target matrix and utilizes mainly level-3 BLAS operations and is a well-known algorithm that uses the WY representation of \cite{Bischof1987}.
 %\cite{Schreiber1989}.
 In contrast, the Tall-and-Skinny QR (TSQR) in \cref{sec:TSQR} partitions rows of the matrix and takes a communication-avoiding divide-and-conquer approach that can be easily parallelized (see \cite{Demmel2007}).
+We also present the crucial results in standard rounding error analysis of these algorithms that excludes any mixed-precision assumptions.
+These building steps of round-off error analysis will be easily tweaked for various mixed-precision assumptions in \cref{sec:mpanalysis}.
 \subsection{Householder QR (HQR)}\label{sec:HQR}
 The HQR algorithm uses Householder transformations to zero out elements below the diagonal of a matrix (see \cite{Householder1958}). 
 We present this as zeroing out all but the first element of some vector, $\bb{x}\in\R^m$.
@@ -18,6 +20,7 @@ We present this as zeroing out all but the first element of some vector, $\bb{x}
 	In addition, $\bb{P}_{\bb{v}}$ is symmetric and orthogonal, $\bb{P}_{\bb{v}}=\bb{P}_{\bb{v}}^{\top}=\bb{P}_{\bb{v}}^{-1}$.
 	\label{lem:hhvec}
 \end{lemma}
+\subsubsection{HQR: Algorithm}
 Given $\bb{A}\in\R^{m\times n}$ and Lemma \ref{lem:hhvec}, HQR is done by repeating the following processes until only an upper triangle matrix remains.
 For $i = 1, 2, \cdots, n,$
 \begin{enumerate}[Step 1)]
@@ -93,9 +96,85 @@ Then, the $\bb{Q}$ factor for a full QR factorization is $\bb{Q}:=\bb{P_1}\bb{P_
 		
 	}
 	\Return $\bb{V}$, $\bm{\beta}$, $\bb{A}[1:n, 1:n]$
-	\caption{$\bb{V}$, $\bm{\beta}$, $\bb{R}$ = ${\tt householder\_qr}(A)$. Given a matrix $\bb{A}\in\R^{m\times n}$ where $m\geq n$, return matrix $\bb{V}\in\R^{m\times n}$, vector $\bm{\beta}\in\R^{n}$, and upper triangular matrix $\bb{R}$. An orthogonal matrix $\bb{Q}$ can be generated from $\bb{V}$ and $\bm{\beta}$, and $\bb{QR}=\bb{A}$.}
+	\caption{$\bb{V}$, $\bm{\beta}$, $\bb{R}$ = ${\tt HQR2}(A)$. A Level-2 BLAS implementation of the Householder QR algorithm. Given a matrix $\bb{A}\in\R^{m\times n}$ where $m\geq n$, return matrix $\bb{V}\in\R^{m\times n}$, vector $\bm{\beta}\in\R^{n}$, and upper triangular matrix $\bb{R}$. An orthogonal matrix $\bb{Q}$ can be generated from $\bb{V}$ and $\bm{\beta}$, and $\bb{QR}=\bb{A}$.}
 	\label{algo:hhQR}
 \end{algorithm2e}
+\subsubsection{HQR: Rounding Error Analysis}
+Now we present an error analysis for \cref{algo:hhQR} by keeping track of the different operations of \cref{algo:hh_v2} and \cref{algo:hhQR}.
+\paragraph{Calculating the $i^{th}$ Householder vector and constant} 
+In \cref{algo:hhQR}, the $i^{th}$ Householder vector shares all but the first component with the target column, $\bb{A}[i:m,i]$. 
+We first calculate $\sigma$ as is implemented in line 2 of \cref{algo:hh_v2}.
+\begin{equation}
+\label{eqn:sigma}
+\fl(\sigma) = \hat{\sigma} = \rm{fl}(-\rm{sign}(\bb{A}_{i,i})\|\bb{A}[i:m,i]\|_2) = \sigma + \Delta \sigma,\quad |\Delta\sigma| \leq \gamma_{m-i+1}|\sigma|.
+\end{equation}
+Note that the backward error incurred here is simply that an inner product of a vector in $\R^{m-i+1}$ with itself. 
+Let $\bb{\tilde{v}}_1\equiv \bb{A}_{i,i}-\sigma$, the penultimate value $\bb{v}_1$. 
+The subtraction adds a single additional rounding error, yielding 
+\begin{equation*}
+	\fl(\bb{\tilde{v}}_1) = \bb{\tilde{v}}_1 + \Delta \bb{\tilde{v}}_1,\quad |\Delta \bb{\tilde{v}}_1 |\leq \tilde{\gamma}_{m-i+1}|\bb{\tilde{v}}_1|.
+\end{equation*}
+Even though a tighter relative upper bound for $\Delta \bb{\tilde{v}}_1$ is $$(1+\tth_{m-i+1})(1+\dd)-1 = \tth_{m-i+2},\;\; |\tth_{m-i}| \leq \gamma_{m-i+2},$$ we sweep that minor difference (in comparison to $\cO(m-i)$) under the our use of the $\tilde{\gamma}$ notation defined in \cref{lem:gamma}.
+Since \cref{algo:hh_v2} normalizes the Householder vector so that its first component is $1$, the remaining components of $\bb{v}$ are divided by $\fl(\tilde{\bb{v}}_1)$ incurring another single rounding error.
+As a result, the rounding errors in $\bb{v}$ are
+\begin{equation}
+	\fl(\bb{v}_j)	= \bb{v}_j + \Delta \bb{v}_j\text{ where }|\Delta \bb{v}_j|\leq 
+	\begin{cases}
+	0,& j=1\\
+	\tilde{\gamma}_{m-i+1}|\bb{v}_j|,&j=2:m-i+1.
+	\end{cases}  \label{eqn:vbound}
+\end{equation}
+
+Next, we consider the Householder constant, $\beta$, as is computed in line 4 of \cref{algo:hh_v2}.
+\begin{align}
+\hat{\beta} = \fl\left(-\frac{\tilde{\bb{v}_1}}{\hat{\sigma}}\right) &=-(1+\dd)\frac{\bb{\tilde{v}}_1+\bb{\Delta \tilde{v}}_1}{\sigma + \Delta\sigma} \label{eqn:beta}\\
+&= \frac{(1+\dd)(1+\tth_{m-i+1})}{(1+\tth_{m-i+2})}\beta = (1+\tth_{3(m-i+2)})\beta \label{eqn:beta2}\\
+& = \beta + \Delta \beta,\text{ where } |\Delta\beta| \leq \tilde{\gamma}_{m-i+1} \beta\label{eqn:beta3}.
+\end{align}
+We have shown \cref{eqn:beta} to keep our analysis simple in \cref{sec:mpanalysis} and \cref{eqn:beta2,eqn:beta3} show that the error incurred from calculating of $\|\bb{A}[i:m,i]\|_2$ accounts for the vast majority of the rounding error so far.
+\paragraph{Applying a Single Householder Transformation}
+Now we consider lines 4-6 of \cref{algo:hhQR}. 
+Since the entries in $\bb{A}[i+1:m,i]$ are simply zeroed out and $\bb{A}_{i,i}$ is replaced by $\sigma$, we only need to calculate the errors for applying a Householder transformation with the computed Householder vector and constant. 
+This is the most crucial building block of the rounding error analysis for any variant of HQR because the $\bb{Q}$ factor is formed by applying the Householder transformations to the identity and both of the blocked versions in \cref{sec:BQR} and \cref{sec:TSQR} require efficient implementations of this step. 
+In this section, we only consider a level-2 BLAS implementation of applying the Householder transformation, but in \cref{sec:BQR} we introduce a level-3 BLAS implementation.\par
+
+A Householder transformation is applied through a series of inner and outer products, since Householder matrices are rank-1 updates of the identity. 
+That is, computing  $\bb{P}_{\bb{v}}\bb{x}$ for any $\bb{x}\in\R^{m}$ is as simple as computing $\bb{x} - (\beta \bb{v}^{\top}\bb{x})\bb{v}$.
+Let us assume that $\bb{x}$ is an exact vector and there were errors incurred in forming $\bb{v}$ and $\beta$. 
+The errors incurred from computing $\bb{v}$ and $\beta$ need to be included in addition to the new rounding errors accumulating from the action of applying $\bb{P}_{\bb{v}}$ to a column.
+In practice, $\bb{x}$ would be a column in $\bb{A}^{(i-1)}[i+1:m, i+1:n]$, where the superscript $(i-1)$ indicates that this submatrix of $\bb{A}$ has already been transformed by $i-1$ Householder transformations that zeroed out components below $\bb{A}_{j,j}$ for $j = 1:i-1$.
+We show the error for forming $\fl\left(\bb{\hat{v}}^{\top}\bb{x}\right)$ first:
+\begin{equation*}
+\fl\left(\bb{\hat{v}}^{\top}\bb{x}\right) = (1+\tth_{m-i+1})(\bb{v}+\Delta\bb{v})^{\top}\bb{x}.
+\end{equation*}
+Set $\bb{w}:=\beta\bb{v}^{\top}\bb{x}\bb{v}$.
+Then,
+\begin{equation*}
+\bb{\hat{w}} =(1+\tth_{m-i+1})(\beta+\Delta\beta)(\bb{v}+\Delta\bb{v})^{\top}\bb{x}\bb{v}.
+\end{equation*}
+We accumulate the errors in $\Delta\beta$ and $\Delta\bb{v}$ using the bounds in \cref{eqn:vbound,eqn:beta3}, which yields 
+\begin{equation*}
+	\bb{\hat{w}} = \bb{w} +\Delta \bb{w}\text{ where } |\Delta\bb{w}| \leq \tilde{\gamma}_{m-i+1}\bb{w}.
+\end{equation*}
+\begin{align*}
+\fl\left(\bb{\hat{v}}^{\top}\bb{x}\right)&= (1+\tth_w^{(d+z)})(1+\tth_w^{(1+2(d+z+2))})\bb{v}^{\top}\bb{x},\\
+&= (1+\tth_w^{(3d+3z+5)})\bb{v}^{\top}\bb{x}.
+\end{align*}
+Here, $\tth_w^{(2)}$ results from multiplying  $\hat{\beta}$ and $\bb{v}^{\top}\bb{x}$ to $\bb{w}$,
+\begin{align*}
+\bb{\hat{w}} &= (1+\tth_w^{(2)})(1+\tth_w^{(3d+3z+5)})\beta(1+\tth_w^{(3d+3z+5)})\bb{v}^{\top}\bb{x}\bb{w},\\
+&= (1+\tth_w^{(6d+6z+12)})\bb{w}.
+\end{align*}
+Finally, we can add in the vector subtraction operation and complete the rounding error analysis of applying a Householder transformation to any vector:
+\begin{align}
+\fl(\bb{P}_{\bb{v}}\bb{x}) & = \fl(\bb{x}-\bb{\hat{w}}) = (1+\dd_w)(1+\tth_w^{6d+6z+12)})\bb{w}, \\
+&= (1+\tth_w^{(6d+6z+13)})\bb{P}_{\bb{v}}\bb{x},\\
+&= (\bb{P_v} +\bb{\Delta P_v})\bb{x},\qquad \|\bb{\Delta P_v}\|_F \leq \gamma_w^{(6d+6z+13)}. \label{eqn:applyP}
+\end{align}
+Details behind the matrix norm error bound in Equation~\ref{eqn:applyP} are shown in \ref{Appendix:HQR}.
+Constructing both $\bb{Q}$ and $\bb{R}$ relies on a
+pplying Householder transformations in the above two ways: 1) to zero out below the diagonal of a target column and 2) to update the bottom right submatrix. 
+We now have the tools to formulate the forward error bound on $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ calculated from the HQR factorization.
 
 \subsection{Block HQR with partitioned columns}\label{sec:BQR}
 \subsection{Block HQR with partitioned rows : Tall-and-Skinny QR (TSQR)}\label{sec:TSQR}
