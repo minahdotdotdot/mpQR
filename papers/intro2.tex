@@ -30,7 +30,9 @@ For example, Tesla V100's Tensor Cores perform matrix-multiply-and-accumulate of
 The existing rounding error analyses are built within what we call a \emph{uniform precision} setting, which is the assumption that all arithmetic operations and storage are performed via the same precision.
 In this work, we develop a framework for deterministic mixed-precision rounding error analysis, and explore half-precision Householder QR factorization (HQR) algorithms for data and graph analysis applications. 
 QR factorization is known to provide a backward stable solution to the linear least squares problem and thus, is ideal for mixed-precision. 
-%TODO: Reviewer asks to clarify above sentence. I don't recall why we wrote this. Should we just remove it?
+%TODO: Remove it and just explain in response to reviewers. didn't serve purpose of paper mixed precision is an active area of research
+%TODO: algorithms with better stability should be looked at first in mixed precision. 
+
 However, additional analysis is needed as the additional round-off error will effect orthogonality, and thus the accuracy of the solution. 
 Here, we focus on analyzing specific algorithms in a specific set of types (IEEE754 half (fp16), single (fp32, and double(fp64)), but the framework we develop 
 could be used on different algorithms or different floating point types (such as bfloat16 in \cite{tagliavini2018floating}).\par

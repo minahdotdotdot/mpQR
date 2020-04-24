@@ -40,85 +40,88 @@ We already have TSQR, which partitions the rows.
 Partitioning the columns of a matrix is actually the better known ``block'' HQR algorithm that can employ BLAS-3 operations for the majority of FLOPs required. 
 I picked out the main details from section Chapter 5 of \cite{golub2013matrix}.
 \subsection{Algorithms}
-\subsubsection{The WY Representation}
-A convenient matrix representation that accumulates $r$ Householder reflectors is known as the WY representation.
-%TODO: cite
-\begin{lemma}\label{lem:WY}
-	Suppose $\bb{Q}=\bb{I}_{m}-\bb{WY}^{\top}\in\R^{m\times m}$ is an orthogonal matrix with $\bb{W},\bb{Y}\in\R^{m\times j}$. If $\bb{P}=\bb{I}_{m}-\beta\bb{vv}^{\top}$ with $\bb{v}\in\R^m$ and $\bb{z}=\beta\bb{Q}\bb{v}$, then \[\bb{Q}_+ = \bb{Q}\bb{P} = \bb{I} - \bb{W}_+\bb{Y}_+^{\top}, \]where $ \bb{W}_+ =[\bb{W}|\bb{z}]$ and $ \bb{Y}_+ =[\bb{Y}|\bb{v}]$ are each $m$-by-$(j+1)$. 
-\end{lemma}
-If $\bb{Q}$ was already the accumulation of $j$ Householder transformations, then \cref{lem:WY} shows us a clever way to build the WY representation of successive Householder transformations.
-Let us now show the proof for \cref{lem:WY}.
-\begin{proof}
-	A direct right multiplication of $\bb{P}:=\bb{I}_m - \beta\bb{v}\bb{v}^{\top}$ onto $\bb{Q}$ can be written as
-	\begin{equation*}
-		\bb{QP}=\bb{Q}-\beta\bb{Q}\bb{v}\bb{v}^{\top}.
-	\end{equation*}
-	Let us use the WY representation of $\bb{Q}$.
-	\begin{equation*}
-		\bb{QP}= \bb{I}_m - \bb{WY}^{\top} -\beta\bb{Q}\bb{v}\bb{v}^{\top} = \bb{I}_m - \bb{WY}^{\top} - \bb{z}\bb{v}^{\top}
-	\end{equation*}
-	Now note that the two subtracted terms are exactly the updated WY factors:
-	\[ \bb{W}_+\bb{Y}_+^{\top} = [\bb{W} \quad \bb{z}]\begin{bmatrix}
-	\bb{Y}^{\top}\\ 
-	\bb{v}^{\top}
-	\end{bmatrix} = \bb{WY}^{\top} + \bb{z}\bb{v}^{\top}.\]
-\end{proof}
-With the correct initialization of $\bb{W}$ and $\bb{Y}$, we can build the WY representation of successive Householder transformations as shown in \Cref{algo:buildWY}. 
-\begin{algorithm2e}
-	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
-	\KwIn{$\bb{V}\in\R^{m \times r}$, $\bm{\beta}\in\R^{r}$ where $m > r$.}
-	
-	\KwOut{$\bb{W},\bb{Y}$}
-	Initialize: $\bb{W}:=\bm{\beta}_1\bb{V}[:,1]$ and $\bb{Y}:=\bb{V}[:,1]$.\\
-	\For{$j=2:r$}{
-		$\bb{z}\gets \bm{\beta}_j \left[\bb{V}[:,j] - \bb{W}\left(\bb{Y}^{\top}\bb{V}[:,j]\right)\right]$\\
-		$\bb{W} \gets [\bb{W}\quad \bb{z}]$ \tcc*{Update $\bb{W}$.}
-		$\bb{Y} \gets [\bb{Y}\quad \bb{V}[:,j]]$ \tcc*{Update $\bb{Y}$.}
-		\tcp{$\bb{W}$ and $\bb{Y}$ are now $m$-by-$j$ matrices.}
-	}
-	\Return $\bb{W},\bb{Y}$
-	\caption{$\bb{W},\bb{Y}\gets {\tt buidlWY}(V, \bm{\beta})$: Given a set of householder vectors $\{\bb{V}[:,i]\}_{i=1}^r$ and their corresponding constants $\{\bm{\beta}_i\}_{i=1}^r$, form the final $\bb{W}$ and $\bb{Y}$ factors of the WY representation of $\bb{P}_1\cdots \bb{P}_r$, where $\bb{P}_i := \bb{I}_m - \bm{\beta}_i\bb{v}_i\bb{v}_i^{\top}$}
-	\label{algo:buildWY}
-\end{algorithm2e}
-
-In the traditional HQR, $\bb{A}$ is transformed into an upper triangular matrix $\bb{R}$ by first computing the Householder transformation to zero out a column below the diagonal, then applying that Householder transformation to all of the remaining columns to the right. 
-For example, the $k^{th}$ Householder transformation finds an $m-k+1$ length Householder vector, $\bb{v}_k$, and applies it to an $(m-k+1)$-by-$(n-k)$ matrix.
-The bulk FLOPs of the latter step requires two Level-2 BLAS operations when computed efficiently.
-The first is $\bb{C}:=\bb{v}_k^{\top}\bb{A}_{k:m,k+1:n}\R^{1\times(n-k)}$ and the second is $\bb{v}\bb{C}$, an outer product.
-
-In Block HQR, the columns of $\bb{A}$ are partitioned by groups of $r$ with $\bb{A} = [\bb{C}_1 \cdots  \bb{C}_N]$ except for the last block which is $\bb{C}_N = \bb{A}[:,(N-1)r+1:n]$ and $N=\lceil\frac{n}{r}\rceil$.
-The first block is triangularized using HQR and the WY representation of $\bb{P}_1\cdots\bb{P}_r = \bb{I}_m -\bb{W}_1\bb{Y}_1^{\top}$ is built at the end, with Level-2 BLAS operations.
-Then, $\bb{I}_m -\bb{Y}_1\bb{W}_1^{\top}=\bb{P}_r\cdots\bb{P}_1$ is applied to $[\bb{C}_2 \cdots  \bb{C}_N]$ with two Level-3 BLAS operations. 
-First, $\bb{W}_1^{\top}[\bb{C}_2 \cdots  \bb{C}_N] $ is a matrix-matrix multiply with $m$-length inner products, and second, the result of left multiplying that by $\bb{Y}_1$ ($r$-length inner products) is subtracted from $[\bb{C}_2 \cdots  \bb{C}_N]$.
-We are now ready to triangularize the second block and update rows $r+1:m$ of $[\bb{C}_3 \cdots  \bb{C}_N]$, and so on.
-\Cref{algo:blockHQR} shows the pseudoalgorithm of the described procedure and performs approximately $1-\cO(1/N)$ fraction of FLOPs in Level-3 BLAS operations (see \cite{golub2013matrix}). 
-\begin{algorithm2e}
-	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
-	\KwIn{$\bb{A}\in\R^{m \times n}$, $r\in\R$ where $r < n$.}
-	
-	\KwOut{$\bb{Q},\bb{R}$}
-	$N=\lceil \frac{n}{r}\rceil$\\
-	\tcp{Let $n_i=ri$ for $i=1:N-1$ and $n_N=n$.} 
-	\For{$i=1:N$}{
-		$\bb{V}_i,\bm{\beta}_i,\bb{A}_{n_{i-1}+1:m,n_{i-1}+1:n_i}\gets$ {\tt hhQR}$(\bb{A}_{n_{i-1}:m,n_{i-1}+1:n_i})$\tcc*{\Cref{algo:hhQR}}
-		$\bb{W}_i,\bb{Y}_i \gets $ {\tt buildWY}$(\bb{V}_i,\bm{\beta}_i)$ \tcc*{\Cref{algo:buildWY}}
-		\If {$i< N$}{
-		$\bb{A}_{n_i+1:m,n_i+1:n}$ -= $\bb{Y}_i \left(\bb{W}_i^{\top}\bb{A}_{n_i+1:m,n_i+1:n}\right) $ \tcc*{update the rest: BLAS-3}
-	}
-	}
-%	\tcp{Upper-triangularize the last set of columns and get the last WY factors.}
-%	$\bb{V}_N,\bm{\beta}_N,\bb{A}_{n_{}:m,n_{N-1}+1:n}\gets$ {\tt hhQR}$(\bb{A}_{m_N+1:m,n_{N-1}+1:n})$\tcc*{\Cref{algo:hhQR}}
-%	$\bb{W}_N,\bb{Y}_N \gets $ {\tt buildWY}$(\bb{V}_N,\bm{\beta}_N)$ \tcc*{\Cref{algo:buildWY}}
-	\tcp{$\bb{A}$ has been transformed into $\bb{R}=\bb{Q}^{\top}\bb{A}$.}
-	\tcp{Now build $\bb{Q}$.}
-	$\bb{Q}\gets \bb{I}$\tcc*{$\bb{I}_m$ if full QR, and $\bb{I}_{m\times n}$ if thin QR.}
-	\For{$i=N:-1:1$}{
-		$\bb{Q}_{n_{i-1}+1:m,n_{i-1}+1:n} $-= $\bb{W}_i \left(\bb{Y}_i^{\top}\bb{Q}_{n_{i-1}+1:m,n_{i-1}+1:n}\right)$\tcc*{BLAS-3}
-	}
-	\Return $\bb{Q},\bb{A}$
-	\caption{$\bb{Q},\bb{R}\gets {\tt blockHQR}(\bb{A}, r)$: Perform Householder QR factorization of matrix $\bb{A}$ with column partitions of size $r$.}
-	\label{algo:blockHQR}
-\end{algorithm2e}
+%\subsubsection{The WY Representation}
+%A convenient matrix representation that accumulates $r$ Householder reflectors is known as the WY representation.
+%%TODO: cite
+%\begin{lemma}\label{lem:WY}
+%	Suppose $\bb{Q}=\bb{I}_{m}-\bb{WY}^{\top}\in\R^{m\times m}$ is an orthogonal matrix with $\bb{W},\bb{Y}\in\R^{m\times j}$. If $\bb{P}=\bb{I}_{m}-\beta\bb{vv}^{\top}$ with $\bb{v}\in\R^m$ and $\bb{z}=\beta\bb{Q}\bb{v}$, then \[\bb{Q}_+ = \bb{Q}\bb{P} = \bb{I} - \bb{W}_+\bb{Y}_+^{\top}, \]where $ \bb{W}_+ =[\bb{W}|\bb{z}]$ and $ \bb{Y}_+ =[\bb{Y}|\bb{v}]$ are each $m$-by-$(j+1)$. 
+%\end{lemma}
+%If $\bb{Q}$ was already the accumulation of $j$ Householder transformations, then \cref{lem:WY} shows us a clever way to build the WY representation of successive Householder transformations.
+%Let us now show the proof for \cref{lem:WY}.
+%\begin{proof}
+%	A direct right multiplication of $\bb{P}:=\bb{I}_m - \beta\bb{v}\bb{v}^{\top}$ onto $\bb{Q}$ can be written as
+%	\begin{equation*}
+%		\bb{QP}=\bb{Q}-\beta\bb{Q}\bb{v}\bb{v}^{\top}.
+%	\end{equation*}
+%	Let us use the WY representation of $\bb{Q}$.
+%	\begin{equation*}
+%		\bb{QP}= \bb{I}_m - \bb{WY}^{\top} -\beta\bb{Q}\bb{v}\bb{v}^{\top} = \bb{I}_m - \bb{WY}^{\top} - \bb{z}\bb{v}^{\top}
+%	\end{equation*}
+%	Now note that the two subtracted terms are exactly the updated WY factors:
+%	\[ \bb{W}_+\bb{Y}_+^{\top} = [\bb{W} \quad \bb{z}]\begin{bmatrix}
+%	\bb{Y}^{\top}\\ 
+%	\bb{v}^{\top}
+%	\end{bmatrix} = \bb{WY}^{\top} + \bb{z}\bb{v}^{\top}.\]
+%\end{proof}
+%With the correct initialization of $\bb{W}$ and $\bb{Y}$, we can build the WY representation of successive Householder transformations as shown in \Cref{algo:buildWY}. 
+%\begin{algorithm2e}
+%	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+%	\KwIn{$\bb{V}\in\R^{m \times r}$, $\bm{\beta}\in\R^{r}$ where $m > r$.}
+%	
+%	\KwOut{$\bb{W},\bb{Y}$}
+%	Initialize: $\bb{W}:=\bm{\beta}_1\bb{V}[:,1]$ and $\bb{Y}:=\bb{V}[:,1]$.\\
+%	\For{$j=2:r$}{
+%		$\bb{z}\gets \bm{\beta}_j \left[\bb{V}[:,j] - \bb{W}\left(\bb{Y}^{\top}\bb{V}[:,j]\right)\right]$\\
+%		$\bb{W} \gets [\bb{W}\quad \bb{z}]$ \tcc*{Update $\bb{W}$.}
+%		$\bb{Y} \gets [\bb{Y}\quad \bb{V}[:,j]]$ \tcc*{Update $\bb{Y}$.}
+%		\tcp{$\bb{W}$ and $\bb{Y}$ are now $m$-by-$j$ matrices.}
+%	}
+%	\Return $\bb{W},\bb{Y}$
+%	\caption{$\bb{W},\bb{Y}\gets {\tt buidlWY}(V, \bm{\beta})$: Given a set of householder vectors $\{\bb{V}[:,i]\}_{i=1}^r$ and their corresponding constants $\{\bm{\beta}_i\}_{i=1}^r$, form the final $\bb{W}$ and $\bb{Y}$ factors of the WY representation of $\bb{P}_1\cdots \bb{P}_r$, where $\bb{P}_i := \bb{I}_m - \bm{\beta}_i\bb{v}_i\bb{v}_i^{\top}$}
+%	\label{algo:buildWY}
+%\end{algorithm2e}
+%
+%In the traditional HQR, $\bb{A}$ is transformed into an upper triangular matrix $\bb{R}$ by first computing the Householder transformation to zero out a column below the diagonal, then applying that Householder transformation to all of the remaining columns to the right. 
+%For example, the $k^{th}$ Householder transformation finds an $m-k+1$ length Householder vector, $\bb{v}_k$, and applies it to an $(m-k+1)$-by-$(n-k)$ matrix.
+%The bulk of FLOPs of this step (line 6 in \cref{algo:hhQR}) requires two Level-2 BLAS operations when computed efficiently, which are $\bb{C}:=\bb{v}_k^{\top}\bb{A}_{k:m,k+1:n}\R^{1\times(n-k)}$ and $\bb{v}\bb{C}$, an outer product.
+%
+%In BQR, the columns of $\bb{A}$ are partitioned by groups of $r$ with $\bb{A} = [\bb{C}_1 \cdots  \bb{C}_N]$ except for the last block which is $\bb{C}_N = \bb{A}[:,(N-1)r+1:n]$ and $N=\lceil\frac{n}{r}\rceil$.
+%The first block is triangularized using HQR and the WY representation of $\bb{P}_1\cdots\bb{P}_r = \bb{I}_m -\bb{W}_1\bb{Y}_1^{\top}$ is built at the end.
+%Both of these operations are rich in Level-2 BLAS operations.
+%Then, $\bb{I}_m -\bb{Y}_1\bb{W}_1^{\top}=\bb{P}_r\cdots\bb{P}_1$ is applied to $[\bb{C}_2 \cdots  \bb{C}_N]$ with two Level-3 BLAS operations:
+%\begin{enumerate}
+%	\item $A:=\bb{W}_1^{\top}[\bb{C}_2 \cdots  \bb{C}_N] $ is a matrix-matrix multiply with $m$-length inner products. 
+%	\item $[\bb{C}_2 \cdots  \bb{C}_N] - \bb{Y}_1 A $ is a matrix-matrix multiply with subtraction where the product $\bb{Y}_1 A$ computes $r$-length inner products.
+%\end{enumerate}
+%We are now ready to triangularize the second block and update rows $r+1:m$ of $[\bb{C}_3 \cdots  \bb{C}_N]$, and so on.
+%\Cref{algo:blockHQR} shows the pseudoalgorithm of the described procedure and performs approximately $1-\cO(1/N)$ fraction of FLOPs in Level-3 BLAS operations (see section 5.2.3 of \cite{golub2013matrix}). 
+%\begin{algorithm2e}
+%	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+%	\KwIn{$\bb{A}\in\R^{m \times n}$, $r\in\R$ where $r < n$.}
+%	
+%	\KwOut{$\bb{Q},\bb{R}$}
+%	$N=\lceil \frac{n}{r}\rceil$\\
+%	\tcp{Let $n_i=ri$ for $i=1:N-1$ and $n_N=n$.} 
+%	\For{$i=1:N$}{
+%		$\bb{V}_i,\bm{\beta}_i,\bb{A}_{n_{i-1}+1:m,n_{i-1}+1:n_i}\gets$ {\tt hhQR}$(\bb{A}_{n_{i-1}:m,n_{i-1}+1:n_i})$\tcc*{\Cref{algo:hhQR}}
+%		$\bb{W}_i,\bb{Y}_i \gets $ {\tt buildWY}$(\bb{V}_i,\bm{\beta}_i)$ \tcc*{\Cref{algo:buildWY}}
+%		\If {$i< N$}{
+%		$\bb{A}_{n_i+1:m,n_i+1:n}$ -= $\bb{Y}_i \left(\bb{W}_i^{\top}\bb{A}_{n_i+1:m,n_i+1:n}\right) $ \tcc*{update the rest: BLAS-3}
+%	}
+%	}
+%%	\tcp{Upper-triangularize the last set of columns and get the last WY factors.}
+%%	$\bb{V}_N,\bm{\beta}_N,\bb{A}_{n_{}:m,n_{N-1}+1:n}\gets$ {\tt hhQR}$(\bb{A}_{m_N+1:m,n_{N-1}+1:n})$\tcc*{\Cref{algo:hhQR}}
+%%	$\bb{W}_N,\bb{Y}_N \gets $ {\tt buildWY}$(\bb{V}_N,\bm{\beta}_N)$ \tcc*{\Cref{algo:buildWY}}
+%	\tcp{$\bb{A}$ has been transformed into $\bb{R}=\bb{Q}^{\top}\bb{A}$.}
+%	\tcp{Now build $\bb{Q}$.}
+%	$\bb{Q}\gets \bb{I}$\tcc*{$\bb{I}_m$ if full QR, and $\bb{I}_{m\times n}$ if thin QR.}
+%	\For{$i=N:-1:1$}{
+%		$\bb{Q}_{n_{i-1}+1:m,n_{i-1}+1:n} $-= $\bb{W}_i \left(\bb{Y}_i^{\top}\bb{Q}_{n_{i-1}+1:m,n_{i-1}+1:n}\right)$\tcc*{BLAS-3}
+%	}
+%	\Return $\bb{Q},\bb{A}$
+%	\caption{$\bb{Q},\bb{R}\gets {\tt blockHQR}(\bb{A}, r)$: Perform Householder QR factorization of matrix $\bb{A}$ with column partitions of size $r$.}
+%	\label{algo:blockHQR}
+%\end{algorithm2e}
 %TODO: -=? Add to notation table or just rewrite.
 
 \subsection{Analysis}
