@@ -286,7 +286,7 @@ The rules for $\tth$ allows us to keep track of the two precision types separate
 %TODO: Do you think this proof should be here? 
 
 We use these principles to establish a mixed-precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
-Let us define an ad hoc mixed-precision setting that is similar to the TensorCore Fused Multiply-Add (FMA) block but works at the level of a dot product. 
+Let us define a mixed-precision setting that is similar to the TensorCore Fused Multiply-Add (FMA) block but works at the level of a dot product. 
 While the FMA block in TensorCore is for matrix-matrix products (level-3 BLAS), we consider a vector inner product(level-2 BLAS) FMA as defined in Assumption~\ref{assump:mp}.
 %TODO: BLAS and FMA should have been introduced in the introduction section.
 %TODO: talk more about other FMA operations and cite properly.
@@ -296,13 +296,13 @@ While the FMA block in TensorCore is for matrix-matrix products (level-3 BLAS), 
 	Consider an FMA operation for inner products that take vectors stored in precision $l$, compute products in full precision, and sum the products in precision $h$. 
 	Finally, the result is then cast back down to precision $l$.
 \end{assump}
-The full precision multiplication in Assumption~\ref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their specifications for precision and exponent range. 
-As a quick proof, consider $x^{\text{fp16}} = \pm\mu_x2^{\eta_x -11},y^{\text{fp16}} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$.
-Then the product in exact arithmetic is
+The full precision multiplication in Assumption~\ref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their precisions and exponent ranges. 
+As a quick proof, consider $x^{\text{fp16}} = \pm\mu_x2^{\eta_x -11},y^{\text{fp16}} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$, and note that the significand and exponent range for fp32 are $[0, 2^{24}-1]$ and $[-127,128]$.
+Then the product in full precision is
 $$
 x^{\text{fp16}}y^{\text{fp16}} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},
 $$
-where  $\mu_x\mu_y \in[0,(2^{11}-1)^2] \subseteq [0,2^{24}-1]$ and $\eta_x+\eta_y +2\in[-28,34]\subseteq[-127,128]$.
+where  $\mu_x\mu_y \in[0,(2^{11}-1)^2] \subseteq [0,2^{24}-1]$ and $\eta_x+\eta_y +2\in[-28,34]\subseteq[-127,128]$, and therefore is exact.
 Thus, the summation and the final cast down operations are the only sources of rounding error.\par
 Let $\bb{x}^{\text{fp16}},\bb{y}^{\text{fp16}}$ be $m$-length vectors stored in fp16, $s_k$ b the $k^{th}$ partial sum, and $\hat{s_k}$ be $s_k$ computed with FLOPs.
 Then,
@@ -329,8 +329,8 @@ The resulting componentwise backward errors are
 %where $|\Delta \bb{x}| \leq \gamma^l_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^l|\bb{y}| $ componentwise.\par
 
 \Cref{eqn:beforecd,eqn:aftercd} are crucial for our analysis in \cref{sec:mpanalysis} since the TensorCore technology outputs a matrix product in fp16 or fp32. 
-Consider matrices $\bb{A}\in\F_{\text{fp16}}^{p\times m}$ and $\bb{B}\in\F_{\text{fp16}}^{m\times q}$, and $\bb{D}=\bb{A}\bb{B}\in\F_{\text{fp16}}^{p\times q}$.
-If $\fl(\bb{D})$ is desired in fp16, then each component of that matrix incurs rounding errors as shown in \cref{eqn:aftercd} and if it is desired in fp32, the componentwise rounding error is given by \cref{eqn:beforecd}.
+Consider matrices $\bb{A}\in\F_{\text{fp16}}^{p\times m}$ and $\bb{B}\in\F_{\text{fp16}}^{m\times q}$, and $\bb{C}=\bb{A}\bb{B}\in\F_{\text{fp16}}^{p\times q}$.
+If $\fl(\bb{C})$ is desired in fp16, then each component of that matrix incurs rounding errors as shown in \cref{eqn:aftercd} and if it is desired in fp32, the componentwise rounding error is given by \cref{eqn:beforecd}.
 Similarly, we could consider other mixed-precision algorithms that cast down at various points within the algorithm to take advantage of better storage properties of lower precision types. 
 Error bounds in the fashion of \cref{eqn:beforecd} can be used before the cast down operations, and the action of the cast down is best represented by error bounds similar to \cref{eqn:aftercd}.\par
 

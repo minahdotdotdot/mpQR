@@ -309,14 +309,14 @@ With the correct initialization of $\bb{W}$ and $\bb{Y}$, we can build the WY re
 	\KwIn{$\bb{V}\in\R^{m \times r}$, $\bm{\beta}\in\R^{r}$ where $m > r$.}
 	
 	\KwOut{$\bb{W},\bb{Y}$}
-	Initialize: $\bb{W}:=\bm{\beta}_1\bb{V}[:,1]$ and $\bb{Y}:=\bb{V}[:,1]$.\\
+	\tcp{$\bb{Y}$ is $\bb{V}$.}
+	Initialize: $\bb{W}:=\bm{\beta}_1\bb{V}[:,1]$.\\% and $\bb{Y}:=\bb{V}[:,1]$.\\
 	\For{$j=2:r$}{
-		$\bb{z}\gets \bm{\beta}_j \left[\bb{V}[:,j] - \bb{W}\left(\bb{Y}^{\top}\bb{V}[:,j]\right)\right]$\\
-		$\bb{W} \gets [\bb{W}\quad \bb{z}]$ \tcc*{Update $\bb{W}$.}
-		$\bb{Y} \gets [\bb{Y}\quad \bb{V}[:,j]]$ \tcc*{Update $\bb{Y}$.}
-		\tcp{$\bb{W}$ and $\bb{Y}$ are now $m$-by-$j$ matrices.}
+		$\bb{z}\gets \bm{\beta}_j \left[\bb{V}[:,j] - \bb{W}\left(\bb{V}[:,1:j-1]^{\top}\bb{V}[:,j]\right)\right]$\\
+		$\bb{W} \gets [\bb{W}\quad \bb{z}]$ \tcc*{Update $\bb{W}$ to an $m$-by-$j$ matrix.}
+		%$\bb{Y} \gets [\bb{Y}\quad \bb{V}[:,j]]$ \tcc*{Update $\bb{Y}$.}
 	}
-	\Return $\bb{W},\bb{Y}$
+	\Return $\bb{W},\bb{V}$
 	\caption{$\bb{W},\bb{Y}\gets {\tt buildWY}(V, \bm{\beta})$: Given a set of householder vectors $\{\bb{V}[:,i]\}_{i=1}^r$ and their corresponding constants $\{\bm{\beta}_i\}_{i=1}^r$, form the final $\bb{W}$ and $\bb{Y}$ factors of the WY representation of $\bb{P}_1\cdots \bb{P}_r$, where $\bb{P}_i := \bb{I}_m - \bm{\beta}_i\bb{v}_i\bb{v}_i^{\top}$}
 	\label{algo:buildWY}
 \end{algorithm2e}
@@ -341,14 +341,14 @@ A pseudoalgorithm for BQR is shown in \cref{algo:blockHQR}.
 	
 	\KwOut{$\bb{Q},\bb{R}$}
 	$N=\lceil \frac{n}{r}\rceil$\\
-	\tcp{Let $\bb{A} = [\bb{C}_1 \cdots  \bb{C}_N]$ where all blocks except $\bb{C}_N$ are $m$-by-$r$ sized.}
+	\tcp{Let $\bb{A} = [\bb{C_1} \cdots  \bb{C_N}]$ where all blocks except $\bb{C_N}$ are $m$-by-$r$ sized.}
 	%\tcp{Let $n_i=ri$ for $i=1:N-1$ and $n_N=n$.} 
 	\For{$i=1:N$}{
-		$\bb{V}_i,\bm{\beta}_i,\bb{C}_i\gets$ {\tt hhQR}($\bb{C}_i$)\tcc*{\Cref{algo:hhQR}}
+		$\bb{V_i},\bm{\beta}_i,\bb{C_i}\gets$ {\tt hhQR}($\bb{C_i}$)\tcc*{\Cref{algo:hhQR}}
 		%$\bb{V}_i,\bm{\beta}_i,\bb{A}_{n_{i-1}+1:m,n_{i-1}+1:n_i}\gets$ {\tt hhQR}$(\bb{A}_{n_{i-1}:m,n_{i-1}+1:n_i})$\tcc*{\Cref{algo:hhQR}}
-		$\bb{W}_i,\bb{Y}_i \gets $ {\tt buildWY}$(\bb{V}_i,\bm{\beta}_i)$ \tcc*{\Cref{algo:buildWY}}
+		$\bb{W_i},\bb{Y_i} \gets $ {\tt buildWY}$(\bb{V_i},\bm{\beta}_i)$ \tcc*{\Cref{algo:buildWY}}
 		\If {$i< N$}{
-			$[\bb{C}_{i+1}\cdots\bb{C}_N]$ -= $\bb{Y}_i \left(\bb{W}_i^{\top}[\bb{C}_{i+1}\cdots\bb{C}_N]\right) $ \tcc*{update the rest: BLAS-3}
+			$[\bb{C_{i+1}}\cdots\bb{C_N}]$ -= $\bb{Y_i} \left(\bb{W_i}^{\top}[\bb{C_{i+1}}\cdots\bb{C_N}]\right) $ \tcc*{update the rest: BLAS-3}
 		}
 	}
 	%	\tcp{Upper-triangularize the last set of columns and get the last WY factors.}
@@ -366,7 +366,8 @@ A pseudoalgorithm for BQR is shown in \cref{algo:blockHQR}.
 \end{algorithm2e}
 \subsubsection{BQR: Rounding Error Analysis}
 We now present the basic structure for the rounding error analysis for \cref{algo:blockHQR}, which consist of: 1)HQR, 2)building the WY representation, and 3) updating the remaining blocks with the WY representation.
-\paragraph{HQR within each block}
+The WY representation can be built while HQR is being performed, but we separate them to make our error analysis clear. 
+\paragraph{HQR within each block: line 3 of \cref{algo:blockHQR}}
 Consider the $k^{th}$ block, $\bb{C}_k$. 
 We first apply \Cref{algo:hhQR} to rows $k:m$, which is equivalent to $r$ Householder transformations of size $m-(r-1)k$ if $k < N$ and $n-r(i-1)$ Householder transformations of size $m-(N-1)k$ if $k=N$. 
 The general rounding error incurred is represented by \cref{eqn:rPs} and a uniform-precision rounding error for this step is shown in \cref{eqn:rPs-uniform}.
@@ -379,28 +380,71 @@ Adjusting \cref{eqn:rPs,eqn:rPs-uniform} for $k<N$ yields
 \|\bb{\Delta Q'}_k^{\top}\|_F &= \left|\left| \prod_{j=r}^{1}\left(\bb{P}_{(k-1)r+j} +\bb{\Delta P}_{(k-1)r+j}\right) - \prod_{j=r}^{1}\bb{P}_{(k-1)r+j} \right|\right|_F,\label{eqn:rPs-BQR}\\
 &\leq \left(\prod_{i=1}^r(1+\tilde{\gamma}_{m-(r-1)k})-1\right)\prod_{i=r}^1\|\bb{P}_i\|_2 = (1+\tilde{\gamma}_{m-(r-1)k})^r-1. \label{eqn:rPs-BQR-uniform}
 \end{align}
-\paragraph{Build WY at each block}
+\paragraph{Build WY at each block: line 4 of \cref{algo:blockHQR}}
 %The WY representation of $r$ Householder transformations in full precision is exactly that, just another representation. 
 We now calculate the rounding errors incurred from building the WY representation when given a set of Householder vectors and constants. 
-Consider the $j^{th}$ update as shown in \cref{lem:WY} for the $k^{th}$ block.
-Error accumulated from forming $\bb{v}$ is represented in \cref{eqn:vbound} and we only consider $\bb{z}^{(j+1)} =\beta\bb{Q}^{(j)}\bb{v}$. 
-%TODO: is W just V?? CHECK!
-Since $\bb{Q}^{j} = \bb{I} - \bb{W}^{(j)}\bb{Y}^{(j)\top}$, lets first consider $\bb{W}^{(j)}\bb{Y}^{(j)\top}\bb{v}$ where we left-multiply the matrices.
+Consider the $j^{th}$ update with $\beta^{(j)}$ and $\bb{v}^{(j)}$ as shown in \cref{lem:WY} for the $k^{th}$ block.
+Error accumulated from forming $\bb{v}^{(j)}$ is represented in \cref{eqn:vbound} and we only consider $\bb{z}^{(j+1)} =\beta\bb{Q}^{(j)}\bb{v}$, the $
+\bb{W}$ update.
+Note that $\bb{v}^{(j)}$ is the update for $\bb{Y}$ and does not incur more errors. 
+Since $\bb{Q}^{j} = \bb{I} - \bb{W}^{(j)}\bb{Y}^{(j)\top}$, first consider $\bb{W}^{(j)}\bb{Y}^{(j)\top}\bb{v}$ where we left-multiply the matrices.
 In general, we can write
 \begin{equation*}
-\bb{z}^{(j+1)} + \bb{\Delta z}^{(j+1)} = \hat{v} - (\bb{W}^{(j)} + \bb{\Delta W}^{(j)})(\bb{Y}^{(j)}+\bb{\Delta Y}^{(j)})^{\top}\hat{v}, 
+\bb{z}^{(j+1)} + \bb{\Delta z}^{(j+1)} = \hat{\beta}^{^{(j)}}\left( \hat{\bb{v}}^{(j)} - (\bb{W}^{(j)} + \bb{\Delta W}^{(j)})(\bb{Y}^{(j)}+\bb{\Delta Y}^{(j)})^{\top}\hat{\bb{v}}^{(j)}\right), 
 \end{equation*}
-where $\hat{v}$ is expressed in \cref{eqn:vbound}, and $\bb{\Delta W}^{(j)}$ and $\bb{\Delta Y}^{(j)}$ each represent backward rounding errors from $m-(r-1)k$-length and $j$-length dot products.
+where $\hat{v}$ is expressed in \cref{eqn:vbound}, and $\bb{\Delta W}^{(j)}$ and $\bb{\Delta Y}^{(j)}$ each represent backward rounding errors from $m-(k-1)r$-length and $j$-length dot products.
 In uniform precision, this yields
-\begin{equation*}
-	\fl(\bb{W}^{(j)}\bb{Y}^{(j)\top}\bb{v})= (1+\tilde{\tth}_{m-(k-1)r})(1+\tilde{\tth}_{j})\bb{W}^{(j)}\bb{Y}^{(j)\top}\bb{v} = (1+\tilde{\tth}_{j+m-(k-1)r})\bb{W}^{(j)}\bb{Y}^{(j)\top}\bb{v},
-\end{equation*}
-where we've disregarded $\bb{\Delta v}$ momentarily.
+\begin{align}
+	\fl(\bb{W}^{(j)}\bb{Y}^{(j)\top}\hat{\bb{v}}^{(j)})&= (1+\tilde{\tth}_{m-(k-1)r})(1+\tilde{\tth}_{j})\bb{W}^{(j)}\bb{Y}^{(j)\top}\hat{\bb{v}}^{(j)} \label{eqn:WYgen}\\
+	&= (1+\tilde{\tth}_{j+m-(k-1)r})\bb{W}^{(j)}\bb{Y}^{(j)\top}(\bb{v}^{(j)} +\bb{\Delta v}^{(j)}).
+\end{align}
 The subtraction and the multiplication by $\beta$ only add in $\dd$ each to the errors, so we simplify via $j+m-(k-1)r+2 \approx m-rk$ since $j\leq r$.
-Since $|\bb{\Delta v}| \leq \tilde{\gamma}_{m-(k-1)r}|\bb{v}|$, the approximation still holds.
+Since $|\bb{\Delta v}| \leq \tilde{\gamma}_{m-(k-1)r}|\bb{v}|$ in uniform precision and has a slightly larger bound, we increase the approximation to $m-(r-1)k$.
 Thus, we result in
 \begin{align*}
-	\fl(\bb{z}^{(j+1)}) &= (1+\tilde{\tth}_{m-rk})\bb{z}^{(j+1)}.
+	\fl(\bb{z}^{(j+1)}) &= (1+\tilde{\tth}_{m-(r-1)k})\bb{z}^{(j+1)},
 \end{align*}
+and the final update, $\hat{\bb{W}} = [\hat{\bb{z}}^{(1)} \cdots \hat{\bb{z}}^{(r)} ]$, is bound componentwise and normwise via
+\begin{equation*}
+	\fl(\bb{W}) = \bb{W} + \bb{\Delta W},\;\; |\bb{\Delta W}| \leq \tilde{\gamma}_{m-(r-1)k}|\bb{W}|, \|\bb{\Delta W}\|_F\leq \tilde{\gamma}_{m-(r-1)k} \|\bb{W}\|_F.
+\end{equation*}
+In section \cref{sec:mpanalysis}, we will modify \cref{eqn:WYgen} so that $\tilde{\tth}_{m-(k-1)r}$ and $\tilde{\tth}_{j}$ are replaced by mixed-precision inner product error bounds for vectors of length $m-(k-1)r$ and $j$.
+\paragraph{Update blocks to the right: line 6 of \cref{algo:blockHQR}}
+The WY representation from the $i^{th}$ block, $\bb{C_i}$, is applied to $[\bb{C_{i+1}} \cdots \bb{C_N}]$.
+An efficient implementation will utilize that the top $(i-1)r$ rows are left alone and therefore the block that is transformed is actually $\bb{A}[(i-1)r+1:m, ri+1:n]$, an  $(m-(i-1)r)$-by-$(n-ri)$ matrix. 
+Let us refer this block as $\bb{A}^{(i)}:=\bb{A}[(i-1)r+1:m, ri+1:n]$ and $\bb{W_i}$ and $\bb{Y_i}$ are the WY representation of the Householder transformation for $\bb{C_i}$.
+%The computed WY factors, $\hat{\bb{W_i}} = \bb{W_i} + \bb{\Delta W_i}$ and $\hat{\bb{Y_i}} = \bb{Y_i} + \bb{\Delta Y_i}$, have perturbations bounded componentwise by $\tilde{\gamma}_{m-(i-1)r}$.
+The two matrix-matrix multiplication operations incur errors from $m-(i-2)r$ and $r$ length inner products as shown below.
+\begin{align*}
+	\fl\left(\hat{\bb{Y_i}} \fl\left(\hat{\bb{W_i}}^{\top}\bb{A}^{(i)}\right)\right) &= \fl(\hat{\bb{Y_i}} \left(1+\tilde{\tth}_{r}\right)\left(\hat{\bb{W_i}}^{\top}\bb{A}^{(i)}\right)). \\
+	&= \left(1+\tilde{\tth}_{m-(i-1)r}\right)\left(1+\tilde{\tth}_{r}\right)\hat{\bb{Y_i}}\hat{\bb{W_i}}^{\top}\bb{A}^{(i)},\\
+	&= \left(1+\tilde{\tth}_{m-(i-2)r}\right)(\bb{Y_i} + \bb{\Delta Y_i})(\bb{W_i} + \bb{\Delta W_i})^{\top}\bb{A}^{(i)}.
+\end{align*}
+Using that $\bb{\Delta W_i}, \bb{\Delta Y_i}$ are both bounded componentwise by $\tilde{\gamma}_{m-(i-1)r}$ and that the subtraction only adds a $\dd$, we conclude with a componentwise bound
+\begin{equation}
+	\fl(\bb{A}^{(i)}) = \fl((\bb{I}-\hat{\bb{Y_i}}\hat{\bb{W_i}}^{\top})\bb{A}^{(i)}) = \bb{A}^{(i)} +\bb{\Delta A}^{(i)}, \;\; |\bb{\Delta A}^{(i)}|\leq \tilde{\gamma}_{m-(i-2)r} |\bb{\Delta A}^{(i)}|.
+\end{equation}
+The normwise bound can be easily computed. 
+
+Now let us convert these block-wise errors to a matrix norm bound. 
+Clearly, $\bb{C_N}$ goes through the most transformations: $N-1$ WY updates as well as a final HQR. 
+We use the error for this block as a blanket bound for the entire QR factorization, which is a similar approach to the error analysis for HQR in \cite{Higham2002}.
+Let $\bb{C_N}^{(i)}$ denote  $\bb{C_N}$ after $i$ WY updates. Then,
+\begin{equation*}
+	\fl(\bb{C_N}^{(N-1)}) =\prod_{i=N-1}^1 \left(\bb{I}-\hat{\bb{Y_{i}}}\hat{\bb{W_{i}}}^{\top}\right) \bb{C_N} = \bb{C_N}^{(N-1)} + \bb{\Delta C_N}^{(N-1)},
+\end{equation*}
+where 
+\begin{equation*}
+	|\bb{\Delta C_N}^{(N-1)}| = \left(\prod_{i=N-1}^1 (1+\tilde{\tth}_{m-(i-2)r})\right) |\bb{C_N}^{(N-1)}| = (1+\tth_{(N-1)(m+2r-rN/2)}) |\bb{C_N}^{(N-1)}|.
+\end{equation*}
+We use $rN \approx n$ to simplify the bound via $$ (N-1)(m+2r-rN/2) \approx N(m+2r-n/2) \approx N(m-n/2) +2n$$
+and conclude with $|\bb{\Delta C_N}^{(N-1)}|\leq \tilde{\gamma}_{N(m-n/2) +2n}|\bb{C_N}^{(N-1)}|$.
+This block then goes through a HQR, which adds rounding error as shown in \cref{thm:feHQR}. 
+Let $\bb{R_N}$ denote the $[(i-1)r+1:m, ri+1:n]$ block of the $\bb{R}$ factor computed via HQR. 
+Then the upper triangular components of $\fl(\bb{R_N})$ are bound by 
+\begin{equation*}
+	\fl(\bb{R_N}) = \bb{R_N} + \bb{\Delta R_N}, |\bb{\Delta R_N} |\leq \tilde{\gamma}_{N(m-n/2) +2n} |\bb{R_N}|.
+\end{equation*}
+
 
 \subsection{Block HQR with partitioned rows : Tall-and-Skinny QR (TSQR)}\label{sec:TSQR}
