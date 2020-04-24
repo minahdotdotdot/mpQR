@@ -437,14 +437,27 @@ where
 \begin{equation*}
 	|\bb{\Delta C_N}^{(N-1)}| = \left(\prod_{i=N-1}^1 (1+\tilde{\tth}_{m-(i-2)r})\right) |\bb{C_N}^{(N-1)}| = (1+\tth_{(N-1)(m+2r-rN/2)}) |\bb{C_N}^{(N-1)}|.
 \end{equation*}
-We use $rN \approx n$ to simplify the bound via $$ (N-1)(m+2r-rN/2) \approx N(m+2r-n/2) \approx N(m-n/2) +2n$$
+We use $rN \approx n$ to simplify the bound via $$ (N-1)(m+2r-rN/2) \approx N(m+2r-n/2) \approx N(m-n/2) +2n \leq mN+2n$$
 and conclude with $|\bb{\Delta C_N}^{(N-1)}|\leq \tilde{\gamma}_{N(m-n/2) +2n}|\bb{C_N}^{(N-1)}|$.
 This block then goes through a HQR, which adds rounding error as shown in \cref{thm:feHQR}. 
 Let $\bb{R_N}$ denote the $[(i-1)r+1:m, ri+1:n]$ block of the $\bb{R}$ factor computed via HQR. 
-Then the upper triangular components of $\fl(\bb{R_N})$ are bound by 
+Then the upper triangular elements of $\fl(\bb{R_N})$ are bounded by 
 \begin{equation*}
-	\fl(\bb{R_N}) = \bb{R_N} + \bb{\Delta R_N}, |\bb{\Delta R_N} |\leq \tilde{\gamma}_{N(m-n/2) +2n} |\bb{R_N}|.
+	\fl(\bb{R_N}) = \bb{R_N} + \bb{\Delta R_N}, |\bb{\Delta R_N} |\leq \tilde{\gamma}_{mN+2n} |\bb{R_N}|.
 \end{equation*}
-
-
+%Let us define $\bb{Q}_{BQR},\bb{R}_{BQR}$ to be the QR factorization of $\bb{A}$ computed by BQR with FLOPs.
+%Then, and the 2-norm errors for the columns of the $\bb{R}_{BQR}$ factor are also bounded above by $\tilde{\gamma}_{mN+2n}$, and we show the result for the $n^{th}$ column:
+%\begin{align*}
+%	\|\bb{R}_{BQR}[:,n]\|_2 &\leq \tilde{\gamma}_{mN+2n} \|\bb{R}[:,n]\|_2 \leq  \tilde{\gamma}_{mN+2n} \|\bb{A}[:,n]\|_2 ,
+%\end{align*}
+%since $\|\bb{R}[:,n]\|_2 =\|\bb{Q}^{\top}\bb{A}[:,n]\|_2 \leq \|\bb{A}[:,n]\|_2$.
+%
+%Furthermore, defining and $\bb{Q},\bb{R}$ to be the exact solution allows us to formulate the backward error via $\bb{\Delta Q}_{BQR}'$ in the following way:
+%\begin{align*}
+%	\bb{R}_{BQR} = \bb{R} + \bb{\Delta R}_{BQR} &= (\bb{Q} + \bb{\Delta Q}_{BQR}')\bb{A},\quad |\bb{\Delta R}_{BQR}| \leq \tilde{\gamma}_{N(m-n/2) +2n} |\bb{R}|
+%\end{align*}
+%\begin{equation*}
+%	\|\bb{\Delta R}_{BQR}\|_F =\tilde{\gamma}_{N(m-n/2)} \|\bb{R}\|_F =\tilde{\gamma}_{N(m-n/2)} \|\bb{Q}^{\top}\bb{A}\|_F \leq \tilde{\gamma}_{N(m-n/2)}\|\bb{A}\|_F
+%\end{equation*}
+%TODO: conclude
 \subsection{Block HQR with partitioned rows : Tall-and-Skinny QR (TSQR)}\label{sec:TSQR}
