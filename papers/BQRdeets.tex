@@ -1,0 +1,224 @@
+%Then, $$ \hat{\bb{Q_k}}^{(j)} =  \fl(\hat{\bb{Q_k}}^{(j-1)} \hat{\bb{P}}_{\bb{(k-1)r+j}})= \hat{\bb{Q_k}}^{(j-1)} (\hat{\bb{P}}_{\bb{(k-1)r+j}} +\bb{\Delta}\hat{\bb{P}}_{\bb{(k-1)r+j}}) = \hat{\bb{Q_k}}^{(j-1)}-\fl(\hat{\bb{z_k}}^{(j)})\hat{\bb{v_k}}^{(j)\top}.$$
+%%$$ \bb{I} - \hat{\bb{W_k}}^{(j)}\hat{\bb{Y_k}}^{(j)\top} = \bb{I} - \hat{\bb{W_k}}^{(j-1)}\hat{\bb{Y_k}}^{(j-1)\top}-\hat{\bb{z_k}}^{(j)\top}\hat{\bb{v_k}}^{(j)} = (\bb{I} - \hat{\bb{W_k}}^{(j-1)}\hat{\bb{Y_k}}^{(j-1)\top}) \hat{\bb{P}}_{\bb{(k-1)r+j}}$$
+%If we can bound $\bb{\Delta P}_{\bb{(k-1)r+j}}$ componentwise, we can use the arguments in the fashion of \cref{eqn:rPs,eqn:rPs-uniform} to quantify the errors accumulated from building the WY representation with the perturbed Householder vectors and constants that result from \cref{algo:hhQR}. 
+%
+%The only new quantities introduced in the WY representation is the $\bb{W_k}$ factor since $\bb{Y_k}$ is exactly $\bb{V_k}$. 
+%Therefore, we only consider  $\bb{z_k}^{(j)} = \beta_k^{(j)}\bb{Q_k}^{(j-1)}\bb{v_j}^{(k)}$.
+%We will form  $\tilde{\bb{z_k}}^{(j)} = \fl(\hat{\bb{z_k}}^{(j)})$, the floating point operation computation of $\hat{\bb{z_k}}^{(j)} = \hat{\beta}_k^{(j)}\hat{\bb{Q_k}}^{(j-1)}\hat{\bb{v_j}}^{(k)}$. 
+%For now, we assume that $\hat{\bb{Q_k}}^{(j)}$ is a slight perturbation of $\bb{Q_k}^{(j)}$ quantified by $|\bb{\Delta Q_k}^{(j)}|\leq d_1 |\bb{Q_k}^{(j)}|$, $d_1\ll 1$.
+%%Since the errors for each column of $\bb{Y_k}$ are represented in \cref{eqn:vbound}, we only need to consider the columns of $\bb{W_k}$, which are 
+%%$\bb{z_k}^{(j)} =\beta_k^{(j)}(\bb{I}-\bb{W_k}^{(j-1)}\bb{Y_k}^{(j-1)\top})\bb{v_k}^{(j)}$.
+%%An implementation of this computes
+%$$\tilde{\bb{z_k}}^{(j)}=\fl\left(\hat{\beta}_k^{(j)}\left(\hat{\bb{v_k}}^{(j)} - \hat{\bb{W_k}}^{(j-1)}\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)}\right)\right),$$
+%and we first study the computation of the intermediate term, $\hat{\bb{W_k}}^{(j-1)}(\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)})$.]
+%For simplicity, we assume $\hat{\bb{v_k}}^{(j)}$, $\hat{\bb{W_k}}^{(j)}$, and $\hat{\bb{Y_k}}^{(j)}$ all have $m-(k-1)r$ rows. 
+%The rounding error incurred in this step is a componentwise error that results from inner products of two different lengths, $m-(k-1)r$ and $j$:
+%\begin{align}
+%\fl(\hat{\bb{W_k}}^{(j-1)}(\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)})) &=
+%(\hat{\bb{W_k}}^{(j-1)}+\bb{\Delta}\tilde{\bb{W_{k}}})(\hat{\bb{Y_k}}^{(j-1)}+\bb{\Delta}\tilde{\bb{Y_{k}}})^{\top}\hat{\bb{v_k}}^{(j)} \\
+%&= \hat{\bb{W_k}}^{(j-1)}\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)} + \bb{\Delta d_2} := \tilde{\bb{w_k}} %(1+\tth_{m-(k-1)r})(1+\tth_{j})\hat{\bb{W_k}}^{(j-1)}(\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)}), \\ 
+%%&= (1+\tth_{m-(k-2)r})\hat{\bb{W_k}}^{(j-1)}(\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)}).\label{eqn:FLOPwy} \\
+%%&= \hat{\bb{W_k}}^{(j-1)}\hat{\bb{Y_k}}^{(j-1)\top}\left(\hat{\bb{v_k}}^{(j)}) + \bb{\Delta}\tilde{\bb{v_{k}}}\right),
+%\end{align}
+%where $|\bb{\Delta}\tilde{\bb{W_{k}}}| \leq \gamma_{r} |\hat{\bb{W_k}}^{(j-1)}|$ and $|\bb{\Delta}\tilde{\bb{Y_{k}}}| \leq \gamma_{m-(k-1)r} |\hat{\bb{W_k}}^{(j-1)}|$ since $j\leq r$, and $$|\bb{\Delta d_2}|\leq\gamma_{m-(k-2)r} |\hat{\bb{W_k}}^{(j-1)}||\tilde{\bb{Y_k}}{(j-1)\top}| |\hat{\bb{v_k}}^{(j)}|.$$
+%Then, 
+%\begin{align*}
+%\tilde{\bb{z_k}}^{(j)} &= (1+\dd) \hat{\beta}_k^{(j)}\left(\hat{\bb{v_k}}^{(j)} -\tilde{\bb{w_k}}+ \bb{\Delta d_2} \right),\;\; |\bb{\Delta d_3}| \leq u |\hat{\bb{v_k}}^{(j)} -\tilde{\bb{w_k}}| \\
+%%&=(1+\dd)\hat{\beta}_k^{(j)}\left(\hat{\bb{v_k}}^{(j)} -\hat{\bb{W_k}}^{(j-1)}\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)} - \bb{\Delta d_1} + \bb{\Delta d_3} \right).  
+%%\hat{\bb{W_k}}^{(j-1)}\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)} - \bb{\Delta}\tilde{\bb{w_{k}}}\right)
+%\end{align*}
+%Since $|- \bb{\Delta d_2} + \bb{\Delta d_3} |\leq u|\hat{\bb{v_k}}^{(j)}
+%| +\gamma_{m-(k-2)r} |\hat{\bb{W_k}}^{(j-1)}||\tilde{\bb{Y_k}}{(j-1)\top}| |\hat{\bb{v_k}}^{(j)}|$, we have
+%\begin{equation}
+%\tilde{\bb{z_k}}^{(j)} = \hat{\bb{z_k}}^{(j)} + \tilde{\Delta}\bb{z_k}^{(j)},\;\; |\tilde{\Delta}\bb{z_k}^{(j)}|\leq \tilde{\gamma}_{m-(k-2)r}|\hat{\bb{z_k}}^{(j)}|.
+%\end{equation}
+%
+%We can finally construct the outer product, $\tilde{\bb{z_k}}^{(j)}\hat{\bb{v_k}}^{(j)\top}$.
+%\begin{align*}
+%\fl(\tilde{\bb{z_k}}^{(j)}\hat{\bb{v_k}}^{(j)\top}) &= \tilde{\bb{z_k}}^{(j)}(\hat{\bb{v_k}}^{(j)} +\tilde{\Delta}\bb{v_k}^{(j)})^{\top}, \\
+%&= \bb{z_k}^{(j)}\bb{v_k}^{(j)\top} + (\tilde{\Delta}\bb{z_k}^{(j)} + \Delta\bb{z_k}^{(j)}) (\hat{\bb{v_k}}^{(j)} +\tilde{\Delta}\bb{v_k}^{(j)})^{\top},
+%\end{align*}
+%where $|\tilde{\Delta}\bb{v_k}^{(j)})|\leq u|\hat{\bb{v_k}}^{(j)}|$ and $|\Delta\bb{z_k}^{(j)}+\tilde{\Delta}\bb{z_k}^{(j)}| \leq (d_1+\tilde{\gamma}_{m-(k-2)r})|\bb{z_k}^{(j)}|$. 
+%Let 
+%\begin{align*}
+%\Delta \bb{D} &= \fl(\tilde{\bb{z_k}}^{(j)}\hat{\bb{v_k}}^{(j)\top}) - \bb{z_k}^{(j)}\bb{v_k}^{(j)\top}  \\
+%&= (\tilde{\Delta}\bb{z_k}^{(j)} + \Delta\bb{z_k}^{(j)}) (\bb{v_k}^{(j)} + \Delta\bb{v_k}^{(j)} +\tilde{\Delta}\bb{v_k}^{(j)})^{\top}.
+%\end{align*}
+%Since $|\bb{\Delta v_k}^{(j)}|\leq \tilde{\gamma}_{m-(k-1)r}|\bb{v_k}^{(j)}|$, $|\tilde{\Delta}\bb{v_k}^{(j)})+\bb{\Delta v_k}^{(j)}|\leq \tilde{\gamma}_{m-(k-1)r}|\bb{v_k}^{(j)}|$, and we can write 
+%$$|\bb{\Delta D}| \leq (\tilde{\gamma}_{m-(k-1)r}+\tilde{\gamma}_{m-(k-2)r}+d_1)|\bb{z_k}^{(j)}||\bb{v_k}^{(j)}|^{\top} = (\tilde{\gamma}_{m-(k-2)r}+d_1)|\bb{z_k}^{(j)}||\bb{v_k}^{(j)}|^{\top}.  $$
+
+
+
+
+
+
+
+
+
+% and form $$\hat{\bb{Q_k}}^{(j)} =  \fl(\hat{\bb{Q_k}}^{(j-1)} \hat{\bb{P}}_{\bb{(k-1)r+j}})= \hat{\bb{Q_k}}^{(j-1)} (\hat{\bb{P}}_{\bb{(k-1)r+j}} +\bb{\Delta}\hat{\bb{P}}_{\bb{(k-1)r+j}}) = \hat{\bb{Q_k}}^{(j-1)}-\hat{\bb{z_k}}^{(j)\top}\hat{\bb{v_k}}^{(j)} $$
+%
+%Therefore, the FLOPs alone from constructing $\fl(\hat{\bb{z_k}}^{(j)})$ with perturbed $\bb{W_k}^{(j-1)}$, $\bb{Y_k}^{(j-1)}$, and $\bb{v_k}^{(j)}$
+%Now we delve into how the errors from constructing the previous updates, $\hat{\bb{W_k}}^{(j-1)}$ and $\hat{\bb{Y_k}}^{(j-1)}$, are carried onto the current updates in exact arithmetic.
+%We compute
+%\begin{align*}
+%	\hat{\bb{W_k}}^{(j-1)}(\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)}) &= \sum_{j'=1}^{j-1} \hat{\bb{z_k}}^{(j')}\hat{\bb{v_k}}^{(j')\top}\hat{\bb{v_k}}^{(j)}, \\
+%	&= \sum_{j'=1}^{j-1} (\bb{z_k}^{(j')} + \bb{\Delta z_k}^{(j')})(\bb{v_k}^{(j')} + \bb{\Delta v_k}^{(j')})^{\top}(\bb{v_k}^{(j)} + \bb{\Delta v_k}^{(j)}), 
+%\end{align*}
+%where $|\bb{\Delta v_k}^{(j')}|\leq\tilde{\gamma}_{m-(k-1)r+j'}|\bb{v_k}^{(j')}|$ and $|\bb{\Delta v_k}^{(j)}|\leq\tilde{\gamma}_{m-(k-1)r+j}|\bb{v_k}^{(j)}|$.
+%Since $j' < j$, we use \cref{lem:up} and that $j<r$ to result in 
+%$$\hat{\bb{v_k}}^{(j')\top}\hat{\bb{v_k}}^{(j)} = \bb{v_k}^{(j')\top}\bb{v_k}^{(j)} + \Delta \bb{v_{k,j}},$$
+%where $|\Delta \bb{v_{k,j}}|\leq \tilde{\gamma}_{m-(k-2)r}|\bb{v_k}^{(j')}|^{\top}|\bb{v_k}^{(j)}|$.
+%Then, we are left only with the errors in $z_k^{(j')}$'s as shown below:
+%\begin{equation}
+%\hat{\bb{W_k}}^{(j-1)}(\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)}) = (1+\tilde{\tth}_{m-(k-2)r})\sum_{j'=1}^{j-1} (\bb{z_k}^{(j')} + \bb{\Delta z_k}^{(j')})\bb{v_k}^{(j')\top}\bb{v_k}^{(j)}.
+%\end{equation}
+%Since the rounding errors from FLOPs shown in \cref{eqn:FLOPwy} are of order only $\tilde{\tth}_{m-(k-1)r}$ and only 2 additional rounding errors are added from the multiplication of $\hat{\beta}_k^{(j)}$ and the vector subtraction, we can state 
+%\begin{equation}
+%\fl(\bb{z_k}^{(j)}) = (1+\tilde{\tth}_{m-(k-2)r})\beta_k^{(j)}\left(\bb{v_k}^{(j)} - \sum_{j'=1}^{j-1} (\bb{z_k}^{(j')} + \bb{\Delta z_k}^{(j')})\bb{v_k}^{(j')\top}\bb{v_k}^{(j)}\right)\label{eqn:recursiveZ}.
+%\end{equation}
+%The errors for $\bb{z_k}^{(j')}$'s remain, and we solve for these recursively.
+%Note that $\bb{z_k^{(1)}}$ only incurs a single rounding error since it is initialized with $\hat{\beta}_k^{(1)}\hat{\bb{v_k}}^{(1)}$.
+%That is, $$\hat{\bb{z_k}}^{(1)}=\bb{z_k}^{(1)}+\bb{\Delta z_k}^{(1)},\;\; |\bb{\Delta z_k^{(1)}}| \leq \tilde{\gamma}_{m-(k-1)r}|\bb{z_k^{(1)}}|,$$
+%accounting for $\Delta\beta_k^{(1)}$, $\bb{\Delta v_k}^{(1)}$, and the multiplication operation.
+%Using \cref{eqn:recursiveZ} for $j=2$ yields 
+%\begin{align}
+%\bb{z_k}^{(2)} +\bb{\Delta z_k}^{(2)}  &= (1+\tilde{\tth}_{m-(k-2)r})\beta_k^{(2)}\left(\bb{v_k}^{(2)} -  (\bb{z_k}^{(1)} + \bb{\Delta z_k}^{(1)})\bb{v_k}^{(1)\top}\bb{v_k}^{(2)}\right) \\
+%&=(1+\tilde{\tth}_{m-(k-2)r})(1+\tilde{\tth}_{m-(k-2)r})\bb{z_k}^{(2)},
+%\end{align}
+%where we do not consolidate the two $\tilde{\tth}_{m-(k-2)r}$'s into just one $\tilde{\tth}_{m-(k-2)r}$ under the small integer rule of the tilde notation, since we will continue this recursive relation. 
+%At $j=r$, we have 
+%\begin{equation}
+%\bb{z_k}^{(r)} +\bb{\Delta z_k}^{(r)}= (1+\tilde{\tth}_{m-(k-2)r})^r \bb{z_k}^{(r)}.
+%\end{equation}
+
+%For simplicity, we assume that the WY representation from the $j-1^{st}$ step is exact to account for only the error accrued in a single update.
+%Recall that the $j-1^{st}$ WY representation is
+% $$\hat{\bb{Q_k}}^{(j-1)}:=\bb{I}-\hat{\bb{W_k}}^{(j-1)}\hat{\bb{Y_k}}^{(j-1)}=\bb{P_{(k-1)r+1}}\cdots\bb{P_{(k-1)r+j-1}}.$$
+%Then, the new update in exact arithmetic is 
+%\begin{align*}
+%		\bb{I}-\left[\bb{W_k}^{(j)}\fl(\bb{z_k}^{(j)})\right] \left[\bb{Y_k}^{(j)} \hat{\bb{v_k}}^{(j)}\right]^{\top}  & = \bb{Q_k}^{(j-1)} - \fl(\bb{z_k}^{(j)})\hat{\bb{v_k}}^{(j)\top} \\ 
+%		&=\bb{Q_k}^{(j-1)}  - \fl(\beta^{(j)}\bb{Q_k}^{(j-1)} \hat{\bb{v_k}}^{(j)})\hat{\bb{v_k}}^{(j)\top},\\
+%		&=\bb{Q_k}^{(j-1)} (\bb{P_{(k-1)r+j}} + \Delta \bb{P_{(k-1)r+j}})
+%\end{align*}
+%which applies the Householder update to the right by applying a rank-1 update.
+%We adapt the single left Householder update presented in \cref{lem:19.2} for 
+%
+%Error accumulated from forming $\bb{v_k}^{(j)}$ is represented in \cref{eqn:vbound} and we only need to consider $\bb{z_k}^{(j)} =\beta_k^{(j)}(\bb{I}-\bb{W_k}^{(j-1)}\bb{Y_k}^{(j-1)})\bb{v_k}^{(j)}$, the $j^{th}$ update for $\bb{W}_k$.
+%We do this with induction.\\
+%\textbf{Base case: $j=1,2$}
+%Note that $\bb{z_k^{(1)}}$ only incurs a single rounding error since it is initialized with $\hat{\beta}_k^{(1)}\hat{\bb{v_k}}^{(1)}$.
+%That is, $$\fl(\bb{z_k}^{(1)}) = (1+\bm{\dd})\bb{z_k^{(1)}}.$$
+%Let us study $j=2$, the first nontrivial step.
+%\begin{align*}
+%	\fl(\bb{z_k}^{(2)}) &= \fl(\hat{\beta}_k^{(2)}(\bb{I}-\bb{W_k}^{(1)}\bb{Y_k}^{(1)})\hat{\bb{v_k}}^{(2)})  \\
+%	&= (1+\bm{\dd})\beta_k^{(1)} \left(\hat{\bb{v_k}}^{(2)} - \hat{\bb{z_k}}^{(1)}\bb{v_k}^{(1)\top}\hat{\bb{v_k}}^{(2)}\right)
+%\end{align*}
+%This is exactly how we apply a single Householder transformation as shown in \cref{eqn:applyP} as $\bb{z_k}^{(1)} = \hat{\beta}_k^{(1)}\hat{\bb{v_k}}^{(1)}$. 
+%Since $\bb{v_k}^{(1)}\in\R^{m-(k-1)r}$, we conclude with $$\fl(\bb{z_k}^{(2)}) = (1+\tilde{\bm{\tth}}_{m-(k-1)r})\bb{z_k}^{(2)}.$$
+%
+%\textbf{Induction step:} Suppose that $\hat{\bb{z_k}}^{(j')} = \bb{z_k}^{(j')} +\Delta \bb{z_k}^{(j')}$ for $j'=1,\cdots,j-1$ where $|\Delta \bb{z_k}^{(j')}|\leq \tilde{\gamma}_{m_{k,j'}}|\bb{z_k}^{(j')}|$ for some $m_{k,j'}\leq m-(k-1)r$.
+%Let's first consider $\fl(\bb{W_k}^{(j-1)}(\bb{Y_k}^{(j-1)\top}\bb{v_k}^{(j)}))$.
+%This ordering indicates that every element of the resulting vector is a result of two inner products, where the first is of length $j-1$, and the second is of length $(m-(k-1)r)$.
+%Then, 
+%\begin{align*}
+%	\fl\left(\hat{\bb{W_k}}^{(j-1)}(\hat{\bb{Y_k}}^{(j-1)\top}\hat{\bb{v_k}}^{(j)})\right) &=(1+\tth_{m-(k-1)r})(1+\tth_{j-1})\sum_{j'=1}^{j-1}\hat{\bb{z_k}}^{(j')}\hat{\bb{v_k}}^{(j')\top}\hat{\bb{v_k}}^{(j)},\\
+%	&=(1+\tilde{\tth}_{m-(k-1)r})\sum_{j'=1}^{j-1}\hat{\bb{z_k}}^{(j')}\hat{\bb{v_k}}^{(j')\top}\hat{\bb{v_k}}^{(j)}\\
+%	&= (1+\tilde{\tth}_{m-(k-1)r})\sum_{j'=1}^{j-1}(1+\tilde{\bm{\tth}}_{m_{k,j'}})\bb{z_k}^{(j')}\hat{\bb{v_k}}^{(j')\top}\hat{\bb{v_k}}^{(j)} \\
+%	& = (1+\tilde{\tth}_{m-(k-1)r})\sum_{j'=1}^{j-1}\bb{z_k}^{(j')}\hat{\bb{v_k}}^{(j')\top}\hat{\bb{v_k}}^{(j)} \\
+%\end{align*}
+%%TODO: add vector theta to notation and explain before. 
+%
+%We first consider the errors accumulated from computing $\fl(\bb{W_k}^{(\tilde{j})}\bb{Y_k}^{(\tilde{j})}\bb{x})$.
+%\begin{equation}
+%	\fl(\bb{W_k}^{(\tilde{j})}\bb{Y_k}^{(\tilde{j})}\bb{x}) = \sum_{j = 1}^{\tilde{j}}\bb{z_k}^{(j)}\bb{v_k}^{(j)\top}\bb{x}
+%\end{equation}
+%
+%We use these two essential facts:
+%\begin{enumerate}
+%	\item The WY update shown in \cref{algo:buildWY} applies Householder transformations using the effective implementation of the rank-1 update.\\ Let us write $\bb{I}-\bb{W_k}^{(\tilde{j})}\bb{Y_k}^{(\tilde{j})\top}:=\bb{P_{(k-1)r+1}}\cdots\bb{P_{(k-1)r+\tilde{j}}}$.
+%	\begin{align*}
+%		\bb{I}-\bb{W_k}^{(j)}\bb{Y_k}^{(j)\top} & = \bb{I}-\bb{W_k}^{(j-1)}\bb{Y_k}^{(j-1)\top} - \bb{z_k}^{(j)}\bb{v_k}^{(j)\top} \\ 
+%		&=\bb{I}-\bb{W_k}^{(j-1)}\bb{Y_k}^{(j-1)\top} - (\beta^{(j)}(\bb{I}-\bb{W_k}^{(j-1)}\bb{Y_k}^{(j-1)\top})\bb{v_k}^{(j)})\bb{v_k}^{(j)\top}\\
+%		&=(\bb{I}-\bb{W_k}^{(j-1)}\bb{Y_k}^{(j-1)\top})(\bb{I}-\beta_k^{(j)}\bb{v_k}^{(j)}\bb{v_k}^{(j)}\top)\\
+%		&=\bb{P_{(k-1)r+1}}\cdots\bb{P_{(k-1)r+j-1}}\bb{P_{(k-1)r+j}}
+%	\end{align*}
+%\end{enumerate}
+%Note that $(\bb{I}-\bb{W_k}^{(j-1)}\bb{Y_k}^{(j-1)})\bb{v_k}^{(j)} = \bb{P_{r(k-1)+1}}\cdots\bb{P_{r(k-1)+j-1}}$, and we can use lemma 3.7 of \cite{Higham2002} once again. 
+%
+%
+%In general, we can write
+%\begin{equation*}
+%\bb{z}_k^{(j)} + \bb{\Delta z}_k^{(j)} = \fl\left((\beta_k^{(j)} +\Delta \beta_k^{(j)})\left( \hat{\bb{v_k}}^{(j)} - (\bb{W_k}^{(j-1)} + \bb{\Delta W_k}^{(j-1)})(\bb{Y_k}^{(j-1)}+\bb{\Delta Y_k}^{(j-1)})^{\top}\hat{\bb{v_k}}^{(j)}\right)\right), 
+%\end{equation*}
+%where $\hat{\bb{v}}_k^{(j)}$ is expressed in \cref{eqn:vbound}, $\Delta \beta_k^{(j)}$ in \cref{eqn:beta3}, and $\bb{\Delta W}^{(j)}$ and $\bb{\Delta Y}^{(j)}$ each represent the error accumulated from the previous steps. 
+%%Since $\bb{Y_k} = \bb{V_k}$, $\Delta \bb{Y_k}[:,j] = \Delta \bb{v_k}^{(j)}$.
+%% backward rounding errors from $m-(k-1)r$-length and $j$-length dot products.
+%First consider $\bb{W}^{(j-1)}\bb{Y}^{(j-1)\top}\bb{v}^{(j)}$ where we left-multiply the matrices.
+%In uniform precision, this yields
+%\begin{align}
+%	\fl(\hat{\bb{W}}^{(j-1)}\hat{\bb{Y}}^{(j-1)\top}\hat{\bb{v}}^{(j)})&= (1+\tilde{\tth}_{m-(k-1)r})(1+\tilde{\tth}_{j})\hat{\bb{W}}^{(j-1)}\hat{\bb{Y}}^{(j-1)\top}\hat{\bb{v}}^{(j)} \label{eqn:WYgen}\\
+%	&= (1+\tilde{\tth}_{j+m-(k-1)r})\hat{\bb{W}}^{(j-1)}\hat{\bb{Y}}^{(j-1)\top}(\bb{v}^{(j)} +\bb{\Delta v}^{(j)}).
+%\end{align}
+%The subtraction and the multiplication by $\beta$ only add in $\dd$ each to the errors, so we simplify via $j+m-(k-1)r+2 \approx m-rk$ since $j\leq r$.
+%Since $|\bb{\Delta v}| \leq \tilde{\gamma}_{m-(k-1)r}|\bb{v}|$ in uniform precision and has a slightly larger bound, we increase the approximation to $m-(r-1)k$.
+%Thus, we result in
+%\begin{align*}
+%	\fl(\bb{z}^{(j+1)}) &= (1+\tilde{\tth}_{m-(r-1)k})\bb{z}^{(j+1)},
+%\end{align*}
+%and the final update, $\hat{\bb{W}} = [\hat{\bb{z}}^{(1)} \cdots \hat{\bb{z}}^{(r)} ]$, is bound componentwise and normwise via
+%\begin{equation*}
+%	\fl(\bb{W}) = \bb{W} + \bb{\Delta W},\;\; |\bb{\Delta W}| \leq \tilde{\gamma}_{m-(r-1)k}|\bb{W}|, \|\bb{\Delta W}\|_F\leq \tilde{\gamma}_{m-(r-1)k} \|\bb{W}\|_F.
+%\end{equation*}
+%In section \cref{sec:mpanalysis}, we will modify \cref{eqn:WYgen} so that $\tilde{\tth}_{m-(k-1)r}$ and $\tilde{\tth}_{j}$ are replaced by mixed-precision inner product error bounds for vectors of length $m-(k-1)r$ and $j$.
+%\paragraph{Update blocks to the right: line 6 of \cref{algo:blockHQR}}
+%The WY representation from the $i^{th}$ block, $\bb{C_i}$, is applied to $[\bb{C_{i+1}} \cdots \bb{C_N}]$.
+%An efficient implementation will utilize that the top $(i-1)r$ rows are left alone.
+%% and therefore the block that is transformed is actually $\bb{A}[(i-1)r+1:m, ri+1:n]$, an  $(m-(i-1)r)$-by-$(n-ri)$ matrix. 
+%Let us refer this block as $\bb{A}^{(i)}:=\bb{A}[(i-1)r+1:m, ri+1:n]$ and $\bb{W_i}$ and $\bb{Y_i}$ are the WY representation of the Householder transformation for $\bb{C_i}$.
+%%The computed WY factors, $\hat{\bb{W_i}} = \bb{W_i} + \bb{\Delta W_i}$ and $\hat{\bb{Y_i}} = \bb{Y_i} + \bb{\Delta Y_i}$, have perturbations bounded componentwise by $\tilde{\gamma}_{m-(i-1)r}$.
+%The two matrix-matrix multiplication operations incur errors from $m-(i-2)r$ and $r$ length inner products as shown below.
+%\begin{align*}
+%	\fl\left(\hat{\bb{Y_i}} \fl\left(\hat{\bb{W_i}}^{\top}\bb{A}^{(i)}\right)\right) &= \fl(\hat{\bb{Y_i}} \left(1+\tilde{\tth}_{r}\right)\left(\hat{\bb{W_i}}^{\top}\bb{A}^{(i)}\right)). \\
+%	&= \left(1+\tilde{\tth}_{m-(i-1)r}\right)\left(1+\tilde{\tth}_{r}\right)\hat{\bb{Y_i}}\hat{\bb{W_i}}^{\top}\bb{A}^{(i)},\\
+%	&= \left(1+\tilde{\tth}_{m-(i-2)r}\right)(\bb{Y_i} + \bb{\Delta Y_i})(\bb{W_i} + \bb{\Delta W_i})^{\top}\bb{A}^{(i)}.
+%\end{align*}
+%Using that $\bb{\Delta W_i}, \bb{\Delta Y_i}$ are both bounded componentwise by $\tilde{\gamma}_{m-(i-1)r}$ and that the subtraction only adds a $\dd$, we conclude with a componentwise bound
+%\begin{equation}
+%	\fl(\bb{A}^{(i)}) = \fl((\bb{I}-\hat{\bb{Y_i}}\hat{\bb{W_i}}^{\top})\bb{A}^{(i)}) = \bb{A}^{(i)} +\bb{\Delta A}^{(i)}, \;\; |\bb{\Delta A}^{(i)}|\leq \tilde{\gamma}_{m-(i-2)r} |\bb{\Delta A}^{(i)}|.
+%\end{equation}
+%The normwise bound can be easily computed. 
+%
+%Now let us convert these block-wise errors to a matrix norm bound. 
+%Clearly, $\bb{C_N}$ goes through the most transformations: $N-1$ WY updates as well as a final HQR. 
+%We use the error for this block as a blanket bound for the entire QR factorization, which is a similar approach to the error analysis for HQR in \cite{Higham2002}.
+%Let $\bb{C_N}^{(i)}$ denote  $\bb{C_N}$ after $i$ WY updates. Then,
+%\begin{equation*}
+%	\fl(\bb{C_N}^{(N-1)}) =\prod_{i=N-1}^1 \left(\bb{I}-\hat{\bb{Y_{i}}}\hat{\bb{W_{i}}}^{\top}\right) \bb{C_N} = \bb{C_N}^{(N-1)} + \bb{\Delta C_N}^{(N-1)},
+%\end{equation*}
+%where 
+%\begin{equation*}
+%	|\bb{\Delta C_N}^{(N-1)}| = \left(\prod_{i=N-1}^1 (1+\tilde{\tth}_{m-(i-2)r})\right) |\bb{C_N}^{(N-1)}| = (1+\tth_{(N-1)(m+2r-rN/2)}) |\bb{C_N}^{(N-1)}|.
+%\end{equation*}
+%We use $rN \approx n$ to simplify the bound via $$ (N-1)(m+2r-rN/2) \approx N(m+2r-n/2) \approx N(m+2r) +2n \leq mN+2n$$
+%and conclude with $|\bb{\Delta C_N}^{(N-1)}|\leq \tilde{\gamma}_{N(m-n/2) +2n}|\bb{C_N}^{(N-1)}|$.
+%This block then goes through a HQR, which adds rounding error as shown in \cref{thm:feHQR}. 
+%Let $\bb{R_N}$ denote the $[(i-1)r+1:m, ri+1:n]$ block of the $\bb{R}$ factor computed via HQR. 
+%Then the upper triangular elements of $\fl(\bb{R_N})$ are bounded by 
+%\begin{equation*}
+%	\fl(\bb{R_N}) = \bb{R_N} + \bb{\Delta R_N}, |\bb{\Delta R_N} |\leq \tilde{\gamma}_{mN+2n} |\bb{R_N}|.
+%\end{equation*}
+%Let us define $\bb{Q}_{BQR},\bb{R}_{BQR}$ to be the QR factorization of $\bb{A}$ computed by BQR with FLOPs.
+%Then, and the 2-norm errors for the columns of the $\bb{R}_{BQR}$ factor are also bounded above by $\tilde{\gamma}_{mN+2n}$, and we show the result for the $n^{th}$ column:
+%\begin{align*}
+%	\|\bb{R}_{BQR}[:,n]\|_2 &\leq \tilde{\gamma}_{mN+2n} \|\bb{R}[:,n]\|_2 \leq  \tilde{\gamma}_{mN+2n} \|\bb{A}[:,n]\|_2 ,
+%\end{align*}
+%since $\|\bb{R}[:,n]\|_2 =\|\bb{Q}^{\top}\bb{A}[:,n]\|_2 \leq \|\bb{A}[:,n]\|_2$.
+%
+%Furthermore, defining and $\bb{Q},\bb{R}$ to be the exact solution allows us to formulate the backward error via $\bb{\Delta Q}_{BQR}'$ in the following way:
+%\begin{align*}
+%	\bb{R}_{BQR} = \bb{R} + \bb{\Delta R}_{BQR} &= (\bb{Q} + \bb{\Delta Q}_{BQR}')\bb{A},\quad |\bb{\Delta R}_{BQR}| \leq \tilde{\gamma}_{N(m-n/2) +2n} |\bb{R}|
+%\end{align*}
+%\begin{equation*}
+%	\|\bb{\Delta R}_{BQR}\|_F =\tilde{\gamma}_{N(m-n/2)} \|\bb{R}\|_F =\tilde{\gamma}_{N(m-n/2)} \|\bb{Q}^{\top}\bb{A}\|_F \leq \tilde{\gamma}_{N(m-n/2)}\|\bb{A}\|_F
+%\end{equation*}
+%TODO: conclude
