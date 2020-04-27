@@ -1,0 +1,121 @@
+\subsection{Block HQR with partitioned rows : Tall-and-Skinny QR (TSQR)}\label{sec:TSQR}
+Some important problems that require QR factorizations of overdetermined systems include least squares problems, eigenvalue problems, low rank approximations, as well as other matrix decompositions.
+Although Tall-and-Skinny QR (TSQR) broadly refers to block QR factorization methods with row partitions, we will discuss a specific variant of TSQR which is also known as the AllReduce algorithm \cite{Mori2012}.
+In this paper, the TSQR/AllReduce algorithm refers to the most parallel variant of the block QR factorization algorithms discussed in \cite{Demmel2012}.
+A detailed description and rounding error analysis of this algorithm can be found in \cite{Mori2012}, and we present a pseudocode for the algorithm in \cref{algo:par_tsqr}.
+Our initial interest in this algorithm came from its parallelizable nature, which is particularly suitable to implementation on GPUs. 
+Additionally, our numerical simulations (discussed in \cref{sec:NE}) show that TSQR can not only increase the speed but also outperform the traditional HQR factorization in low precisions.
+\subsubsection{TSQR/AllReduce Algorithm}
+\Cref{algo:par_tsqr} partitions the rows of a tall-and-skinny matrix, $\bb{A}$. 
+HQR is performed on each of those blocks and pairs of $\bb{R}$ factors are combined to form the next set of $\bb{A}$ matrices to be QR factorized. 
+This process is repeated until only a single $\bb{R}$ factor remains, and the $\bb{Q}$ factor is built from all of the Householder constants and vectors stored at each level.
+The most gains from parallelization can be made in the initial level where the maximum number of independent HQR factorizations occur. 
+Although more than one configuration of this algorithm may be available for a given tall-and-skinny matrix, the number of nodes available and the shape of the matrix eliminate some of those choices. 
+For example, a 1600-by-100 matrix can be partitioned into 2, 4, 8, or 16 initial row-blocks but may be restricted by a machine with only 4 nodes, and a 1600-by-700 matrix can only be partitioned into 2 initial blocks.
+Our numerical experiments show that the choice in the initial partition, which directly relates to the recursion depth of TSQR, has an impact in the accuracy of the QR factorization. \par
+
+We refer to \emph{level} as the number of recursions in a particular TSQR implementation. 
+An $L$-level TSQR algorithm partitions the original matrix into $2^L$ submatrices in the initial or $0^{th}$ level of the algorithm, and $2^{L-i}$ QR factorizations are performed in level $i$ for $i = 1 , \cdots, L$. 
+The set of matrices that are QR factorized at each level $i$ are called $\bb{A}_j^{(i)}$ for $j = 1, \cdots, 2^{L-i}$, where superscript $(i)$ corresponds to the level and the subscript $j$ indexes the row-blocks within level $i$.
+In the following sections, \cref{algo:par_tsqr} ({\tt tsqr}) will find a TSQR factorization of a matrix $A\in\R^{m\times n}$ where $m \gg n$. 
+The inline function {\tt qr} refers to \cref{algo:hhQR} and we use \cref{algo:hh_v2} as a subroutine of {\tt qr}.
+
+\paragraph{TSQR Notation}
+We introduce new notation due to the multi-level nature of the TSQR algorithm.
+In the final task of constructing $\bb{Q}$, $\bb{Q}_j^{(i)}$ factors are aggregated from each block at each level.
+Each $\bb{Q}_j^{(i)}$ factor from level $i$ is partitioned such that two corresponding $\bb{Q}^{(i-1)}$ factors from level $i-1$ can be applied to them. 
+The partition (approximately) splits $\bb{Q}_{j}^{(i)}$ into two halves, $[\tilde{\bb{Q}}_{j, 1}^{(i)\top} \tilde{\bb{Q}}_{j, 2}^{(i)\top}]^{\top}$.
+The functions $\alpha(j)$ and $\phi(j)$ are defined such that $\bb{Q}_j^{(i)}$ is applied to the correct blocks from the level below: $\tilde{\bb{Q}}_{\alpha(j), \phi(j)}^{(i+1)}$.
+For $j = 1 , \cdots, 2^{L-i}$ at level $i$, we need $j = 2(\alpha(j)-1) + \phi(j)$, where $\alpha(j) = \lceil \frac{j}{2}\rceil$ and $\phi(j) = 2 + j - 2\alpha(j) \in\{1,2\}$.
+\cref{Qdetails} shows full linear algebra details for a single-level ($L=1$, $2$ initial blocks) example.
+The reconstruction of $\bb{Q}$ can be implemented more efficiently (see \cite{BDGJNS2014}), but the reconstruction method in \cref{algo:par_tsqr} is presented for a clear, straightforward explanation.
+\subsubsection{Single-level Example}
+\label{Qdetails}
+In the single-level version of this algorithm, we first bisect $\bb{A}$  into $\bb{A}_1^{(0)}$ and $\bb{A}_2^{(0)}$ and compute the QR factorization of each of those submatrices.
+We combine the resulting upper-triangular matrices (see below)
+% , i.e.,  \(\bb{A}_{1}^{(1)} =\begin{bmatrix}
+%\bb{R}_{1}^{(0)}\\ 
+%\bb{R}_{2}^{(0)} 
+%\end{bmatrix},\)   
+which is QR factorized, and the process is repeated:
+\[
+\bb{A} = \begin{bmatrix}
+\bb{A}_1^{(0)}\\
+\bb{A}_2^{(0)}
+\end{bmatrix} = \begin{bmatrix}
+\bb{Q}_1^{(0)}\bb{R}_1^{(0)}\\
+\bb{Q}_2^{(0)}\bb{R}_2^{(0)}
+\end{bmatrix} = \begin{bmatrix}
+\bb{Q}_1^{(0)} & \bb{0}\\
+\bb{0} & \bb{Q}_2^{(0)}
+\end{bmatrix} \begin{bmatrix}
+\bb{R}_1^{(0)} \\
+\bb{R}_2^{(0)}
+\end{bmatrix} =\begin{bmatrix}
+\bb{Q}_1^{(0)} & \bb{0}\\
+\bb{0} & \bb{Q}_2^{(0)}
+\end{bmatrix} \bb{A}_1^{(1)} =\begin{bmatrix}
+\bb{Q}_1^{(0)} & \bb{0}\\
+\bb{0} & \bb{Q}_2^{(0)}
+\end{bmatrix} \bb{Q}_1^{(1)}\bb{R}.
+\] 
+The $\bb{R}$ factor of $\bb{A}_1^{(1)}$ is the final $\bb{R}$ factor of the QR factorization of the original matrix, $\bb{A}$. 
+However, the final $\bb{Q}$ still needs to be constructed.
+Bisecting  $\bb{Q}_1^{(1)}$ into two submatrices, i.e. $\tilde{\bb{Q}}_{1,1}^{(1)}$ and $\tilde{\bb{Q}}_{1,2}^{(1)}$, allows us to write and compute the product more compactly,  \[
+\bb{Q}:=\begin{bmatrix}
+\bb{Q}_1^{(0)} & \bb{0}\\
+\bb{0} & \bb{Q}_2^{(0)}
+\end{bmatrix} \bb{Q}_1^{(1)} =    \begin{bmatrix}
+\bb{Q}_1^{(0)} & \bb{0}\\
+\bb{0} & \bb{Q}_2^{(0)}
+\end{bmatrix} \begin{bmatrix}
+\tilde{\bb{Q}}_{1,1}^{(1)}\\
+\tilde{\bb{Q}}_{1,2}^{(1)}
+\end{bmatrix}= \begin{bmatrix}
+\bb{Q}_1^{(0)}\tilde{\bb{Q}}_{1,1}^{(1)} \\ 
+\bb{Q}_2^{(0)}\tilde{\bb{Q}}_{1,2}^{(1)}
+\end{bmatrix}. \]
+More generally, \cref{algo:par_tsqr} takes a tall-and-skinny matrix $\bb{A}$ and level $L$ and finds a QR factorization by initially partitioning $\bb{A}$ into $2^L$ row-blocks and includes the building of $\bb{Q}$.
+For simplicity, we assume that $m$ is exactly $h2^L$ so that the initial partition yields $2^L$ blocks of equal sizes, $h$-by-$n$. 
+Also, note that {\tt hh\_mult} refers to the action of applying multiple Householder transformations given a set of Householder vectors and constants, which can be performed by iterating line 6 of \cref{algo:hhQR}.
+This step can be done in a level-3 BLAS operation via a WY update if \cref{algo:par_tsqr} was modified to store the WY representation at the QR factorization of each block of each level, $\bb{A}_j^{(i)}$. 
+
+\subsubsection{TSQR: Rounding Error Analysis}
+\label{sec:TSQRre}
+The TSQR algorithm presented in \cref{algo:par_tsqr} is a divide-and-conquer strategy for the QR factorization that uses the HQR within the subproblems. 
+Divide-and-conquer methods can naturally be implemented in parallel and accumulate less rounding errors.
+For example, the single-level TSQR decomposition of a tall-and-skinny matrix, $\bb{A}$ requires 3 total HQRs of matrices of sizes $\lfloor\log_{2}(\frac{m}{n})\rfloor$-by-$n$, $\lceil\log_{2}(\frac{m}{n})\rceil$-by-$n$, and $2n$-by-$n$.
+The single-level TSQR strictly uses more FLOPs, but the dot product subroutines may accumulate smaller rounding errors (and certainly have smaller upper bounds) since they are performed on shorter vectors, and lead to a more accurate solution overall.
+These concepts are elucidated in \cite{Mori2012}, where the rounding error analysis of TSQR is shown in detail in \cite{Mori2012}.
+We summarize the main results from \cite{Mori2012} in \cref{thm:moriTSQR}.
+
+\input{TSQRALGO}
+
+\begin{theorem}
+	\label{thm:moriTSQR}
+	Let $\bb{A}\in\R^{m\times n}$ with $m\geq n$ have full rank, $n$, and $\hat{\bb{Q}}\in\R^{m\times n}$ and $\hat{\bb{R}}\in\R^{n\times n}$ be the thin QR factors of $\bb{A}$ obtained via \cref{algo:par_tsqr}. 
+	Then we have normwise forward error bounds
+	\begin{align*}
+	\hat{\bb{A}} = \bb{A} +\bb{\Delta A} &=  \bb{Q}(\bb{R} + \bb{\Delta R}),\\
+	\hat{\bb{Q}} &= \bb{Q} + \bb{\Delta Q},
+	\end{align*}
+	where
+	\begin{align}
+	\|\bb{\Delta R}\|_F, \|\bb{\Delta A}\|_F &\leq \left[n\tilde{\gamma}_{ \frac{m}{2^L}}+(1+n\tilde{\gamma}_{ \frac{m}{2^L}})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right]\|\bb{A}\|_F, \text{ and} \label{eqn:tsqrRA}\\
+	\|\bb{\Delta Q}\|_F &\leq \sqrt{n}\left[(1+n\tilde{\gamma}_{ \frac{m}{2^L}})(1+n\tilde{\gamma}_{ 2n})^L -1\right].\label{eqn:tsqrQ}
+	%& \leq \left[n\tilde{\gamma}_{ \frac{m}{2^L}}+(1+n\tilde{\gamma}_{ \frac{m}{2^L}})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right]\|\bb{A}\|_F,\label{eqn:tsqrA}
+	\end{align}
+	Furthermore, if we assume $n\tilde{\gamma}_{ \frac{m}{2^L}}, n\tilde{\gamma}_{ 2n} \ll 1$, the coefficient for $\|\bb{A}\|_F$ in \cref{eqn:tsqrRA} can be approximated as
+	\begin{equation}
+	\left[n\tilde{\gamma}_{ \frac{m}{2^L}}+(1+n\tilde{\gamma}_{ \frac{m}{2^L}})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right] \simeq n\tilde{\gamma}_{ \frac{m}{2^L}} + Ln\tilde{\gamma}_{ 2n}, %(46) in Mori
+	\end{equation}
+	and the right hand side of \cref{eqn:tsqrQ} can be approximated as
+	\begin{equation}
+	\sqrt{n}\left[(1+n\tilde{\gamma}_{ \frac{m}{2^L}})(1+n\tilde{\gamma}_{ 2n})^L -1\right]\simeq \sqrt{n}\left(n\tilde{\gamma}_{ \frac{m}{2^L}} + Ln\tilde{\gamma}_{ 2n}\right). %(67) in Mori
+	\end{equation}
+	We can also form a backward error, where $\bb{A}+\bb{\Delta \bb{A}_{\text{TSQR}}} = \hat{\bb{Q}}\hat{\bb{R}}$, and both $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via \cref{algo:par_tsqr}.
+	Then,
+	\begin{equation}
+	\|\bb{\Delta \bb{A}_{\text{TSQR}}}\|_F =\|\bb{Q \Delta R} + \bb{\Delta Q}\hat{\bb{R}}\|_F \simeq \sqrt{n}\left(n\tilde{\gamma}_{ \frac{m}{2^L}} + Ln\tilde{\gamma}_{ 2n}\right)\|\bb{A}\|_F.
+	\end{equation}
+\end{theorem}

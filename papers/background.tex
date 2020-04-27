@@ -13,50 +13,7 @@ The above formulation is a \emph{full} QR factorization, whereas a more efficien
 If $\bb{A}$ is full rank then the columns of $\bb{Q}_{1}$ are orthonormal (i.e. $\bb{Q}_{1}^{\top}\bb{Q}_{1}=\bb{I}_{n\times n}$) and $\bb{R}_1$ is upper triangular.
 In many applications, computing the \emph{thin} decomposition requires less computation and is sufficient in performance. 
 While important definitions are stated explicitly in the text, Table~\ref{table:notation} serves to establish basic notation.
-\begin{table}[H]
-	\centering
-	%\begin{tabular}{|m{3cm}|m{9cm}|c|}
-	\begin{tabular}{|m{1.7cm}|m{10.3cm}|c|}
-		\hline
-		%DONE: change table have the following 3 columns, add sections
-		Symbol(s) & Definition(s) & Section(s) \\ \hline
-		${\bb x}$, ${\bb A}$  & Vector, matrix  & \ref{sec:background} \\
-		%	${\bb A}$ & Matrix & \ref{sec:intro}\\
-		%$m$, $n$ & Number of rows, columns of matrix, or length of vector&  \ref{sec:intro}\\
-		%$i$, $j$ & Row, column index of matrix or vector & \ref{sec:HQRfA} \\
-		%$\|{\bf x}\|_2$, $\|\bb{A}\|_2$ & Vector operator 2-norm & \ref{sec:HQRf}\\
-		%$|c|$, $|\bb{x}|$ ,$|\bb{A}|$ & Absolute value of constant, all elements of vector, matrix & \ref{sec:HQRf} \\
-		%$\bb{x}_i$, $\hat{e}_i$  & $i^{th}$ element of vector $\bb{x}$, cardinal vector &  \ref{sec:HQRfA}, \ref{sec:HQRf}\\
-		%$\bb{A}[a:b, c:d]$ &Rows $a$ to $b$ and columns $c$ to $d$ of matrix $\bb{A}$ & \ref{sec:HQRfA}\\
-		%$\bb{A}[a:b,:]$, $\bb{A}[:,c:d]$ & Rows $a$ to $b$, columns $c$ to $d$ of matrix $\bb{A}$& \ref{sec:HQRfA}\\
-		\hline
-		$\bb{Q}$  & Orthogonal factor $\bb{A}\in\R^{m\times n}$: $m$-by-$m$ (full) or $m$-by-$n$ (thin)  & \ref{sec:background}\\
-		$\bb{R}$ & Upper triangular or trapezoidal factor of $\bb{A}\in\R^{m\times n}$:  $m$-by-$n$ (full) or $n$-by-$n$ (thin)  &  \ref{sec:background}\\ 
-		%$\bb{A}^{(k)}$ & Matrix $\bb{A}$ after $k$ Householder transformations. &\ref{sec:HQRfA}\\
-		\hline
-		$\fl(\bb{x})$, $\hat{\bb{x}}$ & Quantity $\bb{x}$ calculated from floating point operations & \ref{sec:backgroundRE} \\
-		$b$, $t$, $\mu$, $\eta$  & Base/precision/mantissa/exponent bits & \ref{sec:backgroundRE} \\
-		%\tt{Inf} & Values outside the range of representable numbers & \ref{sssec:NormalizeHV} \\ %https://www.doc.ic.ac.uk/~eedwards/compsys/float/nan.html
-		$k$ & Number of successive FLOPs &  \ref{sec:backgroundRE}\\
-		$u^q$ & Unit round-off for precision $t_q$ and base $b_q$: $\frac{1}{2}b_q^{1-t_q}$ & \ref{sec:backgroundRE} \\ 
-		$\dd^{q}$ &Quantity bounded by: $|\dd^{q}| < u^q$ &  \ref{sec:backgroundRE} \\
-		$\gamma^{q}_{k}$,  $\tth^{q}_{k}$& $\frac{ku^q}{1-ku^q}$, Quantity bounded by: $|\tth^{q}_{k}|\leq\gamma^q_{k}$ &  \ref{sec:backgroundRE} \\
-		%$\tth_{q}^{(k)}$ & Quantity bounded by: $|\tth_{q}^{(k)}|\leq\gamma_q^{(k)}$ &  \ref{sec:FPREA} \\ 
-		\hline
-			%$\bb{0}_{m\times n}$, $\bb{I}_{n}$ & $m$-by-$n$ zero matrix, $n$-by-$n$ identity  matrix &  \ref{sec:intro}\\
-		%$\bb{I}_{n} & $n$-by-$n$ identity  matrix  & \ref{sec:HQRfA} \\
-		%$\bb{I}_{m\times n}$ & $[\bb{I}_{n} \quad \bb{0}_{n \times (m-n)}]^{\top}$ & \ref{sec:TSQR}\\ \hline
-		%$\bb{P}_{\bb{v}}$, $\bb{P}_i$ & Householder transformation define by $\bb{v}$, $i^{th}$ Householder transformation in HQR& \ref{sec:HQRfA}\\
-		%$\bb{P}_i$ & $i^{th}$ Householder transformation in the HQR algorithm & \ref{sec:HQRfA} \\ 
-		\hline		
-		%$u^h, u^l, u_w$ & Unit round-off for sum, product, and storage (write) & \ref{ssec:IP}\\ 
-		%		$\gamma_{p,q}^{(k_l,k_q)}$ & $(1+\gamma_p^{(k_l)})(1+\gamma_q^{(k_q)})-1$ & \ref{ssec:IP}\\
-		%		$\tth_{p,q}^{(k_l,k_q)}$ & Quantity bounded by: $|\tth_{p,q}^{(k_l,k_q)}|<\gamma_{p,q}^{(k_l,k_q)}$ & \ref{ssec:IP}\\
-		\hline
-	\end{tabular}
-	\caption{Basic definitions}
-	\label{table:notation}
-\end{table}
+\input{deftable}
 \Cref{sec:backgroundRE} introduces basic concepts for rounding error analysis, and \Cref{sec:backgroundIP} exemplifies the need for mixed-precision rounding error analysis using the inner product.
 \subsection{Basic rounding error analysis of floating point operations}\label{sec:backgroundRE}
 We use and analyze the IEEE 754 Standard floating point number systems.
@@ -213,10 +170,6 @@ These relations aid in writing clear and simpler error analyses.
 Regardless of the specific details of a mixed-precision setting, a rounding error analysis for mixed-precision arithmetic must support at least two different precision types. 
 Thus, \cref{lem:mp} allows low and high precision types and is a simple modification of \cref{lem:up}.
 The rules for $\tth$ allows us to keep track of the two precision types separately and the rules we present for $\gamma$ were chosen to be useful for casting down to the lower of the two precisions, a pertinent procedure in our mixed-precision analysis in the later sections. 
-%In Lemma~\ref{lem:mp}, we present modified versions of the rules in Lemma~\ref{lem:up}.
-%This mixed-precision error analysis relies on the framework given by Lemma~\ref{lem:gamma}, which best allows us to keep a simple analysis. 
-%The modifications support multiple precision types, whereas Lemma \ref{lem:up} assumes that the same precision is used in all operations. 
-%We distinguish between the different precision types using subscripts--- these types include products ($p$), sums ($s$), and storage formats ($w$).
 
 \begin{lemma}
 	\label{lem:up}
