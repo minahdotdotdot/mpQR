@@ -386,12 +386,13 @@ This discrepancy is easily fixed by padding the matrix with zeros, a standard pr
 Consider the $k^{th}$ block, $\bb{C}_k$. 
 We first apply \Cref{algo:hhQR} to rows $k:m$, which is equivalent to $r$ Householder transformations of size $m-(r-1)k$ if $k < N$ and $n-r(i-1)$ Householder transformations of size $m-(N-1)k$ if $k=N$. 
 The general rounding error incurred is represented by \cref{eqn:rPs} and a uniform-precision rounding error for this step is shown in \cref{eqn:rPs-uniform}.
-Let $\bb{R_k}$ be the $\bb{R}$ factor acquired from applying HQR on $\bb{C}_k$ : $ \hat{\bb{R_k}} = \bb{Q}^{\top} (\bb{C_k} + \bb{\Delta C_k}), $ where $\bb{\Delta C_k}$ represent the backward error incurred in this step. 
-Then, applying \cref{lem:19.3} to the $j^{th}$ column of $\bb{C_k}$ yields 
-\begin{equation*}
-	\|\bb{\Delta C}_k[:,j]\|_2 = \leq j\tilde{\gamma}_{m-(k-1)r} \|\bb{ C}_k[:,j]\|_2.
-\end{equation*}
-We can similarly apply \cref{thm:feHQR} for block-wise norm errors. 
+A 2-norm bound for $\bb{C_k}$ can be adapted from \cref{thm:feHQR} as well.
+%Let $\bb{R_k}$ be the $\bb{R}$ factor acquired from applying HQR on $\bb{C}_k$ : $ \hat{\bb{R_k}} = \bb{Q}^{\top} (\bb{C_k} + \bb{\Delta C_k}), $ where $\bb{\Delta C_k}$ represent the backward error incurred in this step. 
+%Then, applying \cref{lem:19.3} to the $j^{th}$ column of $\bb{C_k}$ yields 
+%\begin{equation*}
+%	\|\bb{\Delta C}_k[:,j]\|_2 = \leq j\tilde{\gamma}_{m-(k-1)r} \|\bb{ C}_k[:,j]\|_2.
+%\end{equation*}
+%We can similarly apply \cref{thm:feHQR} for block-wise norm errors. 
 %Adjusting \cref{eqn:deltQ} for $k<N$ yields
 %\begin{equation}
 %\|\Delta \bb{Q'}\|_2\leq \|\Delta \bb{Q'}\|_F = \|\Delta \bb{Q'}^{\top}\|_F\leq r \tilde{\gamma}_{m-(i-1)k} \label{eqn:deltQBQR}
@@ -427,7 +428,62 @@ Therefore, we apply \cref{eqn:19.3} directly for the construction of $\bb{z_k}^{
 \end{lemma}
 Most importantly, this shows that constructing the WY update is just as numerically stable as applying successive Householder transformations (see Section 19.5 of \cite{Higham2002}).
 \paragraph{Update blocks to the right: line 6 of \cref{algo:blockHQR}}
-Since the WY representation is built with high numerical stability, the we only need to consider the FLOPs of applying $\bb{I}-\bb{W_kY_k}^{\top}$ to the blocks to the right, $[\bb{C_{k+1}} \cdots \bb{C_N}]$.
+We now consider applying $\bb{I}-\bb{W_kY_k}^{\top}$ to the bottom right submatrix, $\bb{B}:=[\bb{C_{k+1}}\cdots \bb{C_N}][(k-1)r+1:m,:]$.
+In practice, this step is performed with a level-3 BLAS operation. 
+Regardless, let us analyze the column-wise backward error for the $j^{th}$ column of $\bb{B}$, $\bb{b_j}$.
+\begin{align*}
+	%\fl(\hat{\bb{Y_k}}^{\top}\bb{b}) &= (\hat{\bb{Y_k}} + \tilde{\Delta} \bb{Y_k})^{\top}\bb{b},\\
+	\fl(\bb{b_j} - \fl(\hat{\bb{W_k}}\fl(\hat{\bb{Y_k}}^{\top}\bb{b}))) & =(1+\dd)(\bb{b_j} - (\hat{\bb{W_k}} + \tilde{\Delta} \bb{W_k}) (\hat{\bb{Y_k}} + \tilde{\Delta} \bb{Y_k})^{\top}\bb{b_j}),
+\end{align*}
+where $\tilde{\Delta} \bb{W_k}$ and $\tilde{\Delta} \bb{Y_k}$ each represent the backward error for a matrix-vector multiply with inner products of lengths $m-(k-1)r$ and $r$ in level-3 BLAS operations.
+If we let $|\tilde{\Delta} \bb{W_k}| \leq \tilde{\gamma}_{W}|\hat{\bb{W_k}}|$ and $|\tilde{\Delta} \bb{Y_k}| \leq \tilde{\gamma}_{Y}|\hat{\bb{Y_k}}|$, then we have 
+\begin{equation*}
+	|\fl(\hat{\bb{Q_k}}\bb{b_j}) - \bb{Qb_j}| \leq \tilde{\gamma}_{W} \left(|\bb{b_j}|+|\hat{\bb{W_k}}||\hat{\bb{Y_k}}|^{\top}|\bb{b_j}|\right),
+\end{equation*}
+where I have used that $\bb{W_k}$ accrues additional rounding errors compared to $\bb{Y_k}$.
+Note that we implicitly covered the same step of applying an WY update in the construction of $\bb{z_k}^{(j)}$, but used \cref{lem:19.3} instead. 
+Now, we leave this error in a general form to allow for different mixed-precision settings in \cref{sec:mpanalysis}.
+As a result of introducing generality, we conclude with a bound formed with little rigor: $$\fl(\hat{\bb{Q_k}}\bb{b_j}) = (\bb{Q_k} + \bb{\Delta Q_k})\bb{b_j}, \;\; |\bb{\Delta Q_k}| \lessapprox \tilde{\gamma}_{W}.$$
 
+A general normwise bound for this step is stated in section 19.5 of \cite{Higham2002}.
+% is stated in \cref{lem:WYnorm}.
+%\begin{lemma}\label{lem:WYnorm}
+%	Consider applying the WY transformation of \cref{lem:WY} to a matrix $\bb{B}\in\R^{m\times n-r}$ as would be done at the first iteration of line 6 in \cref{algo:blockHQR}.
+%	The WY factors $\hat{\bb{W}},\hat{\bb{Y}}\in\R^{m\times r}$ formed via \cref{algo:buildWY} are slight perturbations of their exact arithmetic variants.
+%	Suppose that 
+%	\begin{equation*}
+%	\hat{\bb{Q}}:=\fl(\bb{I}-\hat{\bb{W}}\hat{\bb{Y}}^{\top}) = \bb{U} + \bb{\Delta U},\quad
+%		\hat{\bb{W}} = \bb{W} + \bb{\Delta W},\quad
+%		\hat{\bb{W}} = \bb{Y} + \bb{\Delta Y},
+%	\end{equation*}
+%	where $\bb{U}$ is orthogonal and 
+%	\begin{equation*}
+%		\|\bb{\Delta U}\|_2 \leq ud_1, \quad
+%		\|\bb{\Delta W}\|_2  \leq d_2, \quad
+%		\|\bb{\Delta Y}\|_2 \leq d_3.
+%	\end{equation*}
+%	Finally, we denote the rounding errors incurred from a level-3 BLAS matrix-matrix multiplication of matrices of sizes $p$-by-$t$ and $t$-by-$q$ to be represented by a function, $c(p,t,q)$.
+%	Then, 
+%	\begin{align}
+%		\|\fl(\hat{\bb{Q}}\bb{B}) - \bb{QB}\|_2 \leq u\left[1+d_1+d_2d_3\left(1+c(m,r,n-r)+c(r,m,n-r)\right)\right] \|\bb{B}\|_2 + \cO(u^2).
+%	\end{align}
+%\end{lemma}
 
+\paragraph{Multiple WY updates: line 8-9 of \cref{algo:blockHQR}}
+All that remains is to consider the application of successive WY updates to form the QR factorization computed with BQR denoted as $\bb{Q}_{BQR}$ and $\bb{R}_{BQR}$. 
+Using Lemma 3.7 of \cite{Higham2002} again as we showed in \cref{eqn:rPs,eqn:rPs-uniform}, consider applying $N$ WY updates to a vector, $\bb{b}$. 
+In practice, we would replace with $\bb{b}$ with $\hat{e}_i$'s for $i=1:n,m$ to form the $\bb{Q}$ factor, and with $\bb{A}[:,i]$ to form the $\bb{R}$ factor for $i=1:n$. 
+We define the backward error as $\fl(\bb{Q}_{BQR}\bb{b}) = (\bb{Q} + \bb{\Delta Q'}_{BQR}) \bb{b}$.
+Then, this backward error is quantified via
+\begin{align}
+\bb{\Delta Q'}_{BQR} &:= \prod_{k=N}^{1}\left(\bb{Q_k} +\bb{\Delta Q_k}\right) - \prod_{k=N}^{1}\bb{Q_k} ,\\
+%\|\bb{\Delta Q}'^{\top}\|_F &= \left|\left| \prod_{k=1}^{N}\left(\bb{Q}_k +\bb{\Delta P}_i\right) - \prod_{i=r}^{1}\bb{P}_i \right|\right|_F,\\
+\|\bb{\Delta Q'}_{BQR}\| & \leq r\sum_{k=N}^1 \tilde{\gamma}_{\bb{W_k}} \label{eqn:BQR-mp}\\
+&\leq r\sum_{k=N}^1 \tilde{\gamma}_{m-(k-1)r} \leq rN\tilde{\gamma}_m \equiv n\tilde{\gamma}_m \label{eqn:BQR}.
+\end{align}
+
+We showed earlier in this section that HQR performed on $\bb{C_k}$ accrues componentwise error of order $\tilde{\gamma}_{m-(k-1)r}$ by applying \cref{thm:feHQR}, and the building of the W factor, $r\tilde{\gamma}_{m-(k-1)r}$ order error.
+Both of these are clearly small in comparison to the error from applying many WY transformations, so we attribute the leading order error to this last step shown in \cref{eqn:BQR}.
+The primary goal of the analysis presented in this section is to make the generalization to mixed-precision settings in \cref{sec:mpanalysis} easier, and \cite{golub2013matrix,Higham2002} should be conferred to for the full analysis.
+ 
 \subsection{Block HQR with partitioned rows : Tall-and-Skinny QR (TSQR)}\label{sec:TSQR}
