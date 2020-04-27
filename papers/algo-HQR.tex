@@ -2,7 +2,7 @@
 The HQR algorithm uses Householder transformations to zero out elements below the diagonal of a matrix (see \cite{Householder1958}). 
 We present this as zeroing out all but the first element of some vector, $\bb{x}\in\R^m$.
 \begin{lemma}
-	Given vector $\bb{x}\in\R^{m}$, there exist Householder vector, $\bb{v}$, and Householder transformation matrix, $\bb{P}_{\bb{v}}$, such that $\bb{P}_{\bb{v}}$ zeros out $\bb{x}$ below the first element. 
+	Given vector $\bb{x}\in\R^{m}$, there exist Householder vector, $\bb{v}$, and |Householder transformation matrix, $\bb{P}_{\bb{v}}$, such that $\bb{P}_{\bb{v}}$ zeros out $\bb{x}$ below the first element. 
 	\begin{equation}
 	\begin{alignedat}{3} 
 	\sigma =& -\rm{sign}(\bb{x}_1)\|\bb{x}\|_2, &&\quad  \bb{v} = \bb{x} -\sigma \hat{e_1},\\
@@ -136,7 +136,10 @@ This is the most crucial building block of the rounding error analysis for any v
 In this section, we only consider a level-2 BLAS implementation of applying the Householder transformation, but in \cref{sec:BQR} we introduce a level-3 BLAS implementation.\par
 
 A Householder transformation is applied through a series of inner and outer products, since Householder matrices are rank-1 updates of the identity. 
-That is, computing  $\bb{P}_{\bb{v}}\bb{x}$ for any $\bb{x}\in\R^{m}$ is as simple as computing $\bb{y}:=\bb{x} - (\beta \bb{v}^{\top}\bb{x})\bb{v}$.
+That is, computing  $\bb{P}_{\bb{v}}\bb{x}$ for any $\bb{x}\in\R^{m}$ is as simple as computing 
+\begin{equation}
+	\bb{y}:=\bb{x} - (\beta \bb{v}^{\top}\bb{x})\bb{v}.\label{eqn:effH}
+\end{equation}
 Let us assume that $\bb{x}$ is an exact vector and there were errors incurred in forming $\bb{v}$ and $\beta$. 
 The errors incurred from computing $\bb{v}$ and $\beta$ need to be included in addition to the new rounding errors accumulating from the action of applying $\bb{P}_{\bb{v}}$ to a column.
 In practice, $\bb{x}$ would be a column in $\bb{A}^{(i-1)}[i+1:m, i+1:n]$, where the superscript $(i-1)$ indicates that this submatrix of $\bb{A}$ has already been transformed by $i-1$ Householder transformations that zeroed out components below $\bb{A}_{j,j}$ for $j = 1:i-1$.
@@ -152,30 +155,15 @@ Then,
 where $\tth_{m-i+1}$ is from computing the inner product $\hat{\bb{v}}^{\top}\bb{x}$, and $\dd$ and $\tilde{\dd}$ are from multiplying $\beta$, $\fl(\hat{\bb{v}}^{\top}\bb{x})$, and $\bb{\hat{v}}$ together. 
 Finally, we can add in the vector subtraction operation and complete the rounding error analysis of applying a Householder transformation to any vector:
 \begin{equation}
-\fl(\bb{x}-\bb{\hat{w}}) = (1+\dd)(\bb{x}-\bb{w}-\bb{\Delta w}) = (1+\tilde{\tth}_{m-i+1})\bb{y}.\label{eqn:applyP}
+\fl(\hat{\bb{P_v}}\bb{x}) = \fl(\bb{x}-\bb{\hat{w}}) = (1+\dd)(\bb{x}-\bb{w}-\bb{\Delta w}) = \bb{y} + \bb{\Delta y},\label{eqn:applyP}
 \end{equation}
-We can easily switch between forward and errors from \cref{eqn:applyP} via
-\begin{equation*}
-	\bb{y}+\bb{\Delta y} = (1+\tilde{\tth}_{m-i+1})\bb{y} = (1+\tilde{\tth}_{m-i+1})\bb{P_vx} =  (\bb{P_v} +\bb{\Delta P_v})\bb{x},
-\end{equation*}
-where $|\bb{\Delta y}|\leq \tilde{\gamma}_{m-i+1}|\bb{y}|$ and  $|\bb{\Delta P_v}|\leq \tilde{\gamma}_{m-i+1}|\bb{P_v}|$.\par
-
-Even though we never explicitly form $\bb{P_v}$, forming the normwise error bound for this matrix makes the analysis for HQR simpler.
-Therefore, we now transition from componentwise error to matrix norm errors: the 2-norm and the Frobenius norm. 
-
-First, we transition from componentwise forward error to the 2-norm forward error via 
+where $|\bb{\Delta y}| \leq u|\bb{x}| + \tilde{\gamma}_{m-i+1} |\beta||\bb{v}||\bb{v}|^{\top}|\bb{x}|$.
+Using $\sqrt{2/\beta} = \|\bb{v}\|_2$, we can conclude 
 \begin{equation}
-\label{eqn:19.2b}
-\|\bb{\Delta y}\|_2 = \left(\sum_{i=1}^m \bb{\Delta y}_i^2\right)^{1/2} \leq \left((\tilde{\gamma}_{m-i+1})^2\sum_{i=1}^m |\bb{y}_i|^2\right)^{1/2} =  \tilde{\gamma}_{m-i+1}\|\bb{y}\|_2. 
-\end{equation}
-In exact arithmetic, we are guaranteed $\|\bb{y}\|_2 = \|\bb{P_v x}\|_2 \leq \|\bb{P}\|_2 \|\bb{x}\|_2 = \|\bb{x}\|_2$
-since $\bb{P_v}$ is orthogonal and preserves norms.
-Combining this with \cref{eqn:19.2b} we find 
-\begin{equation}
-\frac{\|\bb{\Delta y}\|_2}{\|\bb{x}\|_2} \leq \tilde{\gamma}_{m-i+1}. \label{eqn:19.2c}
-\end{equation}
-Now we convert this to a normwise backward error.
-Since $\bb{\Delta P}$ is exactly $\frac{1}{\bb{x}^{\top}\bb{x}}\bb{\Delta y}\bb{x}^{\top}$, we can compute its Frobenius norm by using $\bb{\Delta P}_{ij} = \frac{1}{\|\bb{x}\|_2^2}\bb{\Delta y}_i\bb{x}_j$,
+\|\bb{\Delta y}\|_2 \leq \tilde{\gamma}_{m-i+1}\|\bb{x}\|_2. \label{eqn:19.2c}
+\end{equation} 
+Next, we convert this to a backward error for $\bb{P_v}$.
+Since $\bb{\Delta P_v}$ is exactly $\frac{1}{\bb{x}^{\top}\bb{x}}\bb{\Delta y}\bb{x}^{\top}$, we can compute its Frobenius norm by using $\bb{\Delta P}_{ij} = \frac{1}{\|\bb{x}\|_2^2}\bb{\Delta y}_i\bb{x}_j$,
 	\begin{equation*}
 	\|\bb{\Delta P}\|_F
 	= \left(\sum_{i=1}^m\sum_{j=1}^m\left(\frac{1}{\|\bb{x}\|_2^2}\bb{\Delta y}_i\bb{x}_j\right)^2\right)^{1/2}
@@ -187,86 +175,82 @@ We summarize these results in \cref{lem:19.2}.
 	\label{lem:19.2}
 	Let $\bb{x}\in\R^m$ and consider the computation of $\hat{\bb{y}}=\fl(\bb{P_vx})$ via 
 	\begin{equation*}
-		\bb{y}+\bb{\Delta y} = \fl(\bb{P_v}\bb{x}) = \fl(\bb{x}-\hat{\beta}\hat{\bb{v}}\hat{\bb{v}}^{\top}\bb{x})
+		\bb{y}+\bb{\Delta y} = (\bb{P_v} + \bb{\Delta P_v})\bb{x} =\fl(\bb{P_v}\bb{x}) = \fl(\bb{x}-\hat{\beta}\hat{\bb{v}}\hat{\bb{v}}^{\top}\bb{x})
 	\end{equation*}
-	and rounding errors incurred in forming $\hat{\bb{v}}$ and $\hat{\beta}$ are expressed componentwise via $\hat{\bb{v}} = \bb{v}+\Delta \bb{v}$ and $\hat{\beta} = \beta + \Delta \beta.$
-	Let us write the componentwise forward error bound as $|\bb{\Delta y}|\leq \gamma_y|\bb{y}|$.
-	Then, the normwise forward and backward errors are 
-	\begin{equation*}
-		\|\Delta \bb{y}\|_2 \leq \gamma_y\|\bb{y}\|_2,\;\; \|\bb{P_v}\|_F \leq \gamma_y.
-	\end{equation*}
-	Note that in a uniform precision setting this bound is represented as $\gamma_y = \tilde{\gamma}_{m}$, where the majority of the round-off errors are attributed to inner product computations for forming $\hat{\beta}$ and $\bb{v}$.
+	and rounding errors incurred in forming $\hat{\bb{v}}$ and $\hat{\beta}$ are expressed componentwise via $\hat{\bb{v}} = \bb{v}+\Delta \bb{v}$ and $\hat{\beta} = \beta + \Delta \beta$ where the relative componentwise errors for both are bounded by quantity $\gamma_y$:  
+	\begin{equation}
+		|\Delta \bb{v}| \leq \gamma_y|\bb{v}|,\qquad |\Delta \beta| \leq\gamma_y |\beta|.
+	\end{equation}
+	Then, the normwise forward and backward errors are $\|\Delta \bb{y}\|_2 \leq \gamma_y\|\bb{y}\|_2$ and $ \|\bb{\Delta P_v}\|_F \leq \gamma_y.$
 \end{lemma}
+Note that in a uniform precision setting this bound is represented as $\gamma_y = \tilde{\gamma}_{m}$. 
 \paragraph{Applying many successive Householder transformations}
 Consider applying a sequence of transformations in the set $\{\bb{P_i}\}_{i=1}^r\subset\R^{m\times m}$ to $\bb{x}\in\R^m$, where $\bb{P_i}$'s are all Householder transformations computed with $\tilde{\bb{v_i}}$'s and $\hat{\beta_i}$'s.
 This is directly applicable to HQR as $\bb{Q}=\bb{P_1}\cdots\bb{P_n}\bb{I}$ and $\bb{R} = \bb{Q}^{\top}\bb{A} = \bb{P_n}\cdots\bb{P_1}\bb{A}$.
-Let us define $$\bb{Q}+\bb{\Delta Q'}\equiv \prod_{i=1}^{r}\left(\bb{P}_i +\bb{\Delta P}_i\right)$$ in the context of applying this matrix to a vector, $\bb{x}\in\R^m$ , where $\bb{\Delta Q'}^{\top}$ represents the backward error of forming $\bb{R}$, instead of the forward error of the $\bb{Q}$ factor. 
-The forward error for $\bb{Q}$ is denoted as $\bb{\Delta Q} \equiv \fl(\bb{Q})-\bb{Q}$ where $\fl(\bb{Q})$ is formed via HQR.
-That is, if $\bb{y} = \bb{Q}^{\top}\bb{x}$, then $\fl(\bb{y}) = \bb{y}+ \bb{\Delta y} = (\bb{Q}+\bb{\Delta Q'})^{\top}\bb{x}$.
-Even though an efficient implementation would use that $\bb{P_i}$'s are applied to successively shorter vectors ($\bb{P_i}$ is left multiplied to $\bb{A}[i:m,i+1:n]$, which is equivalent to $n-i$ vectors of length $m-i+1$), we assume $\{\bb{P_i}\}_{i=1}^r\subset\R^{m\times m}$ to allow for a simpler analysis while forming a looser bound. 
-We will now use Lemma 3.7 from \cite{Higham2002} to bound $\bb{\Delta Q}'$ with the Frobenius norm.
-\begin{align}
-\|\bb{\Delta Q}'^{\top}\|_F &= \left|\left| \prod_{r=1}^{1}\left(\bb{P}_i +\bb{\Delta P}_i\right) - \prod_{i=r}^{1}\bb{P}_i \right|\right|_F,\label{eqn:rPs}\\
-&\leq \left(\prod_{i=1}^r(1+\tilde{\gamma}_m)-1\right)\prod_{i=r}^1\|\bb{P}_i\|_2 = (1+\tilde{\gamma}_m)^r-1. \label{eqn:rPs-uniform}
-\end{align}
-%The last equality results from the orthogonality of Householder matrices, and we further reduce the last term.
-%Generalizing the last rule in Lemma~\ref{lem:up} yields
-%\begin{equation*}
-%(1+\tilde{\gamma}_m)^r = (1+\tilde{\gamma}_m)^{r-2}(1+\tilde{\gamma}_m)(1+\tilde{\gamma}_m) \leq  (1+\tilde{\gamma}_m)^{r-2}(1+\tilde{\gamma}_{2m}) \leq \cdots \leq (1+\tilde{\gamma}_{rm}).
-%\end{equation*}
-%Now we will use the following equivalent algebraic inequalities to get the final result.
-%\begin{equation}
-%0<a<b<1 \Leftrightarrow 1-a > 1-b \Leftrightarrow \frac{1}{1-a} <\frac{1}{1-b} \Leftrightarrow \frac{a}{1-a} < \frac{b}{1-b}
-%\label{eqn:algebra}
-%\end{equation}
-%In addition, we assume $r\tilde{\gamma}_m< \frac{1}{2}$, such that 
-%\begin{align}
-%(1+\tilde{\gamma}_m)^r-1 &\leq \gamma_w^{(r\tilde{z})} = \frac{r\tilde{z}u_w}{1-r\tilde{z}u_w}\qquad\text{(by definition)}\\
-%&\leq \frac{r\tilde{\gamma}_m}{1-r\tilde{\gamma}_m},\text{ since } r\tilde{z}u_w < r\tilde{\gamma}_m\qquad\text{(by Equation \ref{eqn:algebra})}\\
-%&\leq 2 r \tilde{\gamma}_m\qquad\text{(since $r\tilde{\gamma}_m< \frac{1}{2}$ implies  $\frac{1}{1-r\tilde{\gamma}_m} < 2$)}\\
-%&= r\tilde{\gamma}_m, \label{eqn:algebra2}
-%\end{align}
-
-While we omit the details here, we can show that $(1+\tilde{\gamma}_m)^r-1 \leq r\tilde{\gamma}_m$ and state \cref{lem:19.3} (see \cite{Higham2002}).
-\begin{lemma}\label{lem:19.3}
-	Consider the sequence of transformations $\bb{A}_{k+1} = \bb{P}_k\bb{A}_k$ for $k=1,\cdots,r$, where $\bb{A}_1 = \bb{A}\in\R^{m\times n}$ and	$\bb{P}_k$'s are Householder transformations constructed from $\hat{\beta}_k$ and $\hat{\bb{v_k}}$.
-	These Householder vectors and constants are computed via \cref{algo:hh_v2} and the rounding errors are bounded by \cref{eqn:beta3,eqn:vbound}.
-	The computed matrix $\hat{\bb{A}}_{r+1}$ satisfies $$\hat{\bb{A}}_{r+1} \leq \bb{Q}^{\top} (\bb{A} +\bb{\Delta A})$$ where $\bb{Q}^{\top}=\bb{P_r}\cdots\bb{P_1}$ and 
-	\begin{equation}
-	\|\bb{\Delta A}[:,j]\|_2 \leq r\tilde{\gamma}_m\|\bb{A}[:,j]\|_2 \label{eqn:19.3}
-	\end{equation}
-	for all columns, $j=1,\cdots,n$
+\Cref{lem:3.7} is very useful for any sequence of transformations, where each transformation has a known bound.
+We will invoke this lemma to prove \cref{lem:19.3}, and use it in future sections for other sequential transformations.
+\begin{lemma}\label{lem:3.7}
+	If $\bb{X_j} + \bb{\Delta X_j} \in\R^{m\times m}$ satisfies $\|\bb{\Delta X_j}\|_F\leq \dd_j \|\bb{X_j}\|_2$ for all $j$, then $$\left|\left|\prod_{j=1}^n (\bb{X_j} + \bb{\Delta X_j})- \prod_{j=1}^n\bb{X_j} \right|\right|_F\leq\left(-1+\prod_{j=1}^n(1+\dd_j)\right)\prod_{j=1}^n\|\bb{X_j}\|_2.$$
 \end{lemma}
 
-%\begin{equation}
-%	 \|\Delta \bb{Q'}\|_2\leq \|\Delta \bb{Q'}\|_F = \|\Delta \bb{Q'}^{\top}\|_F\leq r \tilde{\gamma}_{m} \label{eqn:deltQ}
-%\end{equation}
+%Let us define $$\bb{Q}+\bb{\Delta Q'}\equiv \prod_{i=1}^{r}\left(\bb{P}_i +\bb{\Delta P}_i\right)$$ in the context of applying this matrix to a vector, $\bb{x}\in\R^m$ , where $\bb{\Delta Q'}^{\top}$ represents the backward error of forming $\bb{R}$, instead of the forward error of the $\bb{Q}$ factor. 
+%The forward error for $\bb{Q}$ is denoted as $\bb{\Delta Q} \equiv \fl(\bb{Q})-\bb{Q}$ where $\fl(\bb{Q})$ is formed via HQR.
+%That is, if $\bb{y} = \bb{Q}^{\top}\bb{x}$, then $\fl(\bb{y}) = \bb{y}+ \bb{\Delta y} = (\bb{Q}+\bb{\Delta Q'})^{\top}\bb{x}$.
+%Even though an efficient implementation would use that $\bb{P_i}$'s are applied to successively shorter vectors ($\bb{P_i}$ is left multiplied to $\bb{A}[i:m,i+1:n]$, which is equivalent to $n-i$ vectors of length $m-i+1$), we assume $\{\bb{P_i}\}_{i=1}^r\subset\R^{m\times m}$ to allow for a simpler analysis while forming a looser bound. 
+%We will now use Lemma 3.7 from \cite{Higham2002} to bound $\bb{\Delta Q}'$ with the Frobenius norm.
+%\begin{align}
+%\|\bb{\Delta Q}'^{\top}\|_F &= \left|\left| \prod_{r=1}^{1}\left(\bb{P}_i +\bb{\Delta P}_i\right) - \prod_{i=r}^{1}\bb{P}_i \right|\right|_F,\label{eqn:rPs}\\
+%&\leq \left(\prod_{i=1}^r(1+\tilde{\gamma}_m)-1\right)\prod_{i=r}^1\|\bb{P}_i\|_2 = (1+\tilde{\gamma}_m)^r-1. \label{eqn:rPs-uniform}
+%\end{align}
+%While we omit the details here, we can show that $(1+\tilde{\gamma}_m)^r-1 \leq r\tilde{\gamma}_m$ using the argument for \cref{lem:gamma} if $r\tilde{\gamma}_m \leq 1/2$ .
+%\Cref{lem:19.3}
+\begin{lemma}\label{lem:19.3}
+	Consider applying a sequence of transformations $\bb{Q}=\bb{P_r}\cdots\bb{P_2P_1}$ onto vector $\bb{x}\in\R^m$ to form $\hat{\bb{y}} =\fl(\hat{\bb{P_r}}\cdots\hat{\bb{P_2}}\hat{\bb{P_1}}\bb{x}),$
+	%$\bb{x}_{k+1} = \bb{P}_k\bb{x}_k$ for $k=1,\cdots,r$, where $\bb{x}_1 = \bb{x}\in\R^{m}$
+	where $\hat{\bb{P_k}}$'s are Householder transformations constructed from $\hat{\beta}_k$ and $\hat{\bb{v_k}}$.
+	These Householder vectors and constants are computed via \cref{algo:hh_v2} and the rounding errors are bounded by \cref{eqn:beta3,eqn:vbound}.
+	If each transformation is computed via \cref{eqn:effH}, then
+	\begin{align}
+	\hat{\bb{y}} &= \bb{Q} (\bb{x} +\bb{\Delta x}) = (\bb{Q} + \bb{\Delta Q})\bb{x},\\
+	\|\bb{\Delta y}\|_2 &\leq r\tilde{\gamma}_m\|\bb{x}\|_2,\;\; \|\bb{\Delta Q}\|_F\leq r\tilde{\gamma}_m .\label{eqn:19.3}
+	\end{align}
+\end{lemma}
+\begin{proof}
+	Applying \cref{lem:3.7} directly to $\bb{Q}$ yields
+	\begin{align*}
+		\|\hat{\bb{Q}}-\bb{Q}\|_F &= \left|\left|\prod_{j=1}^r (\bb{P_j} + \bb{\Delta P_j})- \prod_{j=1}^r\bb{P_j} \right|\right|_F\leq(1+\tilde{\gamma}_m)^r-1\prod_{j=1}^n\|\bb{P_j}\|_2 \leq (1+\tilde{\gamma}_m)^r-1
+	\end{align*}
+	since $\bb{P_j}$'s are orthogonal and have 2-norm, 1.
+	While we omit the details here, we can show that $(1+\tilde{\gamma}_m)^r-1 \leq r\tilde{\gamma}_m$ using the argument for \cref{lem:gamma} if $r\tilde{\gamma}_m \leq 1/2$.
+\end{proof}
 In this current uniform precision error analysis, the important quantity $\tilde{\gamma}_{m}$ is derived from the backward error of applying one Householder transformation.
 To easily generalize this section for mixed-precision analysis, we benefit from alternatively denoting this quantity as $\tilde{\gamma}_{\bb{P}}$ with the understanding that $\tilde{\gamma}_{\bb{P}}$ will be some combination of $\tilde{\gamma}$'s of differing precisions. 
-The bound in \Cref{eqn:19.3} would then be 
-\begin{equation}
-	(1+\tilde{\gamma}_{\bb{P}})^r-1 \leq r\tilde{\gamma}_{\bb{P}}. \label{eqn:algebra3}
-\end{equation}
-
-Next, we apply \cref{eqn:19.3} to the $i^{th}$ columns of $\bb{Q},\bb{R}$ and set $r=n$ for a full rank matrix, $\bb{A}$.
-Then,
-\begin{align*}
-	\|\bb{\Delta R}[:,i]\|_2 &= \|\Delta \bb{Q'}^{\top}\bb{A}[:,i]\|_2 \leq \|\Delta \bb{Q'}\|_2 \|\bb{A}[:,i]\|_2  \leq n\tilde{\gamma}_{m} \|\bb{A}[:,i]\|_2, \\ 
-	\|\bb{\Delta Q}[:,i]\|_2 &= \|\Delta \bb{Q'}\bb{I}[:,i]\|_2 \leq \|\Delta \bb{Q'}\|_2\leq n\tilde{\gamma}_{m}.
-\end{align*}
-These columnwise bounds can now be transformed into matrix norms as follows: 
+The bound in \Cref{eqn:19.3} would then be  replaced by $r\tilde{\gamma}_{\bb{P}}$.
+%\begin{equation}
+%	(1+\tilde{\gamma}_{\bb{P}})^r-1 \leq r\tilde{\gamma}_{\bb{P}}. \label{eqn:algebra3}
+%\end{equation}
+Applying \cref{lem:19.2} directly to columns of $\bb{A}$ and $\bb{I}$ allows us to formulate 2-norm forward bounds for columns of $\bb{R}$ and $\bb{Q}$.
+We show how to convert these columnwise bounds into matrix norms for the $\bb{R}$ factor.
+%Next, we apply \cref{eqn:19.3} to the $i^{th}$ columns of $\bb{Q},\bb{R}$ and set $r=n$ for a full rank matrix, $\bb{A}$.
+%Then,
+%\begin{align*}
+%	\|\bb{\Delta R}[:,i]\|_2 &= \|\Delta \bb{Q'}^{\top}\bb{A}[:,i]\|_2 \leq \|\Delta \bb{Q'}\|_2 \|\bb{A}[:,i]\|_2  \leq n\tilde{\gamma}_{m} \|\bb{A}[:,i]\|_2, \\ 
+%	\|\bb{\Delta Q}[:,i]\|_2 &= \|\Delta \bb{Q'}\bb{I}[:,i]\|_2 \leq \|\Delta \bb{Q'}\|_2\leq n\tilde{\gamma}_{m}.
+%\end{align*}
+%These columnwise bounds can now be transformed into matrix norms as follows: 
 \begin{align*}
 	\|\bb{\Delta R} \|_F &= \left(\sum_{i=1}^n \|\bb{\Delta R}[:,i]\|_2^2\right)^{1/2} \leq \left(\sum_{i=1}^n n^2\tilde{\gamma}_{m}^2 \|\bb{A}[:,i]\|_2^2\right)^{1/2} = n\tilde{\gamma}_{m} \|\bb{A}\|_F, \\
-	\|\bb{\Delta Q} \|_F &= \left(\sum_{i=1}^n \|\bb{\Delta Q}[:,i]\|_2^2\right)^{1/2} \leq \left(\sum_{i=1}^n \tilde{\gamma}_{m}^2 \right)^{1/2} = n^{3/2}\tilde{\gamma}_{m}.
+	%\|\bb{\Delta Q} \|_F &= \left(\sum_{i=1}^n \|\bb{\Delta Q}[:,i]\|_2^2\right)^{1/2} \leq \left(\sum_{i=1}^n n^2\tilde{\gamma}_{m}^2 \right)^{1/2} = n^{3/2}\tilde{\gamma}_{m}.
 \end{align*}
 We gather these results into \cref{thm:feHQR}.
 \begin{theorem}
 	\label{thm:feHQR}
 	Let $\bb{A}\in\R^{m\times n}$ with $m\geq n$ have full rank, $n$. 
-	Let $\hat{\bb{Q}}\in\R^{m\times n}$ and $\hat{\bb{R}}\in\R^{n\times n}$ be the thin QR factors of $\bb{A}$ obtained via \cref{algo:hhQR}, defined via 
+	Let $\hat{\bb{Q}}\in\R^{m\times n}$ and $\hat{\bb{R}}\in\R^{n\times n}$ be the thin QR factors of $\bb{A}$ obtained via \cref{algo:hhQR}.
+	Then,
 	\begin{align*}
-	\hat{\bb{R}} &= \bb{R} + \bb{\Delta R} = \fl(\hat{\bb{P}}_n\cdots\hat{\bb{P}}_1 \bb{A}),\;\; n\tilde{\gamma}_{m} \|\bb{A}\|_F\\
-	\hat{\bb{Q}} &= \bb{Q} + \bb{\Delta Q} = \fl(\hat{\bb{P}}_1\cdots\hat{\bb{P}}_n \bb{I}),\;\; \|\bb{\Delta Q}\|_F \leq n^{3/2} \tilde{\gamma}_{m}.
+	\hat{\bb{R}} &= \bb{R} + \bb{\Delta R} = \fl(\hat{\bb{P}}_n\cdots\hat{\bb{P}}_1 \bb{A}),\;\; \|\bb{\Delta R}[:,j]\|_2\leq n\tilde{\gamma}_{m} \|\bb{A}[:,j]\|_2,\;\; \|\bb{\Delta R}\|_F\leq n\tilde{\gamma}_{m} \|\bb{A}\|_F\\
+	\hat{\bb{Q}} &= \bb{Q} + \bb{\Delta Q} = \fl(\hat{\bb{P}}_1\cdots\hat{\bb{P}}_n \bb{I}),\;\; \|\bb{\Delta Q}[:,j]\|_2\leq n\tilde{\gamma}_{m},\;\; \|\bb{\Delta Q}\|_F \leq n^{3/2} \tilde{\gamma}_{m}.
 	\end{align*}
 	Let $\bb{A}+\bb{\Delta A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
 	Then the backward error is

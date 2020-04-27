@@ -15,7 +15,7 @@
 		\tcc{The inner loop can be parallelized.}
 		\For {$j = 1 : 2^{L-i}$ }{
 			$\bb{V}_{2j-1}^{(i)}$, $\bm{\beta}_{2j-1}^{(i)}$, $\bb{R}_{2j-1}^{(i)} \gets{\tt qr}(\bb{A}_{2j-1}^{(i)})$ \;
-			$\bb{V}_{2j}^{(i)}$, $\bm{\beta}_{2j}^{(i)}$, $\bb{R}_{2j}^{(i)} \gets{\tt qr}(\bb{A}_{2j}^{(i)})$
+			$\bb{V}_{2j}^{(i)}$, $\bm{\beta}_{2j}^{(i)}$, $\bb{R}_{2j}^{(i)} \gets{\tt qr}(\bb{A}_{2j}^{(i)})$\;
 			\(\bb{A}_{j}^{(i+1)} \gets \begin{bmatrix}
 			\bb{R}_{2j-1}^{(i)}\\
 			\bb{R}_{2j}^{(i)}
@@ -29,7 +29,7 @@
 		\For {$j = 1 : 2^{L-i}$}{
 			\(\bb{Q}_{j}^{(i)} \gets {\tt hh\_mult}\left(\bb{V}_{j}^{(i)}, \begin{bmatrix}
 			\tilde{\bb{Q}}_{\alpha(j), \phi(j)}^{(i+1)}\\
-			\bb{0}_{n,n}
+			\bb{0}%_{n,n}
 			\end{bmatrix}\right)\)
 		}
 	}
@@ -40,7 +40,7 @@
 		\bb{Q} \\
 		{\tt hh\_mult}\left(\bb{V}_{j}^{(0)} , \begin{bmatrix}
 		\tilde{\bb{Q}}_{\alpha(j), \phi(j)}^{(1)}\\
-		O_{\tilde{h},n}
+		\bb{0}
 		\end{bmatrix} \right)
 		
 		\end{bmatrix}\)
@@ -49,3 +49,4 @@
 	\caption{$\bb{Q},\bb{R}={\tt tsqr}(\bb{A}, L)$.  Finds a QR factorization of a tall, skinny matrix, $\bb{A}$. }
 	\label{algo:par_tsqr}
 \end{algorithm2e}
+%TODO: is this correct??

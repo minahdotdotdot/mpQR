@@ -1,6 +1,23 @@
-In \cref{mp-f}, we 
+Let us first consider rounding errors incurred from carrying out HQR in high precision, then cast down at the very end.
+This could be useful in applications that require economical storage, but have enough memory to carry out HQR in higher precision. 
+Suppose two types of floating point types $\F_{low}$ and $\F_{high}$ where $\F_{low}\subseteq \F_{high}$, and for all $x,y\in\F_{low}$, the exact product $xy$ can be represented in $\F_{high}$.
+Some example pairs of $\{\F_{low}, \F_{high}\}$ include $\{\text{fp16}, \text{fp32}\}$, $\{\text{fp32}, \text{fp64}\}$, and $\{\text{fp16}, \text{fp64}\}$.
+Suppose that the matrix to be factorized is stored with low precision numbers, $\bb{A}\in\F_{low}^{m\times n}$.
+Casting up adds no rounding errors, so we can directly apply the analysis that culminated in \cref{thm:feHQR}, and we only consider the columnwise forward error in the $\bb{Q}$ factor.
 
-\subsection{Round down at the end of the factorization}\label{sec:mp-f}
+Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR}$ is bounded normwise via $$ \|\bb{Q}[:,j]\|_2 \leq n\tilde{\gamma}_{high},$$ and incurs an extra rounding error when $\bb{Q}\in\F_{high}^{m\times n}$ is cast down to $F_{low}^{m\times n}$.
+Since $\hat{\bb{Q}}_{HQR}$ should be almost orthogonal with respect to the higher precision, we can expect all components to be within the dynamic range of $\F_{low}$.
+
+%In \ref{sec:mp-f}, we look at the rounding errors incurred from carrying out a QR factorization in a high precision, then cast down at the very end.
+%Since this requires only one cast down operation, this is very similar to the results from the standard uniform precision analysis.
+
+In the next sections, we consider performing BQR and TSQR with FLOPs within a block and/or a level in high precision, but cast down to low precision in between blocks in \ref{sec:mp-b}.
+Finally, we consider all 3 algorithms with an ad hoc mixed-precision setting where inner products are performed in high precision and all other operations are computed in low precision in \ref{sec:mp-2}.
+%\subsection{Round down at the end of the factorization}\label{sec:mp-f}
+%Results in this section are quite straight forward, but 
+%\subsubsection{HQR}
+
+
 \subsection{Round down at block-level (BLAS-3)}\label{sec:mp-b}
 \subsection{Round down at inner-product level (BLAS-2)}\label{sec:mp-2}
 
