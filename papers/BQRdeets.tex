@@ -46,15 +46,15 @@
 %\end{align*}
 %Since $|\bb{\Delta v_k}^{(j)}|\leq \tilde{\gamma}_{m-(k-1)r}|\bb{v_k}^{(j)}|$, $|\tilde{\Delta}\bb{v_k}^{(j)})+\bb{\Delta v_k}^{(j)}|\leq \tilde{\gamma}_{m-(k-1)r}|\bb{v_k}^{(j)}|$, and we can write 
 %$$|\bb{\Delta D}| \leq (\tilde{\gamma}_{m-(k-1)r}+\tilde{\gamma}_{m-(k-2)r}+d_1)|\bb{z_k}^{(j)}||\bb{v_k}^{(j)}|^{\top} = (\tilde{\gamma}_{m-(k-2)r}+d_1)|\bb{z_k}^{(j)}||\bb{v_k}^{(j)}|^{\top}.  $$
-
-
-
-
-
-
-
-
-
+%
+%
+%
+%
+%
+%
+%
+%
+%
 % and form $$\hat{\bb{Q_k}}^{(j)} =  \fl(\hat{\bb{Q_k}}^{(j-1)} \hat{\bb{P}}_{\bb{(k-1)r+j}})= \hat{\bb{Q_k}}^{(j-1)} (\hat{\bb{P}}_{\bb{(k-1)r+j}} +\bb{\Delta}\hat{\bb{P}}_{\bb{(k-1)r+j}}) = \hat{\bb{Q_k}}^{(j-1)}-\hat{\bb{z_k}}^{(j)\top}\hat{\bb{v_k}}^{(j)} $$
 %
 %Therefore, the FLOPs alone from constructing $\fl(\hat{\bb{z_k}}^{(j)})$ with perturbed $\bb{W_k}^{(j-1)}$, $\bb{Y_k}^{(j-1)}$, and $\bb{v_k}^{(j)}$
@@ -90,7 +90,7 @@
 %\begin{equation}
 %\bb{z_k}^{(r)} +\bb{\Delta z_k}^{(r)}= (1+\tilde{\tth}_{m-(k-2)r})^r \bb{z_k}^{(r)}.
 %\end{equation}
-
+%
 %For simplicity, we assume that the WY representation from the $j-1^{st}$ step is exact to account for only the error accrued in a single update.
 %Recall that the $j-1^{st}$ WY representation is
 % $$\hat{\bb{Q_k}}^{(j-1)}:=\bb{I}-\hat{\bb{W_k}}^{(j-1)}\hat{\bb{Y_k}}^{(j-1)}=\bb{P_{(k-1)r+1}}\cdots\bb{P_{(k-1)r+j-1}}.$$
