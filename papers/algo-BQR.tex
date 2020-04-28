@@ -121,21 +121,24 @@ We now calculate the rounding errors incurred from building the WY representatio
 %Consider the $j^{th}$ update of the WY representation for block $\bb{C_k}$.
 Our goal is to analyze the error accumulated from updating the WY representation from the $j-1^{st}$ step to the $j^{th}$ for block $\bb{C_k}$.
 Let us represent the $j^{th}$ Householder constant and vector of the $k^{th}$ block computed with FLOPs as with $\hat{\beta}_k^{(j)}$ and $\hat{\bb{v_k}}^{(j)}$ and the $j'^{th}$ update to the WY representation as $$\bb{X_k}^{(j')} = \bb{I} - \hat{\bb{W_k}}^{(j')}\hat{\bb{Y_k}}^{(j')\top}.$$ %we write $\bb{V}_k[:,1:j]=:\bb{Y}_k^{(j)}$ to make a clear connection to \cref{lem:WY}, and also denote
-This action applies a rank-1 update via the subtraction of the outer product $\hat{\bb{z_k}}^{(j)}\hat{\bb{v_k}}^{(j)\top}$ to apply $\hat{\bb{P}}_{\bb{(k-1)r+j}}$ on the right. 
-Since $\bb{z_k}^{(j)} = \beta_k^{j}\bb{X_k}^{(j-1)}\bb{v_k}^{(j)}$, the update performs a single Householder transformation in the same efficient implementation that is discussed in \cref{lem:19.2}, but on the right side:
+The update in \cref{lem:WY} applies a rank-1 update via the subtraction of the outer product $\hat{\bb{z_k}}^{(j)}\hat{\bb{v_k}}^{(j)\top}$ to apply $\hat{\bb{P}}_{\bb{(k-1)r+j}}$ on the right. 
+Since $\bb{z_k}^{(j)} = \beta_k^{j}\bb{X_k}^{(j-1)}\bb{v_k}^{(j)}$, this update requires a single Householder transformation in the same efficient implementation that is discussed in \cref{lem:19.2}, but on the right side:
 \begin{align*}
 	\bb{X_k}^{(j)} &= \bb{X_k}^{(j-1)}-\beta_k^{j}\bb{X_k}^{(j-1)}\bb{v_k}^{(j)}\bb{v_k}^{(j-1)\top} \\
 	&= \bb{X_k}^{(j-1)} (\bb{I}-\beta_k^{(j)}\bb{v_k}^{(j)}\bb{v_k}^{(j-1)\top})=  \bb{X_k}^{(j-1)}\bb{P_{(k-1)r+j}}.
 \end{align*}
 %The analysis for this update is slightly different as it is applied to a matrix, but the componentwise error remains the same
-Therefore, we apply \cref{eqn:19.3} directly for the construction of $\bb{z_k}^{(j)} = \bb{Q_k}^{(j-1)}\bb{v_k^{(j)}}$ and result in \cref{lem:BQR-build}.
+Traveling up this recursion relation to $j=1$, we find that $\hat{\bb{X_k}}^{(j')}$ is built from applying a sequence of Householder transformations $\{\hat{\bb{P_{(k-1)r+1}}},\cdots \hat{\bb{P_{(k-1)r+j'-1}}}\}$ to $\bb{I}$.
+Therefore, we can apply \cref{eqn:19.3} (set $\bb{Q}=\bb{X_k}^{(j-1)}$, $\bb{x}=\fl(\hat{\beta}_k^{(j)}\hat{\bb{v_k}}^{(j)})$, and $\bb{y}=\bb{z_k}^{(j)}$) to form \cref{eqn:BQR-z}.
+% directly for the construction of $\bb{z_k}^{(j)}$
+More details on the WY update is summarized in \cref{lem:BQR-build}.
 \begin{lemma}\label{lem:BQR-build}
 	Consider the construction of the WY representation for the $k^{th}$ partition of matrix $\bb{A}^{m\times n}$ given a set of Householder constants and vectors, $\{\beta_k^{(j)}\}_{j=1}^r$ and $\{\bb{v_k}^{(j)}$ via \cref{algo:buildWY}.
 	Then, 
-	\begin{align*}
-		\hat{\bb{z_k}^{(j)}}& = \bb{z_k}^{(j)} + \bb{\Delta z_k}^{(j)},\;\; |\bb{\Delta z_k}^{(j)}| \leq j\tilde{\gamma}_{m-(k-1)r} |\bb{z_k}^{(j)}|\\
-		\hat{\bb{v_k}^{(j)}}& = \bb{v_k}^{(j)} + \bb{\Delta v_k}^{(j)},\;\; |\bb{\Delta v_k}^{(j)}| \leq \tilde{\gamma}_{m-(k-1)r} |\bb{v_k}^{(j)}|,
-	\end{align*}
+	\begin{align}
+		\hat{\bb{z_k}}^{(j)}& = \bb{z_k}^{(j)} + \bb{\Delta z_k}^{(j)},\;\; |\bb{\Delta z_k}^{(j)}| \leq j\tilde{\gamma}_{m-(k-1)r} |\bb{z_k}^{(j)}|\label{eqn:BQR-z}\\
+		\hat{\bb{v_k}}^{(j)}& = \bb{v_k}^{(j)} + \bb{\Delta v_k}^{(j)},\;\; |\bb{\Delta v_k}^{(j)}| \leq \tilde{\gamma}_{m-(k-1)r} |\bb{v_k}^{(j)}|,
+	\end{align}
 	where the second bound is derived from \cref{eqn:vbound}.
 \end{lemma}
 Most importantly, this shows that constructing the WY update is just as numerically stable as applying successive Householder transformations (see Section 19.5 of \cite{Higham2002}).

@@ -3,7 +3,7 @@
 	\KwIn{$\bb{A}\in\R^{m \times n}$ where $m \gg n$, $L\leq\lfloor\log_2\left(\frac{m}{n}\right)\rfloor$, and $2^L$ is the initial number of blocks. }
 	
 	\KwOut{$\bb{Q}\in\R^{m \times n}$, $\bb{R} \in\R^{n\times n}$ such that 	$\bb{Q}\bb{R} = \bb{A}$.}
-	$h \gets \lfloor \frac{m}{2^L} \rfloor$ \tcp*{Number of rows.}
+	$h \gets m2^{-L}$ \tcp*{Number of rows.}
 	%$r \gets m - (2^L-1)h$ \tcp*{Number of rows for the last block ($h\leq r <2h$).}
 	\tcc{Split $\bb{A}$ into $2^L$ blocks. Note that level $(i)$ has $ 2^{L-i}$ blocks.}
 	\For {$j = 1 : 2^L$}{

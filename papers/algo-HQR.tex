@@ -253,12 +253,12 @@ We gather these results into \cref{thm:feHQR}.
 	\hat{\bb{Q}} &= \bb{Q} + \bb{\Delta Q} = \fl(\hat{\bb{P}}_1\cdots\hat{\bb{P}}_n \bb{I}),\;\; \|\bb{\Delta Q}[:,j]\|_2\leq n\tilde{\gamma}_{m},\;\; \|\bb{\Delta Q}\|_F \leq n^{3/2} \tilde{\gamma}_{m}.
 	\end{align*}
 	Let $\bb{A}+\bb{\Delta A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
-	Then the backward error is
+	Then the backward e|rror is
 	\begin{equation}
 	\|\bb{\Delta A}\|_F \leq n^{3/2}\tilde{\gamma}_{m}\|\bb{A}\|_F.
 	\end{equation}
 \end{theorem}
-
+For the remainder of this paper, we compare various QR factorizations with respect to $\|\hat{\bb{Q}}-\bb{Q}\|_F$, a comprehensive measure of orthogonality of the $\bb{Q}$ factor.
 The content of this section generalizes the standard rounding error analysis in \cite{Higham2002} by employing quantities denoted via $\Delta \beta$, $\bb{\Delta v}$, $\tilde{\gamma}_y$, and $\tilde{\gamma}_{\bb{P}}$. 
 These quantities account for various forward and backward errors formed in computing essential components of HQR, namely the Householder constant and vector, as well as normwise errors of the action of applying Householder transformations.
 In the next sections, we present blocked variants of HQR that use \cref{algo:hhQR}.

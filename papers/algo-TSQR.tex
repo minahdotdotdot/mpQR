@@ -102,25 +102,25 @@ We summarize the main results from \cite{Mori2012} in \cref{thm:moriTSQR}.
 	\end{align*}
 	where
 	\begin{align}
-	\|\bb{\Delta R}\|_F, \|\bb{\Delta A}\|_F &\leq \left[n\tilde{\gamma}_{ h}+(1+n\tilde{\gamma}_{ h})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right]\|\bb{A}\|_F, \text{ and} \label{eqn:tsqrRA}\\
-	\|\bb{\Delta Q}\|_F &\leq \sqrt{n}\left[(1+n\tilde{\gamma}_{ h})(1+n\tilde{\gamma}_{ 2n})^L -1\right].\label{eqn:tsqrQ}
-	%& \leq \left[n\tilde{\gamma}_{ h}+(1+n\tilde{\gamma}_{ h})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right]\|\bb{A}\|_F,\label{eqn:tsqrA}
+	\|\bb{\Delta R}\|_F, \|\bb{\Delta A}\|_F &\leq \left[n\tilde{\gamma}_{m2^{-L}}+(1+n\tilde{\gamma}_{m2^{-L}})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right]\|\bb{A}\|_F, \text{ and} \label{eqn:tsqrRA}\\
+	\|\bb{\Delta Q}\|_F &\leq \sqrt{n}\left[(1+n\tilde{\gamma}_{m2^{-L}})(1+n\tilde{\gamma}_{ 2n})^L -1\right].\label{eqn:tsqrQ}
+	%& \leq \left[n\tilde{\gamma}_{m2^{-L}}+(1+n\tilde{\gamma}_{m2^{-L}})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right]\|\bb{A}\|_F,\label{eqn:tsqrA}
 	\end{align}
-	Furthermore, if we assume $n\tilde{\gamma}_{ h}, n\tilde{\gamma}_{ 2n} \ll 1$, the coefficient for $\|\bb{A}\|_F$ in \cref{eqn:tsqrRA} can be approximated as
+	Furthermore, if we assume $n\tilde{\gamma}_{m2^{-L}}, n\tilde{\gamma}_{ 2n} \ll 1$, the coefficient for $\|\bb{A}\|_F$ in \cref{eqn:tsqrRA} can be approximated as
 	\begin{equation}
-	\left[n\tilde{\gamma}_{ h}+(1+n\tilde{\gamma}_{ h})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right] \simeq n\tilde{\gamma}_{ h} + Ln\tilde{\gamma}_{ 2n}, %(46) in Mori
+	\left[n\tilde{\gamma}_{m2^{-L}}+(1+n\tilde{\gamma}_{m2^{-L}})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right] \simeq n\tilde{\gamma}_{m2^{-L}} + Ln\tilde{\gamma}_{ 2n}, %(46) in Mori
 	\end{equation}
 	and the right hand side of \cref{eqn:tsqrQ} can be approximated as
 	\begin{equation}
-	\sqrt{n}\left[(1+n\tilde{\gamma}_{ h})(1+n\tilde{\gamma}_{ 2n})^L -1\right]\simeq \sqrt{n}\left(n\tilde{\gamma}_{ h} + Ln\tilde{\gamma}_{ 2n}\right). %(67) in Mori
+	\sqrt{n}\left[(1+n\tilde{\gamma}_{m2^{-L}})(1+n\tilde{\gamma}_{ 2n})^L -1\right]\simeq \sqrt{n}\left(n\tilde{\gamma}_{m2^{-L}} + Ln\tilde{\gamma}_{ 2n}\right). %(67) in Mori
 	\end{equation}
 	We can also form a backward error, where $\bb{A}+\bb{\Delta \bb{A}_{\text{TSQR}}} = \hat{\bb{Q}}\hat{\bb{R}}$, and both $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via \cref{algo:par_tsqr}.
 	Then,
 	\begin{equation}
-	\|\bb{\Delta \bb{A}_{\text{TSQR}}}\|_F =\|\bb{Q \Delta R} + \bb{\Delta Q}\hat{\bb{R}}\|_F \simeq \sqrt{n}\left(n\tilde{\gamma}_{ h} + Ln\tilde{\gamma}_{ 2n}\right)\|\bb{A}\|_F.
+	\|\bb{\Delta \bb{A}_{\text{TSQR}}}\|_F =\|\bb{Q \Delta R} + \bb{\Delta Q}\hat{\bb{R}}\|_F \simeq \sqrt{n}\left(n\tilde{\gamma}_{m2^{-L}} + Ln\tilde{\gamma}_{ 2n}\right)\|\bb{A}\|_F.
 	\end{equation}
 \end{theorem}
 
-Note that the $n\tilde{\gamma}_{h}$ and $n\tilde{\gamma}_{ 2n}$ terms correspond to errors from applying HQR to the blocks in the initial partition and to the blocks in levels 1 through $L$ respectively.
+Note that the $n\tilde{\gamma}_{m2^{-L}}$ and $n\tilde{\gamma}_{ 2n}$ terms correspond to errors from applying HQR to the blocks in the initial partition and to the blocks in levels 1 through $L$ respectively.
 We can easily replace these with analogous mixed precision terms and keep the analysis accurate.
 Both level-2 and level-3 BLAS implementations will be considered in \cref{sec:mpanalysis}.
