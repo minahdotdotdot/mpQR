@@ -137,7 +137,7 @@ More details on the WY update is summarized in \cref{lem:BQR-build}.
 	Then, 
 	\begin{align}
 		\hat{\bb{z_k}}^{(j)}& = \bb{z_k}^{(j)} + \bb{\Delta z_k}^{(j)},\;\; |\bb{\Delta z_k}^{(j)}| \leq j\tilde{\gamma}_{m-(k-1)r} |\bb{z_k}^{(j)}|\label{eqn:BQR-z}\\
-		\hat{\bb{v_k}}^{(j)}& = \bb{v_k}^{(j)} + \bb{\Delta v_k}^{(j)},\;\; |\bb{\Delta v_k}^{(j)}| \leq \tilde{\gamma}_{m-(k-1)r} |\bb{v_k}^{(j)}|,
+		\hat{\bb{v_k}}^{(j)}& = \bb{v_k}^{(j)} + \bb{\Delta v_k}^{(j)},\;\; |\bb{\Delta v_k}^{(j)}| \leq \tilde{\gamma}_{m-(k-1)r} |\bb{v_k}^{(j)}|\label{eqn:BQR-v},
 	\end{align}
 	where the second bound is derived from \cref{eqn:vbound}.
 \end{lemma}
@@ -150,21 +150,21 @@ Regardless, let us analyze the column-wise backward error for the $j^{th}$ colum
 	%\fl(\hat{\bb{Y_k}}^{\top}\bb{b}) &= (\hat{\bb{Y_k}} + \tilde{\Delta} \bb{Y_k})^{\top}\bb{b},\\
 	\fl(\hat{\bb{X_k}}\bb{b_j})=\fl(\bb{b_j} - \fl(\hat{\bb{W_k}}\fl(\hat{\bb{Y_k}}^{\top}\bb{b_j}))) & =(1+\dd)(\bb{b_j} - (\hat{\bb{W_k}} + \tilde{\Delta} \bb{W_k}) (\hat{\bb{Y_k}} + \tilde{\Delta} \bb{Y_k})^{\top}\bb{b_j}),
 \end{align*}
-where $\tilde{\Delta} \bb{W_k}$ and $\tilde{\Delta} \bb{Y_k}$ each represent the backward error for a matrix-vector multiply with inner products of lengths $m-(k-1)r$ and $r$ in level-3 BLAS operations.
+where $\tilde{\Delta} \bb{W_k}$ and $\tilde{\Delta} \bb{Y_k}$ each represent the backward error for a matrix-vector multiply with inner products of lengths $m-(k-1)r$ and $r$ in level-3 BLAS operations, and $\hat{\bb{W_k}} = \bb{W_k}+\bb{\Delta W_k}$, $\hat{\bb{Y_k}} = \bb{Y_k}+\bb{\Delta Y_k}$ where the columns of $\bb{\Delta W_k}$,$\bb{\Delta Y_k}$ are bounded by \cref{eqn:BQR-z,eqn:BQR-v}.
 If we let $|\tilde{\bb{\Delta}} \bb{W_k}| \leq \tilde{\gamma}_{\bb{W_k}}|\hat{\bb{W_k}}|$ and $|\tilde{\Delta} \bb{Y_k}| \leq \tilde{\gamma}_{\bb{Y_k}}|\hat{\bb{Y_k}}|$, then we have 
 \begin{equation*}
 	|\fl(\hat{\bb{X_k}}\bb{b_j}) - \bb{X_kb_j}| \leq \tilde{\gamma}_{\bb{X_k}} \left(|\bb{b_j}|+|\hat{\bb{W_k}}||\hat{\bb{Y_k}}|^{\top}|\bb{b_j}|\right),
 \end{equation*}
-where $\tilde{\gamma}_{\bb{X_k}}$ accounts for the error caused by perturbations $\tilde{\bb{\Delta}}{\bb{W_k}}+\bb{\Delta W_k}$, $\tilde{\bb{\Delta}}\bb{Y_k} + \bb{\Delta Y_k}$, and $\dd$.
+where $\tilde{\gamma}_{\bb{X_k}}$ accounts for the errors from perturbations $\tilde{\bb{\Delta}}{\bb{W_k}}+\bb{\Delta W_k}$, $\tilde{\bb{\Delta}}\bb{Y_k} + \bb{\Delta Y_k}$, and $\dd$.
 In uniform precision, this is largely derived from 
 \begin{align*}
-	|(\bb{W_k} +\bb{\Delta W_k} &+ \tilde{\bb{\Delta}} \bb{W_k}) (\bb{Y_k} + \bb{\Delta Y_k} + \tilde{\bb{\Delta}} \bb{Y_k})^{\top} - \bb{W_k} \bb{Y_k}^{\top}| \\
-	 &\leq \left[(1+ \gamma_{r}+r\tilde{\gamma}_{m-(k-1)r})(1+ \gamma_{m-(k-1)r} + \tilde{\gamma}_{m-(k-1)r})-1\right]|\bb{W_k}||\bb{Y_k}|^{\top} \\ 
-	 &\leq r\tilde{\gamma}_{m-(k-1)r}|\bb{W_k}||\bb{Y_k}|^{\top},
+	|(\bb{W_k} +\bb{\Delta W_k} &+ \tilde{\bb{\Delta}} \bb{W_k}) (\bb{Y_k} + \bb{\Delta Y_k} + \tilde{\bb{\Delta}} \bb{Y_k})^{\top}\bb{b_j} - \bb{W_k} \bb{Y_k}^{\top}\bb{b_j}| \\
+	 &\leq \left[(1+r\tilde{\gamma}_{m-(k-1)r}+ \gamma_{r})(1 + \tilde{\gamma}_{m-(k-1)r}+ \gamma_{m-(k-1)r})-1\right]|\bb{W_k}||\bb{Y_k}|^{\top}|\bb{b_j}| \\ 
+	 &\leq r\tilde{\gamma}_{m-(k-1)r}|\bb{W_k}||\bb{Y_k}|^{\top}|\bb{b_j}|,\;\; \gamma_{\bb{X_k}} := r\tilde{\gamma}_{m-(k-1)r},
 \end{align*}
 since the subtraction step only adds a single rounding error. 
 % I have used that $\bb{W_k}$ accrues additional rounding errors compared to $\bb{Y_k}$.
-Note that we implicitly covered the same step of applying an WY update in the construction of $\bb{z_k}^{(j)}$, but used \cref{lem:19.3} instead since we were concerned with the error occurred at a single update. 
+%Note that we implicitly covered the same step of applying an WY update in the construction of $\bb{z_k}^{(j)}$, but used \cref{lem:19.3} instead since we were concerned with the error occurred at a single update. 
 %Now, we leave this error in a general form to allow for different mixed precision settings in \cref{sec:mpanalysis}.
 %As a result of introducing generality, 
 We conclude with a general bound, 
@@ -199,14 +199,15 @@ A normwise bound for a general matrix-matrix multiplication operation is stated 
 \paragraph{Multiple WY updates: line 8-9 of \cref{algo:blockHQR}}
 All that remains is to consider the application of successive WY updates to form the QR factorization computed with BQR denoted as $\bb{Q}_{BQR}$ and $\bb{R}_{BQR}$. 
 We can apply \cref{lem:3.7} directly by setting $\bb{X_k}:= \bb{I}-\bb{W_k}\bb{Y_k}^{\top}$ and consider the backward errors for applying the sequence to a vector, $\bb{x}\in\R^{m}$, as we did for \cref{lem:19.3}. 
-Since $\bb{X_k}=\bb{P_{(k-1)r+1}}\cdots\bb{P_{kr}}$, is simply a sequence of Householder transformations, it is orthogonal, i.e. $\|X_k\|_2=1$.
+Since $\bb{X_k}=\bb{P_{(k-1)r+1}}\cdots\bb{P_{kr}}$, is simply a sequence of Householder transformations, it is orthogonal, i.e. $\|\bb{X_k}\|_2=1$.
 We only need to replace with $\bb{x}$ with $\bb{A}[:,i]$'s to form the columnwise bounds for $\bb{R}_{BQR}$, and apply the transpose to $\hat{e}_i$'s to form the bounds for $\bb{Q}_{BQR}$. 
 %We define the backward error as $\bb{\Delta Q'}_{BQR}) \bb{b}$.
 %Then, this backward error is quantified via
 Then, 
 \begin{align}
-\left|\left|\prod_{k=1}^N (\bb{X_k} + \bb{\Delta X_k})- \prod_{k=1}^N\bb{X_k} \right|\right|_F &\leq\sum_{k=1}^N (1+\tilde{\gamma}_{\bb{X_k}})  -1 \label{eqn:BQR-mp}\\
-&\leq \sum_{k=1}^N (1+ r\tilde{\gamma}_{m-(k-1)r})-1 \leq rN\tilde{\gamma}_m \equiv n\tilde{\gamma}_m \label{eqn:BQR}.
+\left|\left|\prod_{k=1}^N (\bb{X_k} + \bb{\Delta X_k})- \prod_{k=1}^N\bb{X_k} \right|\right|_F &\leq\sum_{k=1}^N (1+\tilde{\gamma}_{\bb{X_k}})  -1 \leq rN\tilde{\gamma}_m \equiv n\tilde{\gamma}_m ,\label{eqn:BQR-mp}\\
+%&\leq \sum_{k=1}^N (1+ r\tilde{\gamma}_{m-(k-1)r})-1 \leq rN\tilde{\gamma}_m \equiv n\tilde{\gamma}_m ,\label{eqn:BQR-mp}\\
+\|\hat{\bb{Q}}_{BQR}-\bb{Q}\|_F&\leq n^{3/2}\tilde{\gamma}_m. \label{eqn:BQR}
 \end{align}
 %\begin{align}
 %\bb{\Delta Q'}_{BQR} &:= \prod_{k=N}^{1}\left(\bb{Q_k} +\bb{\Delta Q_k}\right) - \prod_{k=N}^{1}\bb{Q_k} ,\\
@@ -215,6 +216,6 @@ Then,
 %&\leq \sum_{k=N}^1 (1+ r\tilde{\gamma}_{m-(k-1)r})-1 \leq rN\tilde{\gamma}_m \equiv n\tilde{\gamma}_m \label{eqn:BQR}.
 %\end{align}
 
-We showed earlier in this section that HQR performed on $\bb{C_k}$ accrues componentwise error of order $\tilde{\gamma}_{m-(k-1)r}$ by applying \cref{thm:feHQR}, and the building of the W factor, $r\tilde{\gamma}_{m-(k-1)r}$ order error.
-Both of these are clearly small in comparison to the error from applying many WY transformations, so we attribute the leading order error to this last step shown in \cref{eqn:BQR}.
+We showed earlier in this section that HQR performed on $\bb{C_k}$ accrues error of order $\tilde{\gamma}_{m-(k-1)r}$ by applying \cref{thm:feHQR}, and the building of the W factor, $r\tilde{\gamma}_{m-(k-1)r}$ order error.
+Both of these are relatively small in comparison to the error from applying many WY transformations, so we attribute the leading order error to this last step shown in \cref{eqn:BQR}.
 The primary goal of the analysis presented in this section is to make the generalization to mixed precision settings in \cref{sec:mpanalysis} easier, and readers should refer to \cite{golub2013matrix,Higham2002} for full details.
