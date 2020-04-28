@@ -94,31 +94,12 @@ We summarize the main results from \cite{Mori2012} in \cref{thm:moriTSQR}.
 \begin{theorem}
 	\label{thm:moriTSQR}
 	Let $\bb{A}\in\R^{m\times n}$ with $m\geq n$ have full rank, $n$, and $\hat{\bb{Q}}\in\R^{m\times n}$ and $\hat{\bb{R}}\in\R^{n\times n}$ be the thin QR factors of $\bb{A}$ obtained via \cref{algo:par_tsqr} with $L$ levels. 
-	Let us further assume that $m = h2^L$.
-	Then we have normwise forward error bounds
-	\begin{align*}
-	\hat{\bb{A}} = \bb{A} +\bb{\Delta A} &=  \bb{Q}(\bb{R} + \bb{\Delta R}),\\
-	\hat{\bb{Q}} &= \bb{Q} + \bb{\Delta Q},
-	\end{align*}
-	where
+	Let us further assume that $m = h2^L$ and $n\tilde{\gamma}_{m2^{-L}}, n\tilde{\gamma}_{ 2n} \ll 1$.
+	Then, normwise error bounds for the $j^{th}$ column ($j=1:n$) are
 	\begin{align}
-	\|\bb{\Delta R}\|_F, \|\bb{\Delta A}\|_F &\leq \left[n\tilde{\gamma}_{m2^{-L}}+(1+n\tilde{\gamma}_{m2^{-L}})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right]\|\bb{A}\|_F, \text{ and} \label{eqn:tsqrRA}\\
-	\|\bb{\Delta Q}\|_F &\leq \sqrt{n}\left[(1+n\tilde{\gamma}_{m2^{-L}})(1+n\tilde{\gamma}_{ 2n})^L -1\right].\label{eqn:tsqrQ}
-	%& \leq \left[n\tilde{\gamma}_{m2^{-L}}+(1+n\tilde{\gamma}_{m2^{-L}})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right]\|\bb{A}\|_F,\label{eqn:tsqrA}
+	\|\hat{\bb{R}}_{TSQR}[:,j]-\bb{R}[:,j]\|_2 &\leq n(\tilde{\gamma}_{m2^{-L}} + L\tilde{\gamma}_{ 2n})\|\bb{A}[:,j]\|_2,  \label{eqn:tsqrRA}\\
+	\|\hat{\bb{Q}}_{TSQR}[:,j]-\bb{Q}[:,]\|_2 &\leq n(\tilde{\gamma}_{m2^{-L}} + L\tilde{\gamma}_{ 2n}).\label{eqn:tsqrQ}
 	\end{align}
-	Furthermore, if we assume $n\tilde{\gamma}_{m2^{-L}}, n\tilde{\gamma}_{ 2n} \ll 1$, the coefficient for $\|\bb{A}\|_F$ in \cref{eqn:tsqrRA} can be approximated as
-	\begin{equation}
-	\left[n\tilde{\gamma}_{m2^{-L}}+(1+n\tilde{\gamma}_{m2^{-L}})\left\{(1+n\tilde{\gamma}_{ 2n})^L-1\right\}\right] \simeq n\tilde{\gamma}_{m2^{-L}} + Ln\tilde{\gamma}_{ 2n}, %(46) in Mori
-	\end{equation}
-	and the right hand side of \cref{eqn:tsqrQ} can be approximated as
-	\begin{equation}
-	\sqrt{n}\left[(1+n\tilde{\gamma}_{m2^{-L}})(1+n\tilde{\gamma}_{ 2n})^L -1\right]\simeq \sqrt{n}\left(n\tilde{\gamma}_{m2^{-L}} + Ln\tilde{\gamma}_{ 2n}\right). %(67) in Mori
-	\end{equation}
-	We can also form a backward error, where $\bb{A}+\bb{\Delta \bb{A}_{\text{TSQR}}} = \hat{\bb{Q}}\hat{\bb{R}}$, and both $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via \cref{algo:par_tsqr}.
-	Then,
-	\begin{equation}
-	\|\bb{\Delta \bb{A}_{\text{TSQR}}}\|_F =\|\bb{Q \Delta R} + \bb{\Delta Q}\hat{\bb{R}}\|_F \simeq \sqrt{n}\left(n\tilde{\gamma}_{m2^{-L}} + Ln\tilde{\gamma}_{ 2n}\right)\|\bb{A}\|_F.
-	\end{equation}
 \end{theorem}
 
 Note that the $n\tilde{\gamma}_{m2^{-L}}$ and $n\tilde{\gamma}_{ 2n}$ terms correspond to errors from applying HQR to the blocks in the initial partition and to the blocks in levels 1 through $L$ respectively.
