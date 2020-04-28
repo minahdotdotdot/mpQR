@@ -104,18 +104,18 @@ Therefore, we can attribute nearly all of the computational tasks for \cref{algo
 In addition, the inner product is just as important in non-HQR linear algebra tools, where some examples include projections and matrix-vector, matrix-matrix multiply.
 Consequently, we return to the mixed precision setting described in \cref{sec:background}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}.
 \subsubsection{Round down at inner product: HQR}
-Consider forming a Householder transformation that zeros out $\bb{A}[:,i]\in\R^m$ below the the $i^{th}$ element. 
+Consider forming a Householder transformation that zeros out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 
 We need to compute $\sigma$, $\beta$, $\tilde{\bb{v}}_1$, and $\bb{v}$ as defined in \cref{sec:HQR}:
 \begin{align}
-\fl(\sigma) &= \rm{fl}(-\rm{sign}(\bb{A}[i,i])\|\bb{A}[:,i]\|_2) = \sigma + \Delta \sigma,\;\;|\Delta\sigma| \leq (\gamma_{2}^l+\gamma_{m-i+1}^h)|\sigma|,\label{eqn:mpsigma}\\
-\fl(\bb{\tilde{v}}_1)& =\bb{\tilde{v}}_1 + \Delta \bb{\tilde{v}}_1 = (1+\dd^l) (\bb{A}_{i,i}-\sigma-\Delta\sigma), \;\;|\Delta\bb{\tilde{v}}_1| \leq (\gamma_{3}^l+\gamma_{m-i+1}^h)|\bb{\tilde{v}}_1| \label{eqn:mpv1}\\
-\fl(\beta) &= \beta +\Delta \beta= (1+\dd^l)\left(-\tilde{\bb{v}_1}/\hat{\sigma}\right), \;\; |\Delta\beta| \leq (\gamma_{4}^l+\tilde{\gamma}_{m-i+1}^h)|\beta|, \label{eqn:mpbeta}
+\fl(\sigma) &= \rm{fl}(-\rm{sign}(\bb{x}_1)\|\bb{x}\|_2) = \sigma + \Delta \sigma,\;\;|\Delta\sigma| \leq (\gamma_{2}^l+\gamma_{m}^h)|\sigma|,\label{eqn:mpsigma}\\
+\fl(\bb{\tilde{v}}_1)& =\bb{\tilde{v}}_1 + \Delta \bb{\tilde{v}}_1 = (1+\dd^l) (\bb{x}_{1}-\sigma-\Delta\sigma), \;\;|\Delta\bb{\tilde{v}}_1| \leq (\gamma_{3}^l+\gamma_{m}^h)|\bb{\tilde{v}}_1| \label{eqn:mpv1}\\
+\fl(\beta) &= \beta +\Delta \beta= (1+\dd^l)\left(-\tilde{\bb{v}_1}/\hat{\sigma}\right), \;\; |\Delta\beta| \leq (\gamma_{4}^l+\tilde{\gamma}_{m}^h)|\beta|, \label{eqn:mpbeta}
 \end{align}
 \begin{equation}
 	\fl(\bb{v}_j)	= \bb{v}_j + \Delta \bb{v}_j\text{ where }|\Delta \bb{v}_j|\leq 
 	\begin{cases}
 	0,& j=1\\
-	(\gamma_{4}^l + \tilde{\gamma}_{m-i+1}^h)|\bb{v}_j|,&j=2:m-i+1.
+	(\gamma_{4}^l + \tilde{\gamma}_{m}^h)|\bb{v}_j|,&j=2:m-i+1.
 	\end{cases}  \label{eqn:mpv}
 \end{equation}
 Using these, we can formulate the mixed precision version of \cref{eqn:applyP} where $\hat{\bb{y}}=\fl(\bb{P_vx})\in\R^m$ is computed with \cref{eqn:effH},
@@ -156,8 +156,14 @@ The analogous mixed precision QR factorization error bounds are shown in \cref{t
 %TODO: what do these bounds mean?
 
 \subsubsection{Round down at inner product: BQR}
-
-
+Now, we analyze \cref{algo:blockHQR} with the same mixed precision inner product. 
+At the $k^{th}$ block, we first apply the mixed precision HQR summarized in \cref{thm:mpHQR}.
+Next, we study updating $\bb{W_k}^{j-1}$ to $\bb{W_k}^{j}$.
+Since this update is applied with a single Householder transformation to the right, we can apply \cref{eqn:mp19.3} to form 
+\begin{equation}
+	\hat{\bb{z_k}}^{(j)}= \bb{z_k}^{(j)} + \bb{\Delta z_k}^{(j)},\;\; |\bb{\Delta z_k}^{(j)}| \leq(\tilde{\gamma}_j^l+j\tilde{\gamma}_{,m-(k-1)}^h)  |\bb{z_k}^{(j)}|\label{eqn:mpBQR-z},,
+\end{equation}
+and the error for $\hat{\bb{v_k}}^{(j)}$ is \cref{eqn:mpv} with $m$ replaced by $m-(k-1)r$.
 
 
 \subsubsection{Round down at inner product: TSQR}
