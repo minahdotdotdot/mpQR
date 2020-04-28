@@ -84,7 +84,18 @@ showing that $q$ number of cast downs add $\gamma_q^l$ order errors to columnwis
 This mixed precision BQR variant still rich in level-3 BLAS operations can be implemented on TensorCore technology.
 Furthermore, the bounds in \cref{eqn:mpBQR1,eqn:mpBQR2} show that the loss in precision that can occur from cast downs are linear to the number of cast downs.
 \subsubsection{Level-Block round down: TSQR}\label{sec:mp-3t}
+Let us now consider a WY variant of TSQR, where all instances of {\tt qr} (lines 6,7,9 of \cref{algo:par_tsqr}) are followed by {\tt buildWY} (see \cref{algo:buildWY}), and all instances of {\tt hh\_mult} is replaced by a WY update (line 6 of \cref{algo:blockHQR}).
+We additionally impose a mixed precision assumption similar to \cref{sec:mp-3b}, where we store all WY representation of HQR within the for-loop (lines 4-8) of \cref{algo:par_tsqr} in low precision, and consider the construction of the $\bb{Q}$ factor.
+We can assume that each $2n$-by-$n$ and $m2^{-L}$-by-$n$ size matrices can fit into memory and only introduce one cast down for each $\bb{Q}_j^{(i)}$ block, where $i=1:L-1$ and $j=1:2^{i-1}$.
+Let us compute lines 9-10 in the higher precision, which introduces an error of order $n\tilde{\gamma}_{2n}^h$.
+In levels $L-1$ to $1$, each WY update adds error $u^l+n\tilde{\gamma}_{2n}^h$, and the final construction at the $0^{th}$ level (line 16), the WY update adds error $u^l + n\tilde{\gamma}_{m2^{-L}}^h$.
+Adding the cast down operator $\bb{I}^l$ to the analysis in \cite{Mori2012} and applying \cref{lem:3.7} yields the bounds on $\hat{\bb{Q}}_{mpTSQR}$,
+\begin{align}
+\|\hat{\bb{Q}}_{mpTSQR}[:,j] - \bb{Q}[:,j]\|_2 &\leq L(u^l+n\tilde{\gamma}_{2n}^h)+\tilde{\gamma}_{m2^{-L}}\label{eqn:mpTSQR1}\\%\leq \tilde{\gamma}_{d(mn, u^h, q, u^l)}^l
+\|\hat{\bb{Q}}_{mpTSQR} - \bb{Q}\|_F &\leq n^{1/2}(L(u^l+n\tilde{\gamma}_{2n}^h)+\tilde{\gamma}_{m2^{-L}}) \leq \tilde{\gamma}_{d(n^{3/2}(2Ln+m2^{-L}), u^h, Ln^{1/2}, u^l)}^l.\label{eqn:mpTSQR2}
+\end{align}
 
+%TODO: conclusion
 \subsection{Round down at inner-product level (BLAS-2)}\label{sec:mp-2}
 
 
