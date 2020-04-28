@@ -72,9 +72,7 @@ Note that the subscripts on $\bb{W_i}$ indicate the WY representation for the Ho
 		$\bb{V_i},\bm{\beta}_i,\bb{C_i}\gets$ {\tt hhQR}($\bb{C_i}$)\tcc*{\Cref{algo:hhQR}}
 		%$\bb{V}_i,\bm{\beta}_i,\bb{A}_{n_{i-1}+1:m,n_{i-1}+1:n_i}\gets$ {\tt hhQR}$(\bb{A}_{n_{i-1}:m,n_{i-1}+1:n_i})$\tcc*{\Cref{algo:hhQR}}
 		$\bb{W_i}\gets $ {\tt buildWY}$(\bb{V_i},\bm{\beta}_i)$ \tcc*{\Cref{algo:buildWY}}
-		\If {$i< N$}{
-			$[\bb{C_{i+1}}\cdots\bb{C_N}]$ -= $\bb{V_i} \left(\bb{W_i}^{\top}[\bb{C_{i+1}}\cdots\bb{C_N}]\right) $ \tcc*{update the rest: BLAS-3}
-		}
+		$[\bb{C_{i+1}}\cdots\bb{C_N}]$ -= $\bb{V_i} \left(\bb{W_i}^{\top}[\bb{C_{i+1}}\cdots\bb{C_N}]\right) $ \tcc*{update the rest: BLAS-3}
 	}
 	%	\tcp{Upper-triangularize the last set of columns and get the last WY factors.}
 	%	$\bb{V}_N,\bm{\beta}_N,\bb{A}_{n_{}:m,n_{N-1}+1:n}\gets$ {\tt hhQR}$(\bb{A}_{m_N+1:m,n_{N-1}+1:n})$\tcc*{\Cref{algo:hhQR}}
@@ -86,8 +84,7 @@ Note that the subscripts on $\bb{W_i}$ indicate the WY representation for the Ho
 		$\bb{Q}[(i-1)r+1:m,(i-1)r+1:n]$-= $\bb{W}_i \left(\bb{V}_i^{\top}\bb{Q}[(i-1)r+1:m,(i-1)r+1:n]\right)$
 	}
 	\Return $\bb{Q},\bb{A}$
-	\caption{$\bb{Q},\bb{R}\gets {\tt blockHQR}(\bb{A}, r)$: Perform Householder QR factorization of matrix $\bb{A}$ with column partitions of size $r$.}
-	\label{algo:blockHQR}
+	\caption{\label{algo:blockHQR} $\bb{Q},\bb{R}\gets {\tt blockHQR}(\bb{A}, r)$: Perform Householder QR factorization of matrix $\bb{A}$ with column partitions of size $r$.}
 \end{algorithm2e}
 \subsubsection{BQR: Rounding Error Analysis}
 We now present the basic structure for the rounding error analysis for \cref{algo:blockHQR}, which consist of: 1)HQR, 2)building the W factor, and 3) updating the remaining blocks with the WY representation.
