@@ -168,9 +168,9 @@ We start by introducing some additional rules from \cite{Higham2002} that build 
 These rules summarize how to accumulate errors represented by $\tth$'s and $\gamma$'s in a \emph{uniform precision} setting.
 These relations aid in writing clear and simpler error analyses.
 Regardless of the specific details of a mixed precision setting, a rounding error analysis for mixed precision arithmetic must support at least two different precision types. 
-Thus, \cref{lem:mp} allows low and high precision types and is a simple modification of \cref{lem:up}.
-The rules for $\tth$ allows us to keep track of the two precision types separately and the rules we present for $\gamma$ were chosen to be useful for casting down to the lower of the two precisions, a pertinent procedure in our mixed precision analysis in the later sections. 
-
+In \cref{lem:mp}, we present just a few rules adapted for multiple precisions from \cref{lem:up} that we will use repeatedly in future sections. 
+%Thus, \cref{lem:mp} allows low and high precision types and is a simple modification of \cref{lem:up}.
+%The rules for $\tth$ allows us to keep track of the two precision types separately and the rules we present for $\gamma$ were chosen to be useful for casting down to the lower of the two precisions, a pertinent procedure in our mixed precision analysis in the later sections. 
 \begin{lemma}
 	\label{lem:up}
 	For any positive integer $k$, let $\tth_{k}$ denote a quantity bounded according to $|\tth_{k}|\leq \frac{k u }{1-ku} =:\gamma_{k}$. The following relations hold for positive integers $i$, $j$, and nonnegative integer $k$.
@@ -196,29 +196,34 @@ The rules for $\tth$ allows us to keep track of the two precision types separate
 \end{lemma}
 \begin{lemma}
 	\label{lem:mp}
-	For any nonnegative integer $k$ and some precision $q$, let $\tth^{q}_{k}$ denote a quantity bounded according to $|\tth^q_{k}|\leq \frac{k u^q }{1-ku^q} =:\gamma^{q}_{k}$.
-	The following relations hold for two precisions l (low) and h (high), positive integers, $j_{l}$,$j_{h}$, non-negative integers $k_{l}$, and $k_{h}$, and $c>0$:
-	\begin{equation}
-	(1+\tth^{l}_{k_{l}})(1+\tth^{l}_{j_{l}})(1+\tth^{h}_{k_{h}})(1+\tth^{h}_{j_{h}})=(1+\tth^{l}_{k_{l}+j_{l}})(1+\tth^{h}_{k_{h}+j_{h}}), \\
-	\end{equation}
-	\begin{align}
-	\frac{(1+\tth^{l}_{k_{l}})(1+\tth^{h}_{k_{h}})}{(1+\tth^{l}_{j_{l}})(1+\tth^{h}_{j_{h}})} &=\left\{\begin{alignedat}{2}
-	(1+\tth^{h}_{k_{h}+j_{h}})(1+\tth^{l}_{k_{l}+j_{l}})&,\quad& j_{h} \leq k_{h}, j_{l} \leq k_{l},\\
-	(1+\tth^{h}_{k_{h}+2j_{h}})(1+\tth^{l}_{k_{l}+j_{l}})&,\quad& j_{h} \leq k_{h}, j_{l} > k_{l},\\
-	(1+\tth^{h}_{k_{h}+j_{h}})(1+\tth^{l}_{k_{l}+2j_{l}})&,\quad& j_{h} > k_{h}, j_{l} \leq k_{l},\\
-	(1+\tth^{h}_{k_{h}+2j_{h}})(1+\tth^{l}_{k_{l}+2j_{l}})&,\quad& j_{h} > k_{h}, j_{l} > k_{l}.
-	\end{alignedat}\right.
-	\end{align}
-	Without loss of generality, let $1 \gg u_{l} \gg u_{h}>0$.
-	Let $d$, a nonnegative integer, and $r\in[0, \lfloor\frac{u_l}{u_h}\rfloor]$ be numbers that satisfy $k_{h}u_h = d u_l + r u_h$. 
-	Alternatively, $d$ can be defined by $d := \lfloor\frac{k_{h}u_h}{u_l}\rfloor$.
+	For any nonnegative integers $k_l$, $k_h$ and some precision $q$ defined with respect to the unit round-off, $u^q$, define $\gamma^{q}_{k} := \frac{k u^q }{1-ku^q}$.
+	%, let $\tth^{q}_{k}$ denote a quantity bounded according to $|\tth^q_{k}|\leq \frac{k u^q }{1-ku^q} =:\gamma^{q}_{k}$.
+%	The following relations hold for two precisions l (low) and h (high), positive integers, $j_{l}$,$j_{h}$, non-negative integers $k_{l}$, and $k_{h}$, and $c>0$:
+%	\begin{equation}
+%	(1+\tth^{l}_{k_{l}})(1+\tth^{l}_{j_{l}})(1+\tth^{h}_{k_{h}})(1+\tth^{h}_{j_{h}})=(1+\tth^{l}_{k_{l}+j_{l}})(1+\tth^{h}_{k_{h}+j_{h}}), \\
+%	\end{equation}
+%	and rules for the quotient $\frac{(1+\tth^{l}_{k_{l}})(1+\tth^{h}_{k_{h}})}{(1+\tth^{l}_{j_{l}})(1+\tth^{h}_{j_{h}})}$ follow similarly. 
+%%	\begin{align}
+%%	\frac{(1+\tth^{l}_{k_{l}})(1+\tth^{h}_{k_{h}})}{(1+\tth^{l}_{j_{l}})(1+\tth^{h}_{j_{h}})} &=\left\{\begin{alignedat}{2}
+%%	(1+\tth^{h}_{k_{h}+j_{h}})(1+\tth^{l}_{k_{l}+j_{l}})&,\quad& j_{h} \leq k_{h}, j_{l} \leq k_{l},\\
+%%	(1+\tth^{h}_{k_{h}+2j_{h}})(1+\tth^{l}_{k_{l}+j_{l}})&,\quad& j_{h} \leq k_{h}, j_{l} > k_{l},\\
+%%	(1+\tth^{h}_{k_{h}+j_{h}})(1+\tth^{l}_{k_{l}+2j_{l}})&,\quad& j_{h} > k_{h}, j_{l} \leq k_{l},\\
+%%	(1+\tth^{h}_{k_{h}+2j_{h}})(1+\tth^{l}_{k_{l}+2j_{l}})&,\quad& j_{h} > k_{h}, j_{l} > k_{l}.
+%%	\end{alignedat}\right.
+%%	\end{align}
+	%Without loss of generality, let $1 \gg u_{l} \gg u_{h}>0$.
+	Consider a low precision and a high precision where $1 \gg u_{l} \gg u_{h}>0$.
 	Then,
-	\begin{align}
-	\gamma^{h}_{k_{h}}\gamma^{l}_{k_{l}} &\leq \gamma^{l}_{k_{l}}, \quad\text{for } k_{l} u^l \leq \frac{1}{2}  \\
-	\gamma^{h}_{k_{h}}+u^l &\leq \gamma^{l}_{d+2} \\
-	\gamma^{l}_{k_{l}} + u^{h} &\leq \gamma^{l}_{k_{l}+1} \\ %\quad{\color{blue}\text{(A loose bound)}}
-	\gamma^{l}_{k_{l}}+\gamma^{h}_{k_{h}}+\gamma^{l}_{k_{l}}\gamma^{h}_{k_{h}} & < \gamma^{l}_{k_{l}+ d+ 1}. \label{eqn:mp1}
-	\end{align} 
+%	Let $d$, a nonnegative integer, and $r\in[0, \lfloor\frac{u_l}{u_h}\rfloor]$ be numbers that satisfy $k_{h}u_h = d u_l + r u_h$. 
+%	Alternatively, $d$ can be defined by $d := \lfloor\frac{k_{h}u_h}{u_l}\rfloor$.
+%	Then,
+	\begin{align*}
+	\gamma^{h}_{k_{h}}\gamma^{l}_{k_{l}} &\leq \gamma^{l}_{k_{l}}, \quad\text{for } k_{h} u^h \leq \frac{1}{2},  \\
+	\gamma^{h}_{k_{h}}+u^l &\leq \gamma^{l}_{d_1}, \\
+	\gamma^{l}_{k_{l}} + u^{h} &\leq \gamma^{l}_{k_{l}+1}, \\ %\quad{\color{blue}\text{(A loose bound)}}
+	\gamma^{l}_{k_{l}}+\gamma^{h}_{k_{h}}+\gamma^{l}_{k_{l}}\gamma^{h}_{k_{h}} & < \gamma^{l}_{k_{l}+ d_2},% \label{eqn:mp1}
+	\end{align*} 
+	where $d_1 = \lceil(u^l+k_hu^h)/u^l\rceil$ and $d_2 = \lceil k_hu^h/u^l\rceil$.
 \end{lemma}
 %We show the proof for \cref{eqn:mp1}.
 %\begin{proof}

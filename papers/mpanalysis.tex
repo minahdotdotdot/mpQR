@@ -96,266 +96,68 @@ Adding the cast down operator $\bb{I}^l$ to the analysis in \cite{Mori2012} and 
 \end{align}
 
 %TODO: conclusion
-\subsection{Round down at inner-product level (BLAS-2)}\label{sec:mp-2}
+\subsection{Round down at inner-product}\label{sec:mp-2}
 While the previous section discussed blocked variants of HQR that can be easily adapted for the mixed precision setting specific to TensorCore's level-3 BLAS operations, we want to provide a more general mixed precision environment in this section.
-Recall that HQR, BQR, and TSQR all rely on Householder transformations in one way or another, and a Householder transformation is essentially performed via \cref{eqn:effH}.
-This implementation capitalizes on the rank-1 update structure of Householder transformations where the predominant share of FLOPs is spent on an inner product.
+Recall that HQR, BQR, and TSQR all rely on Householder transformations in one way or another, and Householder transformations are essentially performed via \cref{eqn:effH}.
+This implementation capitalizes on the rank-1 update structure of Householder transformations where the predominant share of FLOPs is spent on an inner product, and computing the Householder vector and constant also rely heavily on inner products.
 Therefore, we can attribute nearly all of the computational tasks for \cref{algo:hhQR,algo:blockHQR,algo:par_tsqr} to the inner product.
 In addition, the inner product is just as important in non-HQR linear algebra tools, where some examples include projections and matrix-vector, matrix-matrix multiply.
-Consequently, we will generalize classic round-off error analysis of inner products to algorithms that may employ different precision types to different operations: We return to the mixed precision setting described in \cref{sec:background}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%Although Lemma~\ref{lem:gamma} only requires $ku<1$, we actually need $ku <\frac{1}{2}$, which implies $\gamma_{k} <1$, in order to maintain a meaningful relative error bound.
-%While this assumption, $\gamma_{k} < 1$, is easily satisfied by fairly large $k$ in higher precision floating point numbers, it is a problem even for small $k$ in lower precision floating point numbers.
-%Table \ref{table:ieeen} shows the maximum value of $k$ that still guarantees a relative error below $100\%$ ($\gamma_{k} < 1$). 
-%\begin{table}[h]
-%	\centering
-%	\begin{tabular}{||c|c|c||} 
-%		\hline
-%		precision &$\tilde{k} = \mathrm{argmax}_{k}(\gamma_{k} \leq 1)$ \\ \hline
-%		half & {\tt 512}\\
-%		single & $\approx$ {\tt 4.194e06} \\ 
-%		double &  $\approx$ {\tt 2.252e15}\\ \hline 
-%	\end{tabular}
-%	\caption{Upper limits of meaningful relative error bounds in the $\gamma_{k}$ notation.}
-%	\label{table:ieeen}
-%\end{table}
-%Thus, accumulated rounding errors in lower precision types lead to instability with fewer operations in comparison to higher precision types.
-%As $k$ represents the number of FLOPs, this constraint restricts low-precision floating point operations to smaller problem sizes and lower complexity algorithms.
-%%That such a small number of operations, $k=512$, leads to $\gamma_{\text{IEEE 754 half}}_{k=512} = 1$ 
-%
-%%Thus, low-precision floats face problems within the rounding error analysis framework established in \cite{Higham2002} with smaller $k$-values than high-precision floats.
-%
-%%That small values of $k$ lead to $\gamma_{k} = 1$ can be interpreted as:
-%%\begin{itemize}
-%%	\item Accumulated rounding errors in lower precision types grow unstable very quickly and with fewer operations in comparison to higher precision types.
-%%	\item The upper bound given by $\gamma_{k}$ is less pessimistic in low precision than in high precision. 
-%%	Take the fact that 512 half precision operations and $2^{22}$ single precision operations both result in a 100\% relative error bound ($\gamma_{\text{half}}_{512} = \gamma_{\text{single}}_{2^{22}} = 1$).
-%%	This error bound is at its tightest when every single one of the rounding errors admitted at each step were the largest-possible, worst-case scenarios.
-%%	Arguably, $512$ successive instances of the largest possible errors is more probable than $2^{22}$ successive instances of the largest possible errors. 
-%%	% This second point may not be necessary.
-%%	%TODO: If we keep this point, right after this itemize might be a good place to give brief summary of probablistic error.
-%%\end{itemize}
-%
-%%This reflects on two sources of difficulty: the larger round-off error 
-%%1) Accumulated rounding errors in lower precision types grow unstable with fewer operations, and 2) the upper bound given by $\gamma_{k}$ becomes pessimistic faster.% in low precision.
-%%First, rounding errors admitted at each operation are much larger in low precision floating point arithmetic.
-%%For example, the unit round-off value for half precision floats is almost four decimal orders of magnitude larger than that of single precision floats. 
-%%This implies that it would take almost $10^4$ as few operations in half precision than in single precision to reach the same order of magnitude in accumulated rounding error. 
-%%Second, the convenient error bound presented in Lemma~\ref{lem:gamma} gives the worst-case upper bound, which is given by assuming that the worst-case rounding occurred at each of the $k$ successive floating point operations. 
-%%As $k$ grows larger, the probability that the largest possible rounding occurs at every operation also grows smaller, and therefore, $\gamma_{k}$ upper bound becomes more pessimistic.
-%\par
-%
-%To clearly illustrate how this situation restricts rounding error analysis in half precision, we now consider performing the dot product of two vectors.
-%A forward error bound for dot products is
-%\begin{equation}
-%\frac{|\bb{x}^{\top}\bb{y} - \fl(\bb{x}^{\top}\bb{y})|}{|\bb{x}|^{\top}|\bb{y}|} \leq \gamma_{m}, \quad \bb{x},\bb{y}\in\R^{m},
-%\label{eqn:DDerr}
-%\end{equation}
-%where details and proof for this statement can be found in Section 3.1 of \cite{Higham2002}.
-%While this result does not guarantee a high relative accuracy when $|\bb{x}^{\top}\bb{y}| \ll |\bb{x}|^{\top}|\bb{y}|$, high relative accuracy is expected in some special cases.
-%For example, let $\bb{x}=\bb{y}$.
-%Then we have exactly $|\bb{x}^{\top}\bb{x}| = |\bb{x}|^{\top}|\bb{x}|=\|\bb{x}\|_2^2$, which leads to
-%\begin{equation}
-%\left|\frac{\|\bb{x}\|_2^2 - \fl(\|\bb{x}\|_2^2)}{\|\bb{x}\|_2^2}\right| \leq \gamma^{p}_{d+2}.
-%\end{equation}
-%Since vectors of length $m$ accumulate rounding errors that are bounded by $\gamma_{m}$, the worst-case relative error bound for a dot product of vectors of length $512$ is already at 100\% ($\gamma^{\text{half}}_{512}=1$). \par
-%
-%We present a simple numerical experiment that shows that the standard deterministic error bound is too pessimistic and cannot be practically used to approximate rounding error for half-precision arithmetic. 
-%In this experiment, we generated 2 million random half-precision vectors of length $512$ from two random distributions: the standard normal distribution, $N(0,1)$, and the uniform distribution over $(0,1)$.
-%Half precision arithmetic was simulated by calling Algorithm~\ref{algo:simulate} for every multiplication and summation step required in calculating the dot product, $\fl(\bb{x}^{\top}\bb{y})$.
-%
-%%Half precision arithmetic was simulated by: 1) casting all half precision floats up to single precision representation, 2) computing single precision operation, and 3) casting back down to half precision.
-%
-%\begin{algorithm2e}[H]
-%	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
-%	\KwIn{$\bb{x}_{\text{half}}, \bb{y}_{\text{half}}\in\F_{\text{half}}^m$, $f:\R^{m}\times \R^m \rightarrow \R^n$}
-%	\KwOut{$\fl(f(\bb{x}_{\text{half}}, \bb{y}_{\text{half}}))\in\F_{\text{half}}^n$}
-%	$\bb{x}_{\text{single}}, \bb{y}_{\text{single}} \gets$ {\tt castup}$([\bb{x}_{\text{half}},\bb{y}_{\text{half}}])$\\
-%	$\bb{z}_{\text{single}} \gets \fl(f(\bb{x}_{\text{single}}, \bb{y}_{\text{single}}))$\\
-%	$\bb{z}_{\text{half}} \gets$ {\tt castdown}$(\bb{z}_{\text{single}})$\\
-%	\Return $\bb{z}_{\text{half}}$\\
-%	\caption{$\bb{z}^{\text{half}} = {\tt simHalf}(f, \bb{x}^{\text{half}}, \bb{y}^{\text{half}})$ Simulate function $f\in$ OP$\cup \{{\tt dot product} \}$ in half precision arithmetic given input variables $\bb{x},\bb{y}$. Function {\tt castup} converts half precision floats to single precision floats, and {\tt castdown} converts single precision floats to half precision floats by rounding to the nearest half precision float.}
-%	\label{algo:simulate}
-%\end{algorithm2e}
-%
-%%These 3 steps were executed at every multiplication and addition operation in calculating the dot product, $\fl(\bb{x}^{\top}\bb{y})$.
-%The casting up step is exact since all half precision numbers can be exactly represented in single precision, $\F_{\text{half}}\subset \F_{\text{single}}$; the second step incurs a rounding error from a single precision arithmetic operation; and the casting down step incurs a rounding error from casting down to half precision.
-%Note that using Algorithm~\ref{algo:simulate} for any operation in OP results in simulating half precision arithmetic, whereas using it with the dot product results in simulating mixed precision arithmetic instead. 
-%The relative error in this experiment is formulated as the left hand side of the inequality in Equation \ref{eqn:DDerr}, where all operations outside of calculating $\fl(\bb{x}^{\top}\bb{y})$ are executed by casting up to double precision format and using double precision arithmetic.
-%Table \ref{table:HPdoterr} shows statistics from computing the relative error for simulated half precision dot products of $512$-length random vectors. 
-%\begin{table}[h]
-%	\centering
-%	\begin{tabular}{||c|c|c|c||} 
-%		\hline
-%		Random Distribution & Average & \makecell{Standard\\deviation}& Maximum\\ \hline
-%		Standard normal &{\tt 1.627e-04} & {\tt 1.640e-04 } & {\tt 2.838e-03}\\ \hline
-%		Uniform $(0,1)$ & {\tt 2.599e-03}& {\tt 1.854e-03} & {\tt 1.399e-02}\\ \hline
-%	\end{tabular}
-%	\caption{Statistics from dot product backward relative error in for 512-length vectors stored in half-precision and computed in simulated half-precision from 2 million realizations.}
-%	\label{table:HPdoterr}
-%\end{table}
-%%TODO: why is the standard dev for the first row larger than average? data should be nonneg.
-%We see that the inner products of vectors sampled from the standard normal distribution have backward relative errors that do not deviate much from the unit round-off ({\tt 4.883e-4}), whereas the vectors sampled from the uniform distribution tend to accumulate larger errors. 
-%Even so, the theoretical upper error bound of 100\% is too pessimistic, and it is difficult to predict the kind of results this experiment shows. 
-%Recent work in developing probabilistic bounds on rounding errors of floating point operations have shown that the inner product relative backward error for the conditions used for this experiment is bounded by {\tt 5.466e-2} with probability 0.99. \par
-%%While the probabilistic error bound does get the correct order of magnitude for a maximal error (with probability 99\%), it is not enough to describe the probability distribution of inner product errors. \par
-%%TODO: state that probablistic bounds have been introduced and why they have been.
-%%TODO: cite Theo Mary/N Higham paper and briefly mention probabilistic bound? https://personalpages.manchester.ac.uk/staff/theo.mary/doc/ProbErrAna.pdf
-%
-%Most importantly, no rounding error bounds (deterministic or probabilistic) allow flexibility in the precision types used for different operations. 
-%This restriction is the biggest obstacle in gaining an understanding of rounding errors to expect from computations done on emerging hardware that support mixed precision such as GPUs that employ mixed precision arithmetic.
-%In this paper, we extend the rounding error analysis framework established in \cite{Higham2002} to mixed precision arithmetic operations. 
-%
-%%Nevertheless, the error analysis within the framework given by Lemma \ref{lem:gamma} best allows us to keep the analysis simple.
-%%We will use it to study mixed precision block QR factorization methods. \par 
-%
-%%TODO: include statement about assumption that floats are not subnormal numbers.
-%
-%
-%% DONE: replace $w$ with $w$that does not contain $s$ or $p$?
-%Lemma \ref{lem:up} shows rules from Lemma 3.3 in \cite{Higham2002} that summarize how to accumulate errors represented by $\tth$'s and $\gamma$'s.
-%\begin{lemma}
-%	\label{lem:up}
-%	For any positive integer $k$, let $\tth_{k}$ denote a quantity bounded according to $|\tth_{k}|\leq \frac{k u }{1-ku} =:\gamma_{k}$. The following relations hold for positive integers $i$, $j$, and nonnegative integer $k$.
-%	Arithmetic operations between $\tth_{k}$'s: 
-%	%%%	\begin{align*}
+Consequently, we return to the mixed precision setting described in \cref{sec:background}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}.
+\subsubsection{Round down at inner product: HQR}
+Consider forming a Householder transformation that zeros out $\bb{A}[:,i]\in\R^m$ below the the $i^{th}$ element. 
+We need to compute $\sigma$, $\beta$, $\tilde{\bb{v}}_1$, and $\bb{v}$ as defined in \cref{sec:HQR}:
+\begin{align}
+\fl(\sigma) &= \rm{fl}(-\rm{sign}(\bb{A}[i,i])\|\bb{A}[:,i]\|_2) = \sigma + \Delta \sigma,\;\;|\Delta\sigma| \leq (\gamma_{2}^l+\gamma_{m-i+1}^h)|\sigma|,\label{eqn:mpsigma}\\
+\fl(\bb{\tilde{v}}_1)& =\bb{\tilde{v}}_1 + \Delta \bb{\tilde{v}}_1 = (1+\dd^l) (\bb{A}_{i,i}-\sigma-\Delta\sigma), \;\;|\Delta\bb{\tilde{v}}_1| \leq (\gamma_{3}^l+\gamma_{m-i+1}^h)|\bb{\tilde{v}}_1| \label{eqn:mpv1}\\
+\fl(\beta) &= \beta +\Delta \beta= (1+\dd^l)\left(-\tilde{\bb{v}_1}/\hat{\sigma}\right), \;\; |\Delta\beta| \leq (\gamma_{4}^l+\tilde{\gamma}_{m-i+1}^h)|\beta|, \label{eqn:mpbeta}
+\end{align}
+\begin{equation}
+	\fl(\bb{v}_j)	= \bb{v}_j + \Delta \bb{v}_j\text{ where }|\Delta \bb{v}_j|\leq 
+	\begin{cases}
+	0,& j=1\\
+	(\gamma_{4}^l + \tilde{\gamma}_{m-i+1}^h)|\bb{v}_j|,&j=2:m-i+1.
+	\end{cases}  \label{eqn:mpv}
+\end{equation}
+Using these, we can formulate the mixed precision version of \cref{eqn:applyP} where $\hat{\bb{y}}=\fl(\bb{P_vx})\in\R^m$ is computed with \cref{eqn:effH},
+\begin{equation}
+	\hat{\bb{y}} = \bb{y}+\bb{\Delta y},\;\; \|\bb{\Delta y}\|_2 \leq (\gamma_7^l + \tilde{\gamma}_{m}^h)\|\bb{y}\|_2.
+\end{equation}
+Thus, a backward error can be formed using $\bb{\Delta P_v} = \bb{\Delta y}\bb{x}^{
+\top}/\|\bb{x}\|_2^2$,
+\begin{equation}
+	\hat{\bb{y}} = (\bb{P_v} + \bb{\Delta P_v})\bb{x},\;\; \|\bb{\Delta P_v}\|_F\leq (\gamma_7^l + \tilde{\gamma}_{m}^h).
+\end{equation}
+The error bounds for applying $n$ Householder transformations to $\bb{x}$ can be found using \cref{lem:3.7},
+\begin{align}
+\hat{\bb{y}} &= \bb{Q} (\bb{x} +\bb{\Delta x}) = (\bb{Q} + \bb{\Delta Q})\bb{x},\\
+\|\bb{\Delta y}\|_2 &\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h)\|\bb{x}\|_2,\;\; \|\bb{\Delta Q}\|_F\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h),\label{eqn:mp19.3}
+\end{align} 
+where the leading order error is now $\cO(\gamma_n^l)$.
+The analogous mixed precision QR factorization error bounds are shown in \cref{thm:mpHQR}.
+\begin{theorem}
+	\label{thm:mpHQR}
+	Let $\bb{A}\in\R^{m\times n}$ with $m\geq n$ have full rank, $n$. 
+	Let $\hat{\bb{Q}}_{mpHQR}\in\R^{m\times n}$ and $\hat{\bb{R}}\in\R^{n\times n}_{mpHQR}$ be the thin QR factors of $\bb{A}$ obtained via \cref{algo:hhQR} with mixed precision FLOPs where inner products are computed in precision $h$ then cast down.
+	All other operations are carried out in precision $l$.
+	Then,
+	\begin{align*}
+%	\hat{\bb{R}} &= \bb{R} + \bb{\Delta R}__{mpHQR} = \fl(\hat{\bb{P}}_n\cdots\hat{\bb{P}}_1 \bb{A}),\\
+%	\hat{\bb{Q}} &= \bb{Q} + \bb{\Delta Q} = \fl(\hat{\bb{P}}_1\cdots\hat{\bb{P}}_n \bb{I}),\\
+	\|\bb{\Delta R}_{mpHQR}[:,j]\|_2&\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h) \|\bb{A}[:,j]\|_2,\;\; \|\bb{\Delta R}_{mpHQR}\|_F\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h) \|\bb{A}\|_F\\
+	\|\bb{\Delta Q}[:,j]_{mpHQR}\|_2&\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h),\;\; \|\bb{\Delta Q}_{mpHQR}\|_F \leq n^{1/2} (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h).
+	\end{align*}
+%	Let $\bb{A}+\bb{\Delta A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
+%	Then the backward e|rror is
 %	\begin{equation}
-%	(1+\tth_{k})(1+\tth_{j})%%%&
-%	=(1+\tilde{\tth}_{k+j}) %%%\\
-%	\qquad \mbox{and} \qquad
-%	\frac{1+\tth_{k}}{1+\tth_{j}} %%%&
-%	=
-%	\begin{cases}
-%	1+\tth_{k+j},& j \leq k\\
-%	1+\tth_{k+2j},& j > k\\
-%	\end{cases} 
-%	%%%	\end{align*}
+%	\|\bb{\Delta A}\|_F \leq n^{3/2}\tilde{\gamma}_{m}\|\bb{A}\|_F.
 %	\end{equation}
-%	Operations on $\gamma$'s: 
-%	\begin{align*}
-%	\gamma_{k}\gamma_{j} &\leq \gamma_{\rm{min}(k,j)}, \quad\text{for } \rm{max}_{(j,k)} u \leq \frac{1}{2}, \\
-%	n\gamma_{k} &\leq \gamma_{nk}, \quad \mbox{for} \quad n \leq \frac{1}{uk},\\
-%	\gamma_{k} + u &\leq \gamma_{k+1}, \\ 
-%	\gamma_{k}+\gamma_{j}+\gamma_{k}\gamma_{j} & \leq \gamma_{k+j}.
-%	\end{align*}
-%\end{lemma}
-%% TODO: make side by side to save space ?
-%
-%In Lemma~\ref{lem:mp}, we present modified versions of the rules in Lemma~\ref{lem:up}.
-%This mixed precision error analysis relies on the framework given by Lemma~\ref{lem:gamma}, which best allows us to keep a simple analysis. 
-%These relations allow us to easily accumulate errors in terms of $\tth$'s and $\gamma$'s and aid in writing clear and simpler error analyses.
-%The modifications support multiple precision types, whereas Lemma \ref{lem:up} assumes that the same precision is used in all operations. 
-%We distinguish between the different precision types using subscripts--- these types include products ($p$), sums ($s$), and storage formats ($w$).
-%
-%\begin{lemma}%[Mixed precision version of Lemma 3.3 from \cite{Higham2002}]
-%	\label{lem:mp}
-%	For any nonnegative integer $k$ and some precision $q$, let $\tth^{q}_{k}$ denote a quantity bounded according to $|\tth^{q}_{k}|\leq \frac{k u^{q} }{1-ku^{q}} =:\gamma^{q}_{k}$.
-%	The following relations hold for two precisions $s$ and $p$, positive integers, $j_s$,$j_p$, non-negative integers $k_s$, and $k_p$, and $c>0$:
-%	%Most of these result from commutativity. 
-%	\begin{equation}
-%	(1+\tth^{p}_{k_p})(1+\tth^{p}_{j_p})(1+\tth^{s}_{k_s})(1+\tth^{s}_{j_s})=(1+\tth^{p}_{k_p+j_p})(1+\tth^{s}_{k_s+j_s}), \\
-%	\end{equation}
-%	\begin{align}
-%	\frac{(1+\tth^{p}_{k_p})(1+\tth^{s}_{k_s})}{(1+\tth^{p}_{j_p})(1+\tth^{s}_{j_s})} &=\left\{\begin{alignedat}{2}
-%	(1+\tth^{s}_{k_s+j_s})(1+\tth^{p}_{k_p+j_p})&,\quad& j_s \leq k_s, j_p \leq k_p,\\
-%	(1+\tth^{s}_{k_s+2j_s})(1+\tth^{p}_{k_p+j_p})&,\quad& j_s \leq k_s, j_p > k_p,\\
-%	(1+\tth^{s}_{k_s+j_s})(1+\tth^{p}_{k_p+2j_p})&,\quad& j_s > k_s, j_p \leq k_p,\\
-%	(1+\tth^{s}_{k_s+2j_s})(1+\tth^{p}_{k_p+2j_p})&,\quad& j_s > k_s, j_p > k_p.
-%	\end{alignedat}\right.
-%	\end{align}
-%	Without loss of generality, let $1 \gg u^{p} \gg u^{s}>0$.
-%	Let $d$, a nonnegative integer, and $r\in[0, \lfloor\frac{u^{p}}{u^{s}}\rfloor]$ be numbers that satisfy $k_su^{s} = d u^{p} + r u^{s}$. 
-%	Alternatively, $d$ can be defined by $d := \lfloor\frac{k_su^{s}}{u^{p}}\rfloor$.
-%	Then
-%	\begin{align}
-%	\gamma^{s}_{k_s}\gamma^{p}_{k_p} &\leq \gamma^{p}_{k_p}, \quad\text{for } k_p u^{p} \leq \frac{1}{2}  \\
-%	\gamma^{s}_{k_s}+u^{p} &\leq \gamma^{p}_{d+2} \\
-%	\gamma^{p}_{k_p} + u^{s} &\leq \gamma^{p}_{k_p+1} \\ %\quad{\color{blue}\text{(A loose bound)}}
-%	\gamma^{p}_{k_p}+\gamma^{s}_{k_s}+\gamma^{p}_{k_p}\gamma^{s}_{k_s} & < \gamma^{p}_{k_p+ d+ 1}. \label{lem:mp1}
-%	\end{align} 
-%\end{lemma}
-%A proof for Equation \ref{lem:mp1} is provided in Appendix \ref{appendix:A}.
-%We use these principles to establish a mixed precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
-%% TODO: make side by side to save space ?
-%% TODO GEOFF and MINAH.   Meet and work out exact wording to fully formalize.   Should the wording be: there exists a \theta bounded by a \gamma (which is a specific value)?
-%\subsection{Inner product mixed precision error}
-%\label{ssec:IP}
-%We will see in Section~\ref{sec:HQRf} that the inner product is a building block of the HQR factorization (HQR) algorithm, which was introduced in \cite{Householder1958}.
-%More generally, it is used widely in most linear algebra tools such as matrix-vector multiply and projections.
-%Thus, we will generalize classic round-off error analysis of inner products to algorithms that may employ different precision types to different operations. 
-%Specifically, we consider performing an inner product with the storage precision, $u_w$, being lower than the summation precision, $u^{s}$.
-%This choice was made to provide a more accurate rounding error analysis of mixed precision floating point operations present in recent GPU technologies such as NVIDIA's TensorCore. 
-%Currently, TensorCore computes the inner product of vectors stored in half-precision by employing full precision multiplications and a single-precision accumulator. 
-%%TODO: citation?
-%As the majority of rounding errors from computing inner products occur during summation (see Section 3.1, \cite{Higham2002}), the single precision accumulator immensely reduces the error in comparison to using only half-precision operations.
-%This increase in accuracy combined with its speedy performance motivates 1)to study how to best utilize mixed precision arithmetic in algorithms and 2) to develop more accurate error analyses appropriate for mixed precision algorithms.
-%%TODO: was precision actually defined before? -Aly ( I think this was take care off)
-%
-%
-%Lemma \ref{lem:ip_a} and Corollary \ref{lem:ip_b} present two mixed precision forward error bounds for inner products, which show a tighter bound than the existing error bounds. 
-%In both cases, we assume storage in the lowest precision with round-off value, $u_w$, and summation performed with a higher precision with round-off value, $u^{s}$, and let $d \approx m u^{s} / u_w$,
-%% be the ratio between $m\times u^{s}$ and $u_w$
-%where $m$ is the length of the vectors. 
-%Although there are additional differing assumptions in these two lemmas, results from both show a strong dependence on $d$.
-%%Both lemmas show a dependence on $d$
-%\begin{lemma}
-%	\label{lem:ip_a}
-%	Let $w$, $p$, and $s$ each represent floating point precisions for storage, product, and summation, where the varying precisions are defined by their unit round-off values denoted by $u_w$, $u^{p}$, and $u^{s}$.
-%	Let $\bb{x},\bb{y}\in \F_w^{m}$ be two arbitrary vectors stored in $w$ precision.
-%	If an inner product performs multiplications in precision $p$ and addition of the products using precision $s$, then
-%	\begin{equation}
-%	\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\bb{\Delta x}) \bb{y} = \bb{x}(\bb{y}+\bb{\Delta y}),
-%	\end{equation}
-%	where $|\bb{\Delta x}|\leq \gamma^{p,s}_{1,m-1}|\bb{x}|$, $|\bb{\Delta y}|\leq \gamma^{p,s}_{1,m-1}|\bb{y}|$ componentwise, and $$\gamma^{p,s}_{1,m-1} := (1+u^{p})(1+\gamma^{s}_{m-1})-1.$$
-%	This result is then stored in precision $w$, and, if we further assume that $u_w=u^{p}>u^{s}$, then $|\bb{\Delta x}|\leq \gamma_w^{d+2}|\bb{x}|$ and $|\bb{\Delta y}|\leq \gamma_w^{d+2}|\bb{y}|$, where $d:=\lfloor\frac{(m-1)u^{s}}{u_w}\rfloor$.
-%\end{lemma}
-%
-%% TODO $\|\|_2$ for norms, What if x and or why have some zeros, or very small values?
-%% TODO is it really componentwise or in the infinity norm?   
-%Corollary \ref{lem:ip_b} presents another mixed precision forward error bound for mixed precision inner products with additional constraints.
-%Here, we assume that the vectors are being stored in a lower precision than the precision types being used for multiplications and additions.
-%This scenario is similar to how TensorCore technology works in GPUs.
-%
-%\begin{corollary}
-%	\label{lem:ip_b}
-%	In addition to the assumptions in Lemma~\ref{lem:ip_a}, assume $1\gg u_w \gg u^{s}>0$, and thus for any two numbers $x,y$ in $\F_w$, their product $xy$ is in $\F^{s}$.
-%	Let $\bb{x},\bb{y}\in \F_w^m$ be two arbitrary vectors stored in $w$ precision.
-%	If an inner product performs multiplications in full precision and addition of the products using precision $s$, then
-%	\begin{equation}
-%	\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\bb{\Delta x}) \bb{y} = \bb{x}(\bb{y}+\bb{\Delta y}),
-%	\end{equation}
-%	where $|\Delta x|\leq \gamma_w^{d+1}|x|$, $|\Delta y|\leq \gamma_w^{d+1}|y|$ componentwise and $d:=\lfloor\frac{(m-1)u^{s}}{u_w}\rfloor$.
-%\end{corollary}
-%
-%Proofs for Lemma \ref{lem:ip_a} and Corollary \ref{lem:ip_b} are shown in Appendix \ref{appendix:A}.
-%The analyses for these two differ only in the type of mixed precision arithmetic performed within the inner product subroutine, and the difference is revealed to result in either $\gamma_w^{d+1}$ or $\gamma_w^{d+2}$.
-%For the rest of this paper, we will refer to the forward error bound for the inner product as $\gamma_w^{d+z}$ for $z=1,2$ to generalize the analysis for varying assumptions.
-%This simplification allows us to use the same analysis for the remaining steps of the HQR algorithm presented in the following sections.
+\end{theorem}
+
+%TODO: what do these bounds mean?
+
+\subsubsection{Round down at inner product: BQR}
+
+
+
+
+\subsubsection{Round down at inner product: TSQR}
