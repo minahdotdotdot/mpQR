@@ -162,7 +162,7 @@ In uniform precision, this is largely derived from
 since the subtraction step only adds a single rounding error. 
 % I have used that $\bb{W_k}$ accrues additional rounding errors compared to $\bb{Y_k}$.
 Note that we implicitly covered the same step of applying an WY update in the construction of $\bb{z_k}^{(j)}$, but used \cref{lem:19.3} instead since we were concerned with the error occurred at a single update. 
-%Now, we leave this error in a general form to allow for different mixed-precision settings in \cref{sec:mpanalysis}.
+%Now, we leave this error in a general form to allow for different mixed precision settings in \cref{sec:mpanalysis}.
 %As a result of introducing generality, 
 We conclude with a general bound, 
 \begin{equation}\label{eqn:Xkbound}
@@ -214,4 +214,4 @@ Then,
 
 We showed earlier in this section that HQR performed on $\bb{C_k}$ accrues componentwise error of order $\tilde{\gamma}_{m-(k-1)r}$ by applying \cref{thm:feHQR}, and the building of the W factor, $r\tilde{\gamma}_{m-(k-1)r}$ order error.
 Both of these are clearly small in comparison to the error from applying many WY transformations, so we attribute the leading order error to this last step shown in \cref{eqn:BQR}.
-The primary goal of the analysis presented in this section is to make the generalization to mixed-precision settings in \cref{sec:mpanalysis} easier, and readers should refer to \cite{golub2013matrix,Higham2002} for full details.
+The primary goal of the analysis presented in this section is to make the generalization to mixed precision settings in \cref{sec:mpanalysis} easier, and readers should refer to \cite{golub2013matrix,Higham2002} for full details.

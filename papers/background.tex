@@ -1,4 +1,4 @@
-In this section, we introduce the basic motivations and tools for mixed-precision rounding error analysis needed for the {\it QR factorization}.
+In this section, we introduce the basic motivations and tools for mixed precision rounding error analysis needed for the {\it QR factorization}.
 A matrix $\bb{A} \in \R^{m \times n}$ for $m\geq n$ can be written as
 $$\bb{A} = \bb{QR},
 \qquad
@@ -14,7 +14,7 @@ If $\bb{A}$ is full rank then the columns of $\bb{Q}_{1}$ are orthonormal (i.e. 
 In many applications, computing the \emph{thin} decomposition requires less computation and is sufficient in performance. 
 While important definitions are stated explicitly in the text, Table~\ref{table:notation} serves to establish basic notation.
 \input{deftable}
-\Cref{sec:backgroundRE} introduces basic concepts for rounding error analysis, and \Cref{sec:backgroundIP} exemplifies the need for mixed-precision rounding error analysis using the inner product.
+\Cref{sec:backgroundRE} introduces basic concepts for rounding error analysis, and \Cref{sec:backgroundIP} exemplifies the need for mixed precision rounding error analysis using the inner product.
 \subsection{Basic rounding error analysis of floating point operations}\label{sec:backgroundRE}
 We use and analyze the IEEE 754 Standard floating point number systems.
 Let $\F \subset \R$ denote the space of some floating point number system with base $b\in\mathbb{N}$, precision $t\in\mathbb{N}$, significand $\mu\in\mathbb{N}$, and exponent range $[\eta_{\text{min}}, \eta_{\text{max}}]\subset \mathbb{Z}$.
@@ -108,7 +108,7 @@ Table \ref{table:ieeen} shows the maximum number of successive floating point op
 	\label{table:ieeen}
 \end{table}
 \vspace*{-10pt}
-Thus, accumulated rounding errors in lower precision types can lead to an instability with fewer operations in comparison to higher precision types and prompts us to evaluate whether existing algorithms can be naively adapted for mixed-precision arithmetic. \par
+Thus, accumulated rounding errors in lower precision types can lead to an instability with fewer operations in comparison to higher precision types and prompts us to evaluate whether existing algorithms can be naively adapted for mixed precision arithmetic. \par
 %Thus, accumulated rounding errors in lower precision types can lead to an instability with fewer operations in comparison to higher precision types.
 %As $k$ represents the number of FLOPs, this constraint restricts low-precision floating point operations to smaller problem sizes and lower complexity algorithms.\par
 %TODO: mention in comment to reviewers 
@@ -160,16 +160,16 @@ Recent work in developing probabilistic bounds on rounding errors of floating po
 \end{table}
 
 Most importantly, no rounding error bounds (deterministic or probabilistic) allow flexibility in the precision types used for different operations. 
-This restriction is the biggest obstacle in gaining an understanding of rounding errors to expect from computations done on emerging hardware that support mixed-precision such as GPUs that employ mixed-precision arithmetic.
-%In this paper, we extend the rounding error analysis framework established in \cite{Higham2002} to mixed-precision arithmetic operations. 
+This restriction is the biggest obstacle in gaining an understanding of rounding errors to expect from computations done on emerging hardware that support mixed precision such as GPUs that employ mixed precision arithmetic.
+%In this paper, we extend the rounding error analysis framework established in \cite{Higham2002} to mixed precision arithmetic operations. 
 %TODO: consider rewriting above sentence to suit the revisions since we may have to emphasize our role in doing mp analysis for QR (the LU paper also does mixed preicion rounding error analysis.\cite{Blanchard2019}.)
 
 We start by introducing some additional rules from \cite{Higham2002} that build on \cref{lem:gamma} in \cref{lem:up}. 
 These rules summarize how to accumulate errors represented by $\tth$'s and $\gamma$'s in a \emph{uniform precision} setting.
 These relations aid in writing clear and simpler error analyses.
-Regardless of the specific details of a mixed-precision setting, a rounding error analysis for mixed-precision arithmetic must support at least two different precision types. 
+Regardless of the specific details of a mixed precision setting, a rounding error analysis for mixed precision arithmetic must support at least two different precision types. 
 Thus, \cref{lem:mp} allows low and high precision types and is a simple modification of \cref{lem:up}.
-The rules for $\tth$ allows us to keep track of the two precision types separately and the rules we present for $\gamma$ were chosen to be useful for casting down to the lower of the two precisions, a pertinent procedure in our mixed-precision analysis in the later sections. 
+The rules for $\tth$ allows us to keep track of the two precision types separately and the rules we present for $\gamma$ were chosen to be useful for casting down to the lower of the two precisions, a pertinent procedure in our mixed precision analysis in the later sections. 
 
 \begin{lemma}
 	\label{lem:up}
@@ -238,8 +238,8 @@ The rules for $\tth$ allows us to keep track of the two precision types separate
 %\end{proof}
 %TODO: Do you think this proof should be here? 
 
-We use these principles to establish a mixed-precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
-Let us define a mixed-precision setting that is similar to the TensorCore Fused Multiply-Add (FMA) block but works at the level of a dot product. 
+We use these principles to establish a mixed precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
+Let us define a mixed precision setting that is similar to the TensorCore Fused Multiply-Add (FMA) block but works at the level of a dot product. 
 While the FMA block in TensorCore is for matrix-matrix products (level-3 BLAS), we consider a vector inner product(level-2 BLAS) FMA as defined in Assumption~\ref{assump:mp}.
 %TODO: BLAS and FMA should have been introduced in the introduction section.
 %TODO: talk more about other FMA operations and cite properly.
@@ -284,7 +284,7 @@ The resulting componentwise backward errors are
 \Cref{eqn:beforecd,eqn:aftercd} are crucial for our analysis in \cref{sec:mpanalysis} since the TensorCore technology outputs a matrix product in fp16 or fp32. 
 Consider matrices $\bb{A}\in\F_{\text{fp16}}^{p\times m}$ and $\bb{B}\in\F_{\text{fp16}}^{m\times q}$, and $\bb{C}=\bb{A}\bb{B}\in\F_{\text{fp16}}^{p\times q}$.
 If $\fl(\bb{C})$ is desired in fp16, then each component of that matrix incurs rounding errors as shown in \cref{eqn:aftercd} and if it is desired in fp32, the componentwise rounding error is given by \cref{eqn:beforecd}.
-Similarly, we could consider other mixed-precision algorithms that cast down at various points within the algorithm to take advantage of better storage properties of lower precision types. 
+Similarly, we could consider other mixed precision algorithms that cast down at various points within the algorithm to take advantage of better storage properties of lower precision types. 
 Error bounds in the fashion of \cref{eqn:beforecd} can be used before the cast down operations, and the action of the cast down is best represented by error bounds similar to \cref{eqn:aftercd}.\par
 
 In \cref{sec:algo}, we introduce various Householder QR algorithms as well as a skeleton for rounding error analysis for these algorithms that we will modify for different mixed precision assumptions in \cref{sec:mpanalysis}.

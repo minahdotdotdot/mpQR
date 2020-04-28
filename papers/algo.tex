@@ -2,8 +2,8 @@ We introduce the Householder QR factorization algorithm (HQR) in \cref{sec:HQR} 
 The blocked HQR (BQR) in \cref{sec:BQR} partitions the columns of the target matrix and utilizes mainly level-3 BLAS operations and is a well-known algorithm that uses the WY representation of \cite{Bischof1987}.
 %\cite{Schreiber1989}.
 In contrast, the Tall-and-Skinny QR (TSQR) in \cref{sec:TSQR} partitions rows of the matrix and takes a communication-avoiding divide-and-conquer approach that can be easily parallelized (see \cite{Demmel2007}).
-We also present the crucial results in standard rounding error analysis of these algorithms that excludes any mixed-precision assumptions.
-These building steps of round-off error analysis will be easily tweaked for various mixed-precision assumptions in \cref{sec:mpanalysis}.
+We also present the crucial results in standard rounding error analysis of these algorithms that excludes any mixed precision assumptions.
+These building steps of round-off error analysis will be easily tweaked for various mixed precision assumptions in \cref{sec:mpanalysis}.
 \input{algo-HQR}
 \input{algo-BQR}
 \input{algo-TSQR}

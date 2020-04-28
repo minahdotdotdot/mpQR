@@ -10,7 +10,7 @@ However, many applications exist that would benefit from the use of lower precis
 Many computing applications today require solutions quickly and often under low size, weight, and power constraints (low SWaP), e.g., sensor formation, etc. 
 %TODO: Reviewer #2 asks what does weight mean here.
 Computing in low-precision arithmetic offers the ability to solve many problems with improvement in all four parameters.
-Utilizing mixed-precision, one can achieve similar quality of computation as high-precision and still achieve 
+Utilizing mixed precision, one can achieve similar quality of computation as high-precision and still achieve 
 speed, size, weight, and power constraint improvements. 
 There have been several recent demonstrations of computing using half-precision arithmetic (16 bits) achieving around half an order to an 
 order of magnitude improvement of these categories in comparison to double precision (64 bits).
@@ -28,8 +28,8 @@ Training deep artificial neural networks by employing lower precision arithmetic
 The low precision computing environments that we consider are \emph{mixed precision} settings, which are designed to imitate those of new GPUs that employ multiple precision types for certain tasks. 
 For example, Tesla V100's Tensor Cores perform matrix-multiply-and-accumulate of half precision input data with exact products and single precision (32 bits) summation accumulate \cite{nvdia}.
 The existing rounding error analyses are built within what we call a \emph{uniform precision} setting, which is the assumption that all arithmetic operations and storage are performed via the same precision.
-In this work, we develop a framework for deterministic mixed-precision rounding error analysis, and explore half-precision Householder QR factorization (HQR) algorithms for data and graph analysis applications. 
-QR factorization is known to provide a backward stable solution to the linear least squares problem and thus, is ideal for mixed-precision. 
+In this work, we develop a framework for deterministic mixed precision rounding error analysis, and explore half-precision Householder QR factorization (HQR) algorithms for data and graph analysis applications. 
+QR factorization is known to provide a backward stable solution to the linear least squares problem and thus, is ideal for mixed precision. 
 %TODO: Remove it and just explain in response to reviewers. didn't serve purpose of paper mixed precision is an active area of research
 %TODO: algorithms with better stability should be looked at first in mixed precision. 
 
@@ -37,9 +37,9 @@ However, additional analysis is needed as the additional round-off error will ef
 Here, we focus on analyzing specific algorithms in a specific set of types (IEEE754 half (fp16), single (fp32, and double(fp64)), but the framework we develop 
 could be used on different algorithms or different floating point types (such as bfloat16 in \cite{tagliavini2018floating}).\par
 
-This work discusses several aspects of using mixed-precision arithmetic: (i) error analysis that can more accurately describe mixed-precision arithmetic than existing analyses, (ii) algorithmic design that is more resistant against lower numerical stability associated with lower precision types, and (iii) an example where mixed-precision implementation performs as sufficiently as double-precision implementations. 
-Our key findings are that the new mixed-precision error analysis produces tighter error bounds, that some block QR algorithms by Demmel et al. \cite{Demmel2012} are able to operate in low precision more robustly than non-block techniques, and that some small-scale benchmark graph clustering problems can be successfully solved with mixed-precision arithmetic.
+This work discusses several aspects of using mixed precision arithmetic: (i) error analysis that can more accurately describe mixed precision arithmetic than existing analyses, (ii) algorithmic design that is more resistant against lower numerical stability associated with lower precision types, and (iii) an example where mixed precision implementation performs as sufficiently as double-precision implementations. 
+Our key findings are that the new mixed precision error analysis produces tighter error bounds, that some block QR algorithms by Demmel et al. \cite{Demmel2012} are able to operate in low precision more robustly than non-block techniques, and that some small-scale benchmark graph clustering problems can be successfully solved with mixed precision arithmetic.
 %TODO: MINAH rewrite outline of paper paragraph, and remove graph references in above paragraph.
 %In Section~\ref{sec:FPREA}, we will give an overview of the modern developments in hardware that motivates rounding error analysis that supports multiple precision types, and we will present a set of error analysis tools. 
-%The HQR factorization algorithm and a mixed-precision rounding error analysis of its implementation is discussed in Section~\ref{sec:HQRf}.
+%The HQR factorization algorithm and a mixed precision rounding error analysis of its implementation is discussed in Section~\ref{sec:HQRf}.
 %In Section~\ref{sec:TSQR}, we present the TSQR algorithm as well as numerical experiments that show that TSQR can be useful in low precision environments. Section~\ref{sec:Apps} explores the use of low and mixed precision QR algorithms as subroutines for an application: spectral clustering.

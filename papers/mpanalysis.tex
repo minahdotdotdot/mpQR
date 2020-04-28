@@ -1,18 +1,49 @@
 Let us first consider rounding errors incurred from carrying out HQR in high precision, then cast down at the very end.
-This could be useful in applications that require economical storage, but have enough memory to carry out HQR in higher precision. 
-Suppose two types of floating point types $\F_{low}$ and $\F_{high}$ where $\F_{low}\subseteq \F_{high}$, and for all $x,y\in\F_{low}$, the exact product $xy$ can be represented in $\F_{high}$.
-Some example pairs of $\{\F_{low}, \F_{high}\}$ include $\{\text{fp16}, \text{fp32}\}$, $\{\text{fp32}, \text{fp64}\}$, and $\{\text{fp16}, \text{fp64}\}$.
-Suppose that the matrix to be factorized is stored with low precision numbers, $\bb{A}\in\F_{low}^{m\times n}$.
+This could be useful in applications that require economical storage, but have enough memory to carry out HQR in higher precision, or in block algorithms as will be shown in \cref{sec:mp-b,sec:mp-2}.
+Suppose two types of floating point types $\F_{low}$ and $\F_{high}$ where $\F_{l}\subseteq \F_{h}$, and for all $x,y\in\F_{l}$, the exact product $xy$ can be represented in $\F_{h}$.
+Some example pairs of $\{\F_{l}, \F_{h}\}$ include $\{\text{fp16}, \text{fp32}\}$, $\{\text{fp32}, \text{fp64}\}$, and $\{\text{fp16}, \text{fp64}\}$.
+Suppose that the matrix to be factorized is stored with low precision numbers, $\bb{A}\in\F_{l}^{m\times n}$.
 Casting up adds no rounding errors, so we can directly apply the analysis that culminated in \cref{thm:feHQR}, and we only consider the columnwise forward error in the $\bb{Q}$ factor.
+Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR} = \bb{Q} + \bb{\Delta Q}_{HQR}$ is bounded normwise via $\|\bb{\Delta Q}_{HQR}[:,j]\|_2 \leq n\tilde{\gamma}_{m}^{high},$ and incurs an extra rounding error when $\bb{Q}\in\F_{high}^{m\times n}$ is cast down to $F_{low}^{m\times n}$.
+Consider the backward error of a cast down operation represented by a linear transformation, 
 
-Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR}$ is bounded normwise via $$ \|\bb{Q}[:,j]\|_2 \leq n\tilde{\gamma}_{high},$$ and incurs an extra rounding error when $\bb{Q}\in\F_{high}^{m\times n}$ is cast down to $F_{low}^{m\times n}$.
-Since $\hat{\bb{Q}}_{HQR}$ should be almost orthogonal with respect to the higher precision, we can expect all components to be within the dynamic range of $\F_{low}$.
+First, consider casting down a vector $\bb{x}\in\F_h^m$ to $\F_l^m$.
+We see that
+\begin{equation}
+	\bb{x}^l := \text{\tt castdown}(\bb{x}) = \bb{I}_{l}\bb{x} = \bb{x}+\bb{\Delta x},\;\; |\bb{\Delta x}| \leq u^l |x|. 
+\end{equation}
+Then, $\bb{E} = \bb{\Delta x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same argument as we did in \cref{eqn:outer} to show 
+\begin{equation}
+	\|\bb{E}\|_F\leq u^l. \label{eqn:castdown}
+\end{equation}
+Using this in \cref{lem:3.7} to analyze the norm error for the $j^{th}$ column of the $\bb{Q}_{HQR}$ factor computed with \cref{algo:hhQR} yields
+\begin{equation}
+	\|\text{\tt castdown}(\bb{Q}_{HQR}[:,j]) - \bb{Q}[:,j]\|_2 = \|\bb{I}_l\hat{\bb{P_1}}\cdots\hat{\bb{P_n}}\hat{e}_j\|_2 \leq u^l+n\tilde{\gamma}_m^h.
+\end{equation}
+A looser upper bound is given by $\tilde{\gamma}_d^l$ where $d = \lceil u^l_+mu^h/u^l\rceil$ and we benefit from being able to represent it in terms of the low precision . 
+Additionally, we can use this to identify a function that allows us to formulate the new error bound after applying a castdown operation to vectors whose error bounds were known in high precision,
+\begin{equation}
+	d(m,u^h, u^l) = \lceil (u^l+mu^h)/u^l\rceil.
+\end{equation} 
+That is, if $\|\bb{\Delta x}\|_2 \leq \gamma_m^h$, then $\|\text{\tt castdown}(\bb{x})\|_2 \leq \gamma_{d(\gamma_m^h, u^l)}^l.$
+
+%Let $d = \lceil nmu^h/u^l\rceil$, so that $nmu^h\leq du^l$, and there exists some $r\leq \lfloor u^h/u^l \rfloor$ so that $nmu^h = (d-1)u^l+ru^h$.
+%This $d$ value allows us to convert the error in terms of the higher precision to the lower precision while also adding in the extra rounding error that may be incurred in the casting down step. 
+%Then, the componentwise error is bounded by
+%\begin{equation}
+%	|\text{{\tt castdown}}(\bb{\Delta Q}_{HQR}[i,j])| \leq \frac{cnmu^{h}}{1-cmu^{h}} \leq \frac{cdu^{l}}{1-cmu^h} \leq \tilde{\gamma}_{d}^l,
+%\end{equation}
+%and the columnwise error is 
+%\begin{equation}
+%	\|\text{{\tt castdown}}(\bb{\Delta Q}_{HQR}[:,j])\|_2 \leq \left(\sum_{i=1}^m |\tilde{\tth}_d^l|^2 \right)^{1/2} \leq \sqrt{m}\gamma_d^l
+%\end{equation}
+%Since $\hat{\bb{Q}}_{HQR}$ should be almost orthogonal with respect to the higher precision, we can expect all components to be within the dynamic range of $\F_{low}$.
 
 %In \ref{sec:mp-f}, we look at the rounding errors incurred from carrying out a QR factorization in a high precision, then cast down at the very end.
 %Since this requires only one cast down operation, this is very similar to the results from the standard uniform precision analysis.
 
 In the next sections, we consider performing BQR and TSQR with FLOPs within a block and/or a level in high precision, but cast down to low precision in between blocks in \ref{sec:mp-b}.
-Finally, we consider all 3 algorithms with an ad hoc mixed-precision setting where inner products are performed in high precision and all other operations are computed in low precision in \ref{sec:mp-2}.
+Finally, we consider all 3 algorithms with an ad hoc mixed precision setting where inner products are performed in high precision and all other operations are computed in low precision in \ref{sec:mp-2}.
 %\subsection{Round down at the end of the factorization}\label{sec:mp-f}
 %Results in this section are quite straight forward, but 
 %\subsubsection{HQR}
@@ -148,11 +179,11 @@ Finally, we consider all 3 algorithms with an ad hoc mixed-precision setting whe
 %%TODO: cite Theo Mary/N Higham paper and briefly mention probabilistic bound? https://personalpages.manchester.ac.uk/staff/theo.mary/doc/ProbErrAna.pdf
 %
 %Most importantly, no rounding error bounds (deterministic or probabilistic) allow flexibility in the precision types used for different operations. 
-%This restriction is the biggest obstacle in gaining an understanding of rounding errors to expect from computations done on emerging hardware that support mixed-precision such as GPUs that employ mixed-precision arithmetic.
-%In this paper, we extend the rounding error analysis framework established in \cite{Higham2002} to mixed-precision arithmetic operations. 
+%This restriction is the biggest obstacle in gaining an understanding of rounding errors to expect from computations done on emerging hardware that support mixed precision such as GPUs that employ mixed precision arithmetic.
+%In this paper, we extend the rounding error analysis framework established in \cite{Higham2002} to mixed precision arithmetic operations. 
 %
 %%Nevertheless, the error analysis within the framework given by Lemma \ref{lem:gamma} best allows us to keep the analysis simple.
-%%We will use it to study mixed-precision block QR factorization methods. \par 
+%%We will use it to study mixed precision block QR factorization methods. \par 
 %
 %%TODO: include statement about assumption that floats are not subnormal numbers.
 %
@@ -187,7 +218,7 @@ Finally, we consider all 3 algorithms with an ad hoc mixed-precision setting whe
 %% TODO: make side by side to save space ?
 %
 %In Lemma~\ref{lem:mp}, we present modified versions of the rules in Lemma~\ref{lem:up}.
-%This mixed-precision error analysis relies on the framework given by Lemma~\ref{lem:gamma}, which best allows us to keep a simple analysis. 
+%This mixed precision error analysis relies on the framework given by Lemma~\ref{lem:gamma}, which best allows us to keep a simple analysis. 
 %These relations allow us to easily accumulate errors in terms of $\tth$'s and $\gamma$'s and aid in writing clear and simpler error analyses.
 %The modifications support multiple precision types, whereas Lemma \ref{lem:up} assumes that the same precision is used in all operations. 
 %We distinguish between the different precision types using subscripts--- these types include products ($p$), sums ($s$), and storage formats ($w$).
@@ -220,10 +251,10 @@ Finally, we consider all 3 algorithms with an ad hoc mixed-precision setting whe
 %	\end{align} 
 %\end{lemma}
 %A proof for Equation \ref{lem:mp1} is provided in Appendix \ref{appendix:A}.
-%We use these principles to establish a mixed-precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
+%We use these principles to establish a mixed precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
 %% TODO: make side by side to save space ?
 %% TODO GEOFF and MINAH.   Meet and work out exact wording to fully formalize.   Should the wording be: there exists a \theta bounded by a \gamma (which is a specific value)?
-%\subsection{Inner product Mixed-Precision error}
+%\subsection{Inner product mixed precision error}
 %\label{ssec:IP}
 %We will see in Section~\ref{sec:HQRf} that the inner product is a building block of the HQR factorization (HQR) algorithm, which was introduced in \cite{Householder1958}.
 %More generally, it is used widely in most linear algebra tools such as matrix-vector multiply and projections.
@@ -233,11 +264,11 @@ Finally, we consider all 3 algorithms with an ad hoc mixed-precision setting whe
 %Currently, TensorCore computes the inner product of vectors stored in half-precision by employing full precision multiplications and a single-precision accumulator. 
 %%TODO: citation?
 %As the majority of rounding errors from computing inner products occur during summation (see Section 3.1, \cite{Higham2002}), the single precision accumulator immensely reduces the error in comparison to using only half-precision operations.
-%This increase in accuracy combined with its speedy performance motivates 1)to study how to best utilize mixed-precision arithmetic in algorithms and 2) to develop more accurate error analyses appropriate for mixed-precision algorithms.
+%This increase in accuracy combined with its speedy performance motivates 1)to study how to best utilize mixed precision arithmetic in algorithms and 2) to develop more accurate error analyses appropriate for mixed precision algorithms.
 %%TODO: was precision actually defined before? -Aly ( I think this was take care off)
 %
 %
-%Lemma \ref{lem:ip_a} and Corollary \ref{lem:ip_b} present two mixed-precision forward error bounds for inner products, which show a tighter bound than the existing error bounds. 
+%Lemma \ref{lem:ip_a} and Corollary \ref{lem:ip_b} present two mixed precision forward error bounds for inner products, which show a tighter bound than the existing error bounds. 
 %In both cases, we assume storage in the lowest precision with round-off value, $u_w$, and summation performed with a higher precision with round-off value, $u^{s}$, and let $d \approx m u^{s} / u_w$,
 %% be the ratio between $m\times u^{s}$ and $u_w$
 %where $m$ is the length of the vectors. 
@@ -257,7 +288,7 @@ Finally, we consider all 3 algorithms with an ad hoc mixed-precision setting whe
 %
 %% TODO $\|\|_2$ for norms, What if x and or why have some zeros, or very small values?
 %% TODO is it really componentwise or in the infinity norm?   
-%Corollary \ref{lem:ip_b} presents another mixed-precision forward error bound for mixed-precision inner products with additional constraints.
+%Corollary \ref{lem:ip_b} presents another mixed precision forward error bound for mixed precision inner products with additional constraints.
 %Here, we assume that the vectors are being stored in a lower precision than the precision types being used for multiplications and additions.
 %This scenario is similar to how TensorCore technology works in GPUs.
 %
@@ -273,6 +304,6 @@ Finally, we consider all 3 algorithms with an ad hoc mixed-precision setting whe
 %\end{corollary}
 %
 %Proofs for Lemma \ref{lem:ip_a} and Corollary \ref{lem:ip_b} are shown in Appendix \ref{appendix:A}.
-%The analyses for these two differ only in the type of mixed-precision arithmetic performed within the inner product subroutine, and the difference is revealed to result in either $\gamma_w^{d+1}$ or $\gamma_w^{d+2}$.
+%The analyses for these two differ only in the type of mixed precision arithmetic performed within the inner product subroutine, and the difference is revealed to result in either $\gamma_w^{d+1}$ or $\gamma_w^{d+2}$.
 %For the rest of this paper, we will refer to the forward error bound for the inner product as $\gamma_w^{d+z}$ for $z=1,2$ to generalize the analysis for varying assumptions.
 %This simplification allows us to use the same analysis for the remaining steps of the HQR algorithm presented in the following sections.

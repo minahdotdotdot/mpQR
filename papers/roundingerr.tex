@@ -196,11 +196,11 @@ Recent work in developing probabilistic bounds on rounding errors of floating po
 %TODO: cite Theo Mary/N Higham paper and briefly mention probabilistic bound? https://personalpages.manchester.ac.uk/staff/theo.mary/doc/ProbErrAna.pdf
 
 Most importantly, no rounding error bounds (deterministic or probabilistic) allow flexibility in the precision types used for different operations. 
-This restriction is the biggest obstacle in gaining an understanding of rounding errors to expect from computations done on emerging hardware that support mixed-precision such as GPUs that employ mixed-precision arithmetic.
-In this paper, we extend the rounding error analysis framework established in \cite{Higham2002} to mixed-precision arithmetic operations. 
+This restriction is the biggest obstacle in gaining an understanding of rounding errors to expect from computations done on emerging hardware that support mixed precision such as GPUs that employ mixed precision arithmetic.
+In this paper, we extend the rounding error analysis framework established in \cite{Higham2002} to mixed precision arithmetic operations. 
 
 %Nevertheless, the error analysis within the framework given by Lemma \ref{lem:gamma} best allows us to keep the analysis simple.
-%We will use it to study mixed-precision block QR factorization methods. \par 
+%We will use it to study mixed precision block QR factorization methods. \par 
 
 %TODO: include statement about assumption that floats are not subnormal numbers.
 
@@ -235,7 +235,7 @@ Lemma \ref{lem:up} shows rules from Lemma 3.3 in \cite{Higham2002} that summariz
 % TODO: make side by side to save space ?
 
 In Lemma~\ref{lem:mp}, we present modified versions of the rules in Lemma~\ref{lem:up}.
-This mixed-precision error analysis relies on the framework given by Lemma~\ref{lem:gamma}, which best allows us to keep a simple analysis. 
+This mixed precision error analysis relies on the framework given by Lemma~\ref{lem:gamma}, which best allows us to keep a simple analysis. 
 These relations allow us to easily accumulate errors in terms of $\tth$'s and $\gamma$'s and aid in writing clear and simpler error analyses.
 The modifications support multiple precision types, whereas Lemma \ref{lem:up} assumes that the same precision is used in all operations. 
 We distinguish between the different precision types using subscripts--- these types include products ($p$), sums ($s$), and storage formats ($w$).
@@ -268,10 +268,10 @@ We distinguish between the different precision types using subscripts--- these t
 	\end{align} 
 \end{lemma}
 A proof for Equation \ref{lem:mp1} is provided in Appendix \ref{appendix:A}.
-We use these principles to establish a mixed-precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
+We use these principles to establish a mixed precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
 % TODO: make side by side to save space ?
 % TODO GEOFF and MINAH.   Meet and work out exact wording to fully formalize.   Should the wording be: there exists a \theta bounded by a \gamma (which is a specific value)?
-\subsection{Inner product Mixed-Precision error}
+\subsection{Inner product mixed precision error}
 \label{ssec:IP}
 We will see in Section~\ref{sec:HQRf} that the inner product is a building block of the HQR factorization (HQR) algorithm, which was introduced in \cite{Householder1958}.
 More generally, it is used widely in most linear algebra tools such as matrix-vector multiply and projections.
@@ -281,11 +281,11 @@ This choice was made to provide a more accurate rounding error analysis of mixed
 Currently, TensorCore computes the inner product of vectors stored in half-precision by employing full precision multiplications and a single-precision accumulator. 
 %TODO: citation?
 As the majority of rounding errors from computing inner products occur during summation (see Section 3.1, \cite{Higham2002}), the single precision accumulator immensely reduces the error in comparison to using only half-precision operations.
-This increase in accuracy combined with its speedy performance motivates 1)to study how to best utilize mixed-precision arithmetic in algorithms and 2) to develop more accurate error analyses appropriate for mixed-precision algorithms.
+This increase in accuracy combined with its speedy performance motivates 1)to study how to best utilize mixed precision arithmetic in algorithms and 2) to develop more accurate error analyses appropriate for mixed precision algorithms.
 %TODO: was precision actually defined before? -Aly ( I think this was take care off)
 
 
-Lemma \ref{lem:ip_a} and Corollary \ref{lem:ip_b} present two mixed-precision forward error bounds for inner products, which show a tighter bound than the existing error bounds. 
+Lemma \ref{lem:ip_a} and Corollary \ref{lem:ip_b} present two mixed precision forward error bounds for inner products, which show a tighter bound than the existing error bounds. 
 In both cases, we assume storage in the lowest precision with round-off value, $u_w$, and summation performed with a higher precision with round-off value, $u_s$, and let $d \approx m u_s / u_w$,
 % be the ratio between $m\times u_s$ and $u_w$
 where $m$ is the length of the vectors. 
@@ -305,7 +305,7 @@ Although there are additional differing assumptions in these two lemmas, results
 
 % TODO $\|\|_2$ for norms, What if x and or why have some zeros, or very small values?
 % TODO is it really componentwise or in the infinity norm?   
-Corollary \ref{lem:ip_b} presents another mixed-precision forward error bound for mixed-precision inner products with additional constraints.
+Corollary \ref{lem:ip_b} presents another mixed precision forward error bound for mixed precision inner products with additional constraints.
 Here, we assume that the vectors are being stored in a lower precision than the precision types being used for multiplications and additions.
 This scenario is similar to how TensorCore technology works in GPUs.
 
@@ -321,6 +321,6 @@ This scenario is similar to how TensorCore technology works in GPUs.
 \end{corollary}
 
 Proofs for Lemma \ref{lem:ip_a} and Corollary \ref{lem:ip_b} are shown in Appendix \ref{appendix:A}.
-The analyses for these two differ only in the type of mixed-precision arithmetic performed within the inner product subroutine, and the difference is revealed to result in either $\gamma_w^{(d+1)}$ or $\gamma_w^{(d+2)}$.
+The analyses for these two differ only in the type of mixed precision arithmetic performed within the inner product subroutine, and the difference is revealed to result in either $\gamma_w^{(d+1)}$ or $\gamma_w^{(d+2)}$.
 For the rest of this paper, we will refer to the forward error bound for the inner product as $\gamma_w^{d+z}$ for $z=1,2$ to generalize the analysis for varying assumptions.
 This simplification allows us to use the same analysis for the remaining steps of the HQR algorithm presented in the following sections.

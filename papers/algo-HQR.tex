@@ -164,11 +164,11 @@ Using $\sqrt{2/\beta} = \|\bb{v}\|_2$, we can conclude
 \end{equation} 
 Next, we convert this to a backward error for $\bb{P_v}$.
 Since $\bb{\Delta P_v}$ is exactly $\frac{1}{\bb{x}^{\top}\bb{x}}\bb{\Delta y}\bb{x}^{\top}$, we can compute its Frobenius norm by using $\bb{\Delta P}_{ij} = \frac{1}{\|\bb{x}\|_2^2}\bb{\Delta y}_i\bb{x}_j$,
-	\begin{equation*}
+	\begin{equation}
 	\|\bb{\Delta P}\|_F
 	= \left(\sum_{i=1}^m\sum_{j=1}^m\left(\frac{1}{\|\bb{x}\|_2^2}\bb{\Delta y}_i\bb{x}_j\right)^2\right)^{1/2}
-	=  \frac{\|\bb{\Delta y}\|_2}{\|\bb{x}\|_2} \leq \tilde{\gamma}_{m-i+1},
-	\end{equation*}
+	=  \frac{\|\bb{\Delta y}\|_2}{\|\bb{x}\|_2} \leq \tilde{\gamma}_{m-i+1}\label{eqn:outer},
+	\end{equation}
 where the last inequality is a direct application of \cref{eqn:19.2c}.
 We summarize these results in \cref{lem:19.2}.
 \begin{lemma}
@@ -224,7 +224,7 @@ We will invoke this lemma to prove \cref{lem:19.3}, and use it in future section
 	While we omit the details here, we can show that $(1+\tilde{\gamma}_m)^r-1 \leq r\tilde{\gamma}_m$ using the argument for \cref{lem:gamma} if $r\tilde{\gamma}_m \leq 1/2$.
 \end{proof}
 In this current uniform precision error analysis, the important quantity $\tilde{\gamma}_{m}$ is derived from the backward error of applying one Householder transformation.
-To easily generalize this section for mixed-precision analysis, we benefit from alternatively denoting this quantity as $\tilde{\gamma}_{\bb{P}}$ with the understanding that $\tilde{\gamma}_{\bb{P}}$ will be some combination of $\tilde{\gamma}$'s of differing precisions. 
+To easily generalize this section for mixed precision analysis, we benefit from alternatively denoting this quantity as $\tilde{\gamma}_{\bb{P}}$ with the understanding that $\tilde{\gamma}_{\bb{P}}$ will be some combination of $\tilde{\gamma}$'s of differing precisions. 
 The bound in \Cref{eqn:19.3} would then be  replaced by $r\tilde{\gamma}_{\bb{P}}$.
 %\begin{equation}
 %	(1+\tilde{\gamma}_{\bb{P}})^r-1 \leq r\tilde{\gamma}_{\bb{P}}. \label{eqn:algebra3}
