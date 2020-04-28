@@ -274,10 +274,10 @@ Using Lemma \ref{lem:gamma}, we further simplify and form componentwise backward
 \begin{equation}
 \fl(\bb{x}^{\top}\bb{y}) =(\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}),\quad\text{for }|\Delta \bb{x}| \leq \gamma^h_{m-1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{m-1}^h|\bb{y}|. \label{eqn:beforecd}
 \end{equation}
-Casting this down to fp16, then we incur a rounding error quantified by $d:=\lfloor\frac{(m-1)u^h}{u^l}\rfloor$. 
+Casting this down to fp16, then we incur a rounding error quantified by $d:=\lceil1+\frac{(m-1)u^h}{u^l}\rceil$. 
 The resulting componentwise backward errors are
 \begin{equation}
-\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}),\quad\text{for }|\Delta \bb{x}| \leq \gamma^l_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^l|\bb{y}|. \label{eqn:aftercd}
+\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}),\quad\text{for }|\Delta \bb{x}| \leq \gamma^l_{d}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d}^l|\bb{y}|. \label{eqn:aftercd}
 \end{equation}
 %where $|\Delta \bb{x}| \leq \gamma^l_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^l|\bb{y}| $ componentwise.\par
 

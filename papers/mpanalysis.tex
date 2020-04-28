@@ -97,6 +97,12 @@ Adding the cast down operator $\bb{I}^l$ to the analysis in \cite{Mori2012} and 
 
 %TODO: conclusion
 \subsection{Round down at inner-product level (BLAS-2)}\label{sec:mp-2}
+While the previous section discussed blocked variants of HQR that can be easily adapted for the mixed precision setting specific to TensorCore's level-3 BLAS operations, we want to provide a more general mixed precision environment in this section.
+Recall that HQR, BQR, and TSQR all rely on Householder transformations in one way or another, and a Householder transformation is essentially performed via \cref{eqn:effH}.
+This implementation capitalizes on the rank-1 update structure of Householder transformations where the predominant share of FLOPs is spent on an inner product.
+Therefore, we can attribute nearly all of the computational tasks for \cref{algo:hhQR,algo:blockHQR,algo:par_tsqr} to the inner product.
+In addition, the inner product is just as important in non-HQR linear algebra tools, where some examples include projections and matrix-vector, matrix-matrix multiply.
+Consequently, we will generalize classic round-off error analysis of inner products to algorithms that may employ different precision types to different operations: We return to the mixed precision setting described in \cref{sec:background}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}.
 
 
 
