@@ -138,13 +138,13 @@ Recent work in developing probabilistic bounds on rounding errors of floating po
 %TODO: MINAH check this statement!
 \begin{algorithm2e}
 	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
-	\KwIn{$\bb{x}^{\text{fp16}}, \bb{y}^{\text{fp16}}\in\F_{\text{fp16}}^m$, $f:\R^{m}\times \R^m \rightarrow \R^n$}
-	\KwOut{$\fl(f(\bb{x}^{\text{fp16}}, \bb{y}^{\text{fp16}}))\in\F_{\text{fp16}}^n$}
-	$\bb{x}^{\text{fp32}}, \bb{y}^{\text{fp32}} \gets$ {\tt castup}$([\bb{x}^{\text{fp16}},\bb{y}^{\text{fp16}}])$\\
-	$\bb{z}^{\text{fp32}} \gets \fl(f(\bb{x}^{\text{fp32}}, \bb{y}^{\text{fp32}}))$\\
-	$\bb{z}^{\text{fp16}} \gets$ {\tt castdown}$(\bb{z}^{\text{fp32}})$\\
-	\Return $\bb{z}^{\text{fp16}}$\\
-	\caption{$\bb{z}^{\text{fp16}} = {\tt simHalf}(f, \bb{x}^{\text{fp16}}, \bb{y}^{\text{fp16}})$. Simulate function $f\in$ OP$\cup \{{\tt dot\_product} \}$ in half precision arithmetic given input variables $\bb{x},\bb{y}$. Function {\tt castup} converts half precision floats to single precision floats, and {\tt castdown} converts single precision floats to half precision floats by rounding to the nearest half precision float.}
+	\KwIn{$\bb{x}^{(\text{fp16})}, \bb{y}^{(\text{fp16})}\in\F_{\text{fp16}}^m$, $f:\R^{m}\times \R^m \rightarrow \R^n$}
+	\KwOut{$\fl(f(\bb{x}^{(\text{fp16})}, \bb{y}^{(\text{fp16})}))\in\F_{\text{fp16}}^n$}
+	$\bb{x}^{(\text{fp32})}, \bb{y}^{(\text{fp32})} \gets$ {\tt castup}$([\bb{x}^{(\text{fp16})},\bb{y}^{(\text{fp16})}])$\\
+	$\bb{z}^{(\text{fp32})} \gets \fl(f(\bb{x}^{(\text{fp32})}, \bb{y}^{(\text{fp32})}))$\\
+	$\bb{z}^{(\text{fp16})} \gets$ {\tt castdown}$(\bb{z}^{(\text{fp32})})$\\
+	\Return $\bb{z}^{(\text{fp16})}$\\
+	\caption{$\bb{z}^{(\text{fp16})} = {\tt simHalf}(f, \bb{x}^{(\text{fp16})}, \bb{y}^{(\text{fp16})})$. Simulate function $f\in$ OP$\cup \{{\tt dot\_product} \}$ in half precision arithmetic given input variables $\bb{x},\bb{y}$. Function {\tt castup} converts half precision floats to single precision floats, and {\tt castdown} converts single precision floats to half precision floats by rounding to the nearest half precision float.}
 	\label{algo:simulate}
 \end{algorithm2e}
 \begin{table}
@@ -196,19 +196,19 @@ In \cref{lem:mp}, we present just a few rules adapted for multiple precisions fr
 \end{lemma}
 \begin{lemma}
 	\label{lem:mp}
-	For any nonnegative integers $k_l$, $k_h$ and some precision $q$ defined with respect to the unit round-off, $u^q$, define $\gamma^{q}_{k} := \frac{k u^q }{1-ku^q}$.
-	%, let $\tth^{q}_{k}$ denote a quantity bounded according to $|\tth^q_{k}|\leq \frac{k u^q }{1-ku^q} =:\gamma^{q}_{k}$.
+	For any nonnegative integers $k_l$, $k_h$ and some precision $q$ defined with respect to the unit round-off, $u^{(q)}$, define $\gamma^{(q)}_{k} := \frac{k u^{(q)} }{1-ku^{(q)}}$.
+	%, let $\tth^{(q)}_{k}$ denote a quantity bounded according to $|\tth^{(q)}_{k}|\leq \frac{k u^{(q)} }{1-ku^{(q)}} =:\gamma^{(q)}_{k}$.
 %	The following relations hold for two precisions l (low) and h (high), positive integers, $j_{l}$,$j_{h}$, non-negative integers $k_{l}$, and $k_{h}$, and $c>0$:
 %	\begin{equation}
-%	(1+\tth^{l}_{k_{l}})(1+\tth^{l}_{j_{l}})(1+\tth^{h}_{k_{h}})(1+\tth^{h}_{j_{h}})=(1+\tth^{l}_{k_{l}+j_{l}})(1+\tth^{h}_{k_{h}+j_{h}}), \\
+%	(1+\tth^{(l)}_{k_{l}})(1+\tth^{(l)}_{j_{l}})(1+\tth^{(h)}_{k_{h}})(1+\tth^{(h)}_{j_{h}})=(1+\tth^{(l)}_{k_{l}+j_{l}})(1+\tth^{(h)}_{k_{h}+j_{h}}), \\
 %	\end{equation}
-%	and rules for the quotient $\frac{(1+\tth^{l}_{k_{l}})(1+\tth^{h}_{k_{h}})}{(1+\tth^{l}_{j_{l}})(1+\tth^{h}_{j_{h}})}$ follow similarly. 
+%	and rules for the quotient $\frac{(1+\tth^{(l)}_{k_{l}})(1+\tth^{(h)}_{k_{h}})}{(1+\tth^{(l)}_{j_{l}})(1+\tth^{(h)}_{j_{h}})}$ follow similarly. 
 %%	\begin{align}
-%%	\frac{(1+\tth^{l}_{k_{l}})(1+\tth^{h}_{k_{h}})}{(1+\tth^{l}_{j_{l}})(1+\tth^{h}_{j_{h}})} &=\left\{\begin{alignedat}{2}
-%%	(1+\tth^{h}_{k_{h}+j_{h}})(1+\tth^{l}_{k_{l}+j_{l}})&,\quad& j_{h} \leq k_{h}, j_{l} \leq k_{l},\\
-%%	(1+\tth^{h}_{k_{h}+2j_{h}})(1+\tth^{l}_{k_{l}+j_{l}})&,\quad& j_{h} \leq k_{h}, j_{l} > k_{l},\\
-%%	(1+\tth^{h}_{k_{h}+j_{h}})(1+\tth^{l}_{k_{l}+2j_{l}})&,\quad& j_{h} > k_{h}, j_{l} \leq k_{l},\\
-%%	(1+\tth^{h}_{k_{h}+2j_{h}})(1+\tth^{l}_{k_{l}+2j_{l}})&,\quad& j_{h} > k_{h}, j_{l} > k_{l}.
+%%	\frac{(1+\tth^{(l)}_{k_{l}})(1+\tth^{(h)}_{k_{h}})}{(1+\tth^{(l)}_{j_{l}})(1+\tth^{(h)}_{j_{h}})} &=\left\{\begin{alignedat}{2}
+%%	(1+\tth^{(h)}_{k_{h}+j_{h}})(1+\tth^{(l)}_{k_{l}+j_{l}})&,\quad& j_{h} \leq k_{h}, j_{l} \leq k_{l},\\
+%%	(1+\tth^{(h)}_{k_{h}+2j_{h}})(1+\tth^{(l)}_{k_{l}+j_{l}})&,\quad& j_{h} \leq k_{h}, j_{l} > k_{l},\\
+%%	(1+\tth^{(h)}_{k_{h}+j_{h}})(1+\tth^{(l)}_{k_{l}+2j_{l}})&,\quad& j_{h} > k_{h}, j_{l} \leq k_{l},\\
+%%	(1+\tth^{(h)}_{k_{h}+2j_{h}})(1+\tth^{(l)}_{k_{l}+2j_{l}})&,\quad& j_{h} > k_{h}, j_{l} > k_{l}.
 %%	\end{alignedat}\right.
 %%	\end{align}
 	%Without loss of generality, let $1 \gg u_{l} \gg u_{h}>0$.
@@ -218,27 +218,27 @@ In \cref{lem:mp}, we present just a few rules adapted for multiple precisions fr
 %	Alternatively, $d$ can be defined by $d := \lfloor\frac{k_{h}u_h}{u_l}\rfloor$.
 %	Then,
 	\begin{align*}
-	\gamma^{h}_{k_{h}}\gamma^{l}_{k_{l}} &\leq \gamma^{l}_{k_{l}}, \quad\text{for } k_{h} u^h \leq \frac{1}{2},  \\
-	\gamma^{h}_{k_{h}}+u^l &\leq \gamma^{l}_{d_1}, \\
-	\gamma^{l}_{k_{l}} + u^{h} &\leq \gamma^{l}_{k_{l}+1}, \\ %\quad{\color{blue}\text{(A loose bound)}}
-	\gamma^{l}_{k_{l}}+\gamma^{h}_{k_{h}}+\gamma^{l}_{k_{l}}\gamma^{h}_{k_{h}} & < \gamma^{l}_{k_{l}+ d_2},% \label{eqn:mp1}
+	\gamma^{(h)}_{k_{h}}\gamma^{(l)}_{k_{l}} &\leq \gamma^{(l)}_{k_{l}}, \quad\text{for } k_{h} u^{(h)} \leq \frac{1}{2},  \\
+	\gamma^{(h)}_{k_{h}}+u^{(l)} &\leq \gamma^{(l)}_{d_1}, \\
+	\gamma^{(l)}_{k_{l}} + u^{(h)} &\leq \gamma^{(l)}_{k_{l}+1}, \\ %\quad{\color{blue}\text{(A loose bound)}}
+	\gamma^{(l)}_{k_{l}}+\gamma^{(h)}_{k_{h}}+\gamma^{(l)}_{k_{l}}\gamma^{(h)}_{k_{h}} & < \gamma^{(l)}_{k_{l}+ d_2},% \label{eqn:mp1}
 	\end{align*} 
-	where $d_1 = \lceil(u^l+k_hu^h)/u^l\rceil$ and $d_2 = \lceil k_hu^h/u^l\rceil$.
+	where $d_1 = \lceil(u^{(l)}+k_hu^{(h)})/u^{(l)}\rceil$ and $d_2 = \lceil k_hu^{(h)}/u^{(l)}\rceil$.
 \end{lemma}
 %We show the proof for \cref{eqn:mp1}.
 %\begin{proof}
-%	%We wish to round up to the lower precision, $p$, since $1\gg u^l \gg u^h$.  
-%	%Recall that $d := \left\lfloor k_h u^h  / u^l \right\rfloor$ and $r \leq \left\lfloor u^l  / u^h \right\rfloor$,
+%	%We wish to round up to the lower precision, $p$, since $1\gg u^{(l)} \gg u^{(h)}$.  
+%	%Recall that $d := \left\lfloor k_h u^{(h)}  / u^{(l)} \right\rfloor$ and $r \leq \left\lfloor u^{(l)}  / u^{(h)} \right\rfloor$,
 %	Since
 %	%%% \begin{equation*}
-%	$ k_lu^l+k_hu^h = (k_l+d)u_l + r u_h \leq (k_l+d+1)u_l$, 
+%	$ k_lu^{(l)}+k_hu^{(h)} = (k_l+d)u_l + r u_h \leq (k_l+d+1)u_l$, 
 %	%%% \end{equation*}
 %	\begin{align*}
-%	\gamma^{l}_{k_l}+\gamma^{h}_{k_h}+\gamma^{l}_{k_l}\gamma^{h}_{k_h} 
-%	&= \frac{k_lu^l}{1-k_lu^l} + \frac{k_hu^h}{1-k_hu^h} + \frac{k_lu^l}{1-k_lu^l}\frac{k_hu^h}{1-k_hu^h} \\
-%	= \frac{k_lu^l+k_hu^h-k_lk_hu^lu^h}{1-(k_lu^l+k_hu^h)+k_lk_hu^lu^h} %%% \\
-%	&\leq \frac{(k_l+d+1)u^l-k_lk_hu^lu^h}{1-(k_l+d+1)u^l+k_lk_hu^lu^h} \\
-%	&< \frac{(k_l+d+1)u^l}{1-(k_l+d+1)u^l} = \gamma^{l}_{k_l+d+1}
+%	\gamma^{(l)}_{k_l}+\gamma^{(h)}_{k_h}+\gamma^{(l)}_{k_l}\gamma^{(h)}_{k_h} 
+%	&= \frac{k_lu^{(l)}}{1-k_lu^{(l)}} + \frac{k_hu^{(h)}}{1-k_hu^{(h)}} + \frac{k_lu^{(l)}}{1-k_lu^{(l)}}\frac{k_hu^{(h)}}{1-k_hu^{(h)}} \\
+%	= \frac{k_lu^{(l)}+k_hu^{(h)}-k_lk_hu^{(l)}u^{(h)}}{1-(k_lu^{(l)}+k_hu^{(h)})+k_lk_hu^{(l)}u^{(h)}} %%% \\
+%	&\leq \frac{(k_l+d+1)u^{(l)}-k_lk_hu^{(l)}u^{(h)}}{1-(k_l+d+1)u^{(l)}+k_lk_hu^{(l)}u^{(h)}} \\
+%	&< \frac{(k_l+d+1)u^{(l)}}{1-(k_l+d+1)u^{(l)}} = \gamma^{(l)}_{k_l+d+1}
 %	\end{align*}
 %\end{proof}
 %TODO: Do you think this proof should be here? 
@@ -248,43 +248,44 @@ Let us define a mixed precision setting that is similar to the TensorCore Fused 
 While the FMA block in TensorCore is for matrix-matrix products (level-3 BLAS), we consider a vector inner product(level-2 BLAS) FMA as defined in Assumption~\ref{assump:mp}.
 %TODO: BLAS and FMA should have been introduced in the introduction section.
 %TODO: talk more about other FMA operations and cite properly.
+The full precision multiplication in Assumption~\ref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their precisions and exponent ranges. 
+As a quick proof, consider $x^{(\text{fp16})} = \pm\mu_x2^{\eta_x -11},y^{(\text{fp16})} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$, and note that the significand and exponent range for fp32 are $[0, 2^{24}-1]$ and $[-127,128]$.
+Then the product in full precision is
+$$
+x^{(\text{fp16})}y^{(\text{fp16})} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},
+$$
+where  $\mu_x\mu_y \in[0,(2^{11}-1)^2] \subseteq [0,2^{24}-1]$ and $\eta_x+\eta_y +2\in[-28,34]\subseteq[-127,128]$, and therefore is exact.
+Thus, the summation and the final cast down operations are the only sources of rounding error.
 \begin{assump}
 	\label{assump:mp}
-	Let $l$ and $h$ each denote low and high precision types with unit round-off values $u^l$ and $u^h$, where $1 \gg u^l \gg u^h >0$.
+	Let $l$ and $h$ each denote low and high precision types with unit round-off values $u^{(l)}$ and $u^{(h)}$, where $1 \gg u^{(l)} \gg u^{(h)} >0$.
 	Consider an FMA operation for inner products that take vectors stored in precision $l$, compute products in full precision, and sum the products in precision $h$. 
 	Finally, the result is then cast back down to precision $l$.
 \end{assump}
-The full precision multiplication in Assumption~\ref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their precisions and exponent ranges. 
-As a quick proof, consider $x^{\text{fp16}} = \pm\mu_x2^{\eta_x -11},y^{\text{fp16}} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$, and note that the significand and exponent range for fp32 are $[0, 2^{24}-1]$ and $[-127,128]$.
-Then the product in full precision is
-$$
-x^{\text{fp16}}y^{\text{fp16}} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},
-$$
-where  $\mu_x\mu_y \in[0,(2^{11}-1)^2] \subseteq [0,2^{24}-1]$ and $\eta_x+\eta_y +2\in[-28,34]\subseteq[-127,128]$, and therefore is exact.
-Thus, the summation and the final cast down operations are the only sources of rounding error.\par
-Let $\bb{x}^{\text{fp16}},\bb{y}^{\text{fp16}}$ be $m$-length vectors stored in fp16, $s_k$ b the $k^{th}$ partial sum, and $\hat{s_k}$ be $s_k$ computed with FLOPs.
+\par
+Let $\bb{x}^{(\text{fp16})},\bb{y}^{(\text{fp16})}$ be $m$-length vectors stored in fp16, $s_k$ b the $k^{th}$ partial sum, and $\hat{s_k}$ be $s_k$ computed with FLOPs.
 Then,
 \begin{align*}
-\hat{s_1} &= \fl (\bb{x}_1\bb{y}_1) = \bb{x}_1\bb{y}_1,\\
-\hat{s_2} &= \fl(\hat{s_1} + \bb{x}_2\bb{y}_2) = \left(\bb{x}_1\bb{y}_1+ \bb{x}_2\bb{y}_2\right)(1+\dd_{1}^h),\\
-\hat{s_3} &= \fl(\hat{s_2}+\bb{x}_3\bb{y}_3) = \left[\left(\bb{x}_1\bb{y}_1 + \bb{x}_2\bb{y}_2\right)(1+\dd_{1}^h)  + \bb{x}_3\bb{y}_3\right](1+\dd_{2}^h).
+\hat{s_1} &= \fl (\bb{x}[1]\bb{y}_1) = \bb{x}[1]\bb{y}_1,\\
+\hat{s_2} &= \fl(\hat{s_1} + \bb{x}_2\bb{y}_2) = \left(\bb{x}[1]\bb{y}_1+ \bb{x}_2\bb{y}_2\right)(1+\dd_{1}^{(h)}),\\
+\hat{s_3} &= \fl(\hat{s_2}+\bb{x}_3\bb{y}_3) = \left[\left(\bb{x}[1]\bb{y}_1 + \bb{x}_2\bb{y}_2\right)(1+\dd_{1}^{(h)})  + \bb{x}_3\bb{y}_3\right](1+\dd_{2}^{(h)}).
 \end{align*}
 We can see a pattern emerging. 
 The error for a general $m$-length vector dot product is then
 \begin{equation}
 \label{eqn:dperr_2}
-\hat{s_m} = (\bb{x}_1\bb{y}_1+\bb{x}_2\bb{y}_2)\prod_{k=1}^{m-1}(1+\dd_{k}^h) + \sum_{i=3}^n \bb{x}_i\bb{y}_i\left(\prod_{k=i-1}^{m-1}(1+\dd_{k}^{h})\right).
+\hat{s_m} = (\bb{x}[1]\bb{y}_1+\bb{x}_2\bb{y}_2)\prod_{k=1}^{m-1}(1+\dd_{k}^{(h)}) + \sum_{i=3}^n \bb{x}_i\bb{y}_i\left(\prod_{k=i-1}^{m-1}(1+\dd_{k}^{(h)})\right).
 \end{equation}
 Using Lemma \ref{lem:gamma}, we further simplify and form componentwise backward errors with
 \begin{equation}
-\fl(\bb{x}^{\top}\bb{y}) =(\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}),\quad\text{for }|\Delta \bb{x}| \leq \gamma^h_{m-1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{m-1}^h|\bb{y}|. \label{eqn:beforecd}
+\fl(\bb{x}^{\top}\bb{y}) =(\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}),\quad\text{for }|\Delta \bb{x}| \leq \gamma^{(h)}_{m-1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{m-1}^{(h)}|\bb{y}|. \label{eqn:beforecd}
 \end{equation}
-Casting this down to fp16, then we incur a rounding error quantified by $d:=\lceil1+\frac{(m-1)u^h}{u^l}\rceil$. 
+Casting this down to fp16, then we incur a rounding error quantified by $d:=\lceil1+\frac{(m-1)u^{(h)}}{u^{(l)}}\rceil$. 
 The resulting componentwise backward errors are
 \begin{equation}
-\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}),\quad\text{for }|\Delta \bb{x}| \leq \gamma^l_{d}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d}^l|\bb{y}|. \label{eqn:aftercd}
+\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}),\quad\text{for }|\Delta \bb{x}| \leq \gamma^{(l)}_{d}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d}^{(l)}|\bb{y}|. \label{eqn:aftercd}
 \end{equation}
-%where $|\Delta \bb{x}| \leq \gamma^l_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^l|\bb{y}| $ componentwise.\par
+%where $|\Delta \bb{x}| \leq \gamma^{(l)}_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^{(l)}|\bb{y}| $ componentwise.\par
 
 \Cref{eqn:beforecd,eqn:aftercd} are crucial for our analysis in \cref{sec:mpanalysis} since the TensorCore technology outputs a matrix product in fp16 or fp32. 
 Consider matrices $\bb{A}\in\F_{\text{fp16}}^{p\times m}$ and $\bb{B}\in\F_{\text{fp16}}^{m\times q}$, and $\bb{C}=\bb{A}\bb{B}\in\F_{\text{fp16}}^{p\times q}$.

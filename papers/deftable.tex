@@ -23,9 +23,9 @@
 		$b$, $t$, $\mu$, $\eta$  & Base/precision/mantissa/exponent bits & \ref{sec:backgroundRE} \\
 		%\tt{Inf} & Values outside the range of representable numbers & \ref{sssec:NormalizeHV} \\ %https://www.doc.ic.ac.uk/~eedwards/compsys/float/nan.html
 		$k$ & Number of successive FLOPs &  \ref{sec:backgroundRE}\\
-		$u^q$ & Unit round-off for precision $t_q$ and base $b_q$: $\frac{1}{2}b_q^{1-t_q}$ & \ref{sec:backgroundRE} \\ 
-		$\dd^{q}$ &Quantity bounded by: $|\dd^{q}| < u^q$ &  \ref{sec:backgroundRE} \\
-		$\gamma^{q}_{k}$,  $\tth^{q}_{k}$& $\frac{ku^q}{1-ku^q}$, Quantity bounded by: $|\tth^{q}_{k}|\leq\gamma^q_{k}$ &  \ref{sec:backgroundRE} \\
+		$u^{(q)}$ & Unit round-off for precision $t_q$ and base $b_q$: $\frac{1}{2}b_q^{1-t_q}$ & \ref{sec:backgroundRE} \\ 
+		$\dd^{(q)}$ &Quantity bounded by: $|\dd^{(q)}| < u^{(q)}$ &  \ref{sec:backgroundRE} \\
+		$\gamma^{(q)}_{k}$,  $\tth^{(q)}_{k}$& $\frac{ku^{(q)}}{1-ku^{(q)}}$, Quantity bounded by: $|\tth^{(q)}_{k}|\leq\gamma^{(q)}_{k}$ &  \ref{sec:backgroundRE} \\
 		%$\tth_{q}^{(k)}$ & Quantity bounded by: $|\tth_{q}^{(k)}|\leq\gamma_q^{(k)}$ &  \ref{sec:FPREA} \\ 
 		\hline
 			%$\bb{0}_{m\times n}$, $\bb{I}_{n}$ & $m$-by-$n$ zero matrix, $n$-by-$n$ identity  matrix &  \ref{sec:intro}\\
@@ -34,7 +34,7 @@
 		%$\bb{P}_{\bb{v}}$, $\bb{P}_i$ & Householder transformation define by $\bb{v}$, $i^{th}$ Householder transformation in HQR& \ref{sec:HQRfA}\\
 		%$\bb{P}_i$ & $i^{th}$ Householder transformation in the HQR algorithm & \ref{sec:HQRfA} \\ 
 		\hline		
-		%$u^h, u^l, u_w$ & Unit round-off for sum, product, and storage (write) & \ref{ssec:IP}\\ 
+		%$u^{(h)}, u^{(l)}, u_w$ & Unit round-off for sum, product, and storage (write) & \ref{ssec:IP}\\ 
 		%		$\gamma_{p,q}^{(k_l,k_q)}$ & $(1+\gamma_p^{(k_l)})(1+\gamma_q^{(k_q)})-1$ & \ref{ssec:IP}\\
 		%		$\tth_{p,q}^{(k_l,k_q)}$ & Quantity bounded by: $|\tth_{p,q}^{(k_l,k_q)}|<\gamma_{p,q}^{(k_l,k_q)}$ & \ref{ssec:IP}\\
 		\hline

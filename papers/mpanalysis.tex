@@ -4,49 +4,49 @@ Consider two floating point types $\F_{low}$ and $\F_{high}$ where $\F_{l}\subse
 Some example pairs of $\{\F_{l}, \F_{h}\}$ include $\{\text{fp16}, \text{fp32}\}$, $\{\text{fp32}, \text{fp64}\}$, and $\{\text{fp16}, \text{fp64}\}$.
 Suppose that the matrix to be factorized is stored with low precision numbers, $\bb{A}\in\F_{l}^{m\times n}$.
 Casting up adds no rounding errors, so we can directly apply the analysis that culminated in \cref{thm:feHQR}, and we only consider the columnwise forward error in the $\bb{Q}$ factor.
-Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR} = \bb{Q} + \bb{\Delta Q}_{HQR}$ is bounded normwise via $\|\bb{\Delta Q}_{HQR}[:,j]\|_2 \leq n\tilde{\gamma}_{m}^{high},$ and incurs an extra rounding error when $\bb{Q}\in\F_{high}^{m\times n}$ is cast down to $F_{low}^{m\times n}$.
+Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR} = \bb{Q} + \Delta \bb{Q}_{HQR}$ is bounded normwise via $\|\Delta \bb{Q}_{HQR}[:,j]\|_2 \leq n\tilde{\gamma}_{m}^{high},$ and incurs an extra rounding error when $\bb{Q}\in\F_{high}^{m\times n}$ is cast down to $F_{low}^{m\times n}$.
 Consider the backward error of a cast down operation represented by a linear transformation, 
 
-First, consider casting down a vector $\bb{x}^h\in\F_h^m$ to $\F_l^m$.
+First, consider casting down a vector $\bb{x}^{(h)}\in\F_h^m$ to $\F_l^m$.
 We see that
 \begin{equation}
-	\bb{x}^l := \text{\tt castdown}(\bb{x}^h) = \bb{I}_{l}\bb{x}^h = (\bb{I}+\bb{E})\bb{x}^h = \bb{x}^h+\bb{\Delta x},
+	\bb{x}^{(l)} := \text{\tt castdown}(\bb{x}^{(h)}) = \bb{I}_{l}\bb{x}^{(h)} = (\bb{I}+\bb{E})\bb{x}^{(h)} = \bb{x}^{(h)}+\Delta \bb{x},
 \end{equation}
-where $|\bb{\Delta x}| \leq u^l |\bb{x}^h|$ and  $\|\bb{\Delta x}\|_2 \leq u^l \|\bb{x}^h\|_2$.
-Then, $\bb{E} = \bb{\Delta x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same argument as in \cref{eqn:outer} to form a backward matrix norm bound, 
+where $|\Delta \bb{x}| \leq u^{(l)} |\bb{x}^{(h)}|$ and  $\|\Delta \bb{x}\|_2 \leq u^{(l)} \|\bb{x}^{(h)}\|_2$.
+Then, $\bb{E} = \Delta \bb{x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same argument as in \cref{eqn:outer} to form a backward matrix norm bound, 
 \begin{equation}
-	\|\bb{E}\|_F\leq u^l. \label{eqn:castdown}
+	\|\bb{E}\|_F\leq u^{(l)}. \label{eqn:castdown}
 \end{equation}
 Using this in \cref{lem:3.7} to analyze the forward norm error for the $j^{th}$ column of the $\bb{Q}$ factor computed with \cref{algo:hhQR} yields
 \begin{equation}
-	\|\text{\tt castdown}(\hat{\bb{Q}}_{HQR}[:,j]) - \bb{Q}[:,j]\|_2 = \|\bb{I}_l\hat{\bb{P_1}}\cdots\hat{\bb{P_n}}\hat{e}_j\|_2 \leq u^l+n\tilde{\gamma}_m^h.\label{eqn:HQR-mp}
+	\|\text{\tt castdown}(\hat{\bb{Q}}_{HQR}[:,j]) - \bb{Q}[:,j]\|_2 = \|\bb{I}_l\hat{\bb{P}}_{1}\cdots\hat{\bb{P}}_{n}\hat{e}_j\|_2 \leq u^{(l)}+n\tilde{\gamma}_m^{(h)}.\label{eqn:HQR-mp}
 \end{equation}
 To convert this bound to the lower precision, we define function $d$,
 \begin{equation}
-d(m,u^h, q,u^l) := \lceil (qu^l+mu^h)/u^l\rceil = \cO(q+mu^h/u^l),\label{eqn:d}
+d(m,u^{(h)}, q,u^{(l)}) := \lceil (qu^{(l)}+mu^{(h)})/u^{(l)}\rceil = \cO(q+mu^{(h)}/u^{(l)}),\label{eqn:d}
 \end{equation} 
-so that if $\|\hat{\bb{x}}-\bb{x}\|_2 \leq \gamma_m^h$, then $\|\text{\tt castdown}(\hat{\bb{x}})-\bb{x}\|_2 \leq \gamma_{d(m,u^h, q,u^l)}^l$.|
+so that if $\|\hat{\bb{x}}-\bb{x}\|_2 \leq \gamma_m^{(h)}$, then $\|\text{\tt castdown}(\hat{\bb{x}})-\bb{x}\|_2 \leq \gamma_{d(m,u^{(h)}, q,u^{(l)})}^{(l)}$.
 This is a looser bound but it allows us to easily compare the errors to the uniform, low precision implementation of forming $\hat{\bb{x}}$.
-%A looser upper bound is given by $\tilde{\gamma}_d^l$ where $d = \lceil u^l_+mu^h/u^l\rceil$ and we benefit from being able to represent it in terms of the low precision . 
+%A looser upper bound is given by $\tilde{\gamma}_d^{(l)}$ where $d = \lceil u^{(l)}_+mu^{(h)}/u^{(l)}\rceil$ and we benefit from being able to represent it in terms of the low precision . 
 %Additionally, we can use this to identify a function that allows us to formulate the new error bound after applying a castdown operation to vectors whose error bounds were known in high precision,
-%Let $d = \lceil nmu^h/u^l\rceil$, so that $nmu^h\leq du^l$, and there exists some $r\leq \lfloor u^h/u^l \rfloor$ so that $nmu^h = (d-1)u^l+ru^h$.
+%Let $d = \lceil nmu^{(h)}/u^{(l)}\rceil$, so that $nmu^{(h)}\leq du^{(l)}$, and there exists some $r\leq \lfloor u^{(h)}/u^{(l)} \rfloor$ so that $nmu^{(h)} = (d-1)u^{(l)}+ru^{(h)}$.
 %This $d$ value allows us to convert the error in terms of the higher precision to the lower precision while also adding in the extra rounding error that may be incurred in the casting down step. 
 %Then, the componentwise error is bounded by
 %\begin{equation}
-%	|\text{{\tt castdown}}(\bb{\Delta Q}_{HQR}[i,j])| \leq \frac{cnmu^{h}}{1-cmu^{h}} \leq \frac{cdu^{l}}{1-cmu^h} \leq \tilde{\gamma}_{d}^l,
+%	|\text{{\tt castdown}}(\Delta \bb{Q}_{HQR}[i,j])| \leq \frac{cnmu^{(h)}}{1-cmu^{(h)}} \leq \frac{cdu^{(l)}}{1-cmu^{(h)}} \leq \tilde{\gamma}_{d}^{(l)},
 %\end{equation}
 %and the columnwise error is 
 %\begin{equation}
-%	\|\text{{\tt castdown}}(\bb{\Delta Q}_{HQR}[:,j])\|_2 \leq \left(\sum_{i=1}^m |\tilde{\tth}_d^l|^2 \right)^{1/2} \leq \sqrt{m}\gamma_d^l
+%	\|\text{{\tt castdown}}(\Delta \bb{Q}_{HQR}[:,j])\|_2 \leq \left(\sum_{i=1}^m |\tilde{\tth}_d^{(l)}|^2 \right)^{1/2} \leq \sqrt{m}\gamma_d^{(l)}
 %\end{equation}
 %Since $\hat{\bb{Q}}_{HQR}$ should be almost orthogonal with respect to the higher precision, we can expect all components to be within the dynamic range of $\F_{low}$.
 %In \ref{sec:mp-f}, we look at the rounding errors incurred from carrying out a QR factorization in a high precision, then cast down at the very end.
 %Since this requires only one cast down operation, this is very similar to the results from the standard uniform precision analysis.
 
-We can easily apply the operator $\bb{I}^l$ to cast down the QR factorizations computed via BQR and TSQR to find the forward matrix norm error on the $\bb{Q}$ factor as shown below,
+We can easily apply the operator $\bb{I}^{(l)}$ to cast down the QR factorizations computed via BQR and TSQR to find the forward matrix norm error on the $\bb{Q}$ factor as shown below,
 \begin{align*}
-	\|\hat{\bb{Q}}_{BQR}\|_F&\leq u^l+n\tilde{\gamma}_m^h \leq \tilde{\gamma}_{d(nm,u^h,u^l)}^l,\\
-	\|\hat{\bb{Q}}_{TSQR}\|_F&\leq u^l+n(L\tilde{\gamma}_{2n}^h+\tilde{\gamma}_{m2^{-L}}^h) \leq \tilde{\gamma}_{d(n(L2n+m2^{-L}),u^h,1,u^l)}^l.
+	\|\hat{\bb{Q}}_{BQR}\|_F&\leq u^{(l)}+n\tilde{\gamma}_m^{(h)} \leq \tilde{\gamma}_{d(nm,u^{(h)},u^{(l)})}^{(l)},\\
+	\|\hat{\bb{Q}}_{TSQR}\|_F&\leq u^{(l)}+n(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}) \leq \tilde{\gamma}_{d(n(L2n+m2^{-L}),u^{(h)},1,u^{(l)})}^{(l)}.
 \end{align*}
 In the next sections, we consider performing BQR and TSQR with FLOPs within a block and/or a level in high precision, but cast down to low precision in between blocks in \ref{sec:mp-3}.
 Finally, we consider all 3 algorithms with an ad hoc mixed precision setting where inner products are performed in high precision and all other operations are computed in low precision in \ref{sec:mp-2}.
@@ -62,37 +62,39 @@ Then, lines 2-6 of \cref{algo:blockHQR} can be modified via \cref{algo:mpBQR}.
 	$q = N/M$\tcc*{Note that $n=Nr=qMr$.}
 	\For{$q'=1:q$}{
 		\If {$q'>2$} {
-				Update $[\bb{C_{(q'-1)M+1}}\cdots\bb{C_{qM}}]$ with WY updates from blocks $1:(q'-1)M$.
+				Update $[\bb{C}_{(q'-1)M+1}\cdots\bb{C}_{qM}]$ with WY updates from blocks $1:(q'-1)M$.
 		}
 		\For{$k=1:M$}{
-		Apply HQR to $\bb{C_{(q'-1)M+k}}$\;
-		Form WY update for $\bb{C_{(q'-1)M+k}}$\;
-		WY update blocks to the right, $[\bb{C_{(q'-1)M+k+1}}\cdots \bb{C_{q'M}}]$.
+		Apply HQR to $\bb{C}_{(q'-1)M+k}$\;
+		Form WY update for $\bb{C}_{(q'-1)M+k}$\;
+		WY update blocks to the right, $[\bb{C}_{(q'-1)M+k+1}\cdots \bb{C}_{q'M}]$.
 	}
 }
 \caption{\label{algo:mpBQR} A portion of a mixed precision BQR: modifying first for-loop in \cref{algo:blockHQR}.}
 \end{algorithm2e}
 We now impose a mixed-precision setting where the inner for-loop in \cref{algo:mpBQR} is performed in high precision, but the WY updates for the outer loop is stored in low precision and only $M$ blocks is updated at a time due to the memory constraint.
 These low precision WY updates would be used to build the $\bb{Q}$ factor serially in groups of $M$.
-Then, the $j^{th}$ column of the $\bb{Q}$ factor computed in this mixed-precision BQR algorithm is computed via $$\hat{\bb{Q}}_{mpBQR}[:,j] = \left(\prod_{q'=1}^q(\hat{\bb{X}}_{\bb {(q'-1)M+1}}\cdots\hat{\bb{X}}_{\bb {q'M}}\bb{I}^l)\right) \hat{e}_j.$$
+Then, the $j^{th}$ column of the $\bb{Q}$ factor computed in this mixed-precision BQR algorithm is computed via $$\hat{\bb{Q}}_{mpBQR}[:,j] = \left(\prod_{q'=1}^q(\hat{\bb{X}}_{(q'-1)M+1}\cdots\hat{\bb{X}}_{q'M}\bb{I}^{(l)})\right) \hat{e}_j.$$
 Applying \cref{lem:3.7}, we result in bounds
 \begin{align}
-	\|\hat{\bb{Q}}_{mpBQR}[:,j] - \bb{Q}[:,j]\|_2 &\leq q(u^l+Mr\tilde{\gamma}_m^h)\label{eqn:mpBQR1}\\%\leq \tilde{\gamma}_{d(mn, u^h, q, u^l)}^l
-	\|\hat{\bb{Q}}_{mpBQR} - \bb{Q}\|_F &\leq n^{1/2}q(u^l+Mr\tilde{\gamma}_m^h)\leq \tilde{\gamma}_{d(mn^{3/2}, u^h, qn^{1/2}, u^l)}^l,\label{eqn:mpBQR2}
+	\|\hat{\bb{Q}}_{mpBQR}[:,j] - \bb{Q}[:,j]\|_2 &\leq q(u^{(l)}+Mr\tilde{\gamma}_m^{(h)})\label{eqn:mpBQR1}\\%\leq \tilde{\gamma}_{d(mn, u^{(h)}, q, u^{(l)})}^{(l)}
+	\|\hat{\bb{Q}}_{mpBQR} - \bb{Q}\|_F &\leq n^{1/2}q(u^{(l)}+Mr\tilde{\gamma}_m^{(h)}),\label{eqn:mpBQR2}
+	%\leq \tilde{\gamma}_{d(mn^{3/2}, u^{(h)}, qn^{1/2}, u^{(l)})}^{(l)}
 \end{align}
-showing that $q$ number of cast downs add $\gamma_q^l$ order errors to columnwise bounds and the matrix norm bound is derived from that.
+showing that $q$ number of cast downs add $\gamma_q^{(l)}$ order errors to columnwise bounds and the matrix norm bound is derived from that.
 This mixed precision BQR variant still rich in level-3 BLAS operations can be implemented on TensorCore technology.
 Furthermore, the bounds in \cref{eqn:mpBQR1,eqn:mpBQR2} show that the loss in precision that can occur from cast downs are linear to the number of cast downs.
 \subsubsection{Round down at block level: TSQR}\label{sec:mp-3t}
 Let us now consider a WY variant of TSQR, where all instances of {\tt qr} (lines 6,7,9 of \cref{algo:par_tsqr}) are followed by {\tt buildWY} (see \cref{algo:buildWY}), and all instances of {\tt hh\_mult} is replaced by a WY update (line 6 of \cref{algo:blockHQR}).
 We additionally impose a mixed precision assumption similar to \cref{sec:mp-3b}, where we store all WY representations of HQR within the for-loop (lines 4-8) of \cref{algo:par_tsqr} in low precision, and consider the construction of the $\bb{Q}$ factor.
 We can assume that each $2n$-by-$n$ and $m2^{-L}$-by-$n$ size matrices can fit into memory and only introduce one cast down for each $\bb{Q}_j^{(i)}$ block, where $i=1:L-1$ and $j=1:2^{i-1}$.
-Let us compute lines 9-10 in the higher precision, which introduces an error of order $n\tilde{\gamma}_{2n}^h$.
-In levels $L-1$ to $1$, each WY update adds error $u^l+n\tilde{\gamma}_{2n}^h$, and the final construction at the $0^{th}$ level (line 16), the WY update adds error $u^l + n\tilde{\gamma}_{m2^{-L}}^h$.
-Adding the cast down operator $\bb{I}^l$ to the analysis in \cite{Mori2012} and applying \cref{lem:3.7} yields the bounds on $\hat{\bb{Q}}_{mpTSQR}$,
+Let us compute lines 9-10 in the higher precision, which introduces an error of order $n\tilde{\gamma}_{2n}^{(h)}$.
+In levels $L-1$ to $1$, each WY update adds error $u^{(l)}+n\tilde{\gamma}_{2n}^{(h)}$, and the final construction at the $0^{th}$ level (line 16), the WY update adds error $u^{(l)} + n\tilde{\gamma}_{m2^{-L}}^{(h)}$.
+Adding the cast down operator $\bb{I}^{(l)}$ to the analysis in \cite{Mori2012} and applying \cref{lem:3.7} yields the bounds on $\hat{\bb{Q}}_{mpTSQR}$,
 \begin{align}
-\|\hat{\bb{Q}}_{mpTSQR}[:,j] - \bb{Q}[:,j]\|_2 &\leq L(u^l+n\tilde{\gamma}_{2n}^h)+\tilde{\gamma}_{m2^{-L}}\label{eqn:mpTSQR1}\\%\leq \tilde{\gamma}_{d(mn, u^h, q, u^l)}^l
-\|\hat{\bb{Q}}_{mpTSQR} - \bb{Q}\|_F &\leq n^{1/2}(L(u^l+n\tilde{\gamma}_{2n}^h)+\tilde{\gamma}_{m2^{-L}}) \leq \tilde{\gamma}_{d(n^{3/2}(2Ln+m2^{-L}), u^h, Ln^{1/2}, u^l)}^l.\label{eqn:mpTSQR2}
+\|\hat{\bb{Q}}_{mpTSQR}[:,j] - \bb{Q}[:,j]\|_2 &\leq L(u^{(l)}+n\tilde{\gamma}_{2n}^{(h)})+\tilde{\gamma}_{m2^{-L}}\label{eqn:mpTSQR1}\\%\leq \tilde{\gamma}_{d(mn, u^{(h)}, q, u^{(l)})}^{(l)}
+\|\hat{\bb{Q}}_{mpTSQR} - \bb{Q}\|_F &\leq n^{1/2}(L(u^{(l)}+n\tilde{\gamma}_{2n}^{(h)})+\tilde{\gamma}_{m2^{-L}}) .\label{eqn:mpTSQR2}
+%\leq \tilde{\gamma}_{d(n^{3/2}(2Ln+m2^{-L}), u^{(h)}, Ln^{1/2}, u^{(l)})}^{(l)}
 \end{align}
 
 %TODO: conclusion
@@ -107,32 +109,32 @@ Consequently, we return to the mixed precision setting described in \cref{sec:ba
 Consider forming a Householder transformation that zeros out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 
 We need to compute $\sigma$, $\beta$, $\tilde{\bb{v}}_1$, and $\bb{v}$ as defined in \cref{sec:HQR}:
 \begin{align}
-\fl(\sigma) &= \rm{fl}(-\rm{sign}(\bb{x}_1)\|\bb{x}\|_2) = \sigma + \Delta \sigma,\;\;|\Delta\sigma| \leq (\gamma_{2}^l+\gamma_{m}^h)|\sigma|,\label{eqn:mpsigma}\\
-\fl(\bb{\tilde{v}}_1)& =\bb{\tilde{v}}_1 + \Delta \bb{\tilde{v}}_1 = (1+\dd^l) (\bb{x}_{1}-\sigma-\Delta\sigma), \;\;|\Delta\bb{\tilde{v}}_1| \leq (\gamma_{3}^l+\gamma_{m}^h)|\bb{\tilde{v}}_1| \label{eqn:mpv1}\\
-\fl(\beta) &= \beta +\Delta \beta= (1+\dd^l)\left(-\tilde{\bb{v}_1}/\hat{\sigma}\right), \;\; |\Delta\beta| \leq (\gamma_{4}^l+\tilde{\gamma}_{m}^h)|\beta|, \label{eqn:mpbeta}
+\fl(\sigma) &= \rm{fl}(-\rm{sign}(\bb{x}[1])\|\bb{x}\|_2) = \sigma + \Delta \sigma,\;\;|\Delta\sigma| \leq (\gamma_{2}^{(l)}+\gamma_{m}^{(h)})|\sigma|,\label{eqn:mpsigma}\\
+\fl(\bb{\tilde{v}}_1)& =\bb{\tilde{v}}_1 + \Delta \bb{\tilde{v}}_1 = (1+\dd^{(l)}) (\bb{x}_{1}-\sigma-\Delta\sigma), \;\;|\Delta\bb{\tilde{v}}_1| \leq (\gamma_{3}^{(l)}+\gamma_{m}^{(h)})|\bb{\tilde{v}}_1| \label{eqn:mpv1}\\
+\fl(\beta) &= \beta +\Delta \beta= (1+\dd^{(l)})\left(-\tilde{\bb{v}[1]}/\hat{\sigma}\right), \;\; |\Delta\beta| \leq (\gamma_{4}^{(l)}+\tilde{\gamma}_{m}^{(h)})|\beta|, \label{eqn:mpbeta}
 \end{align}
 \begin{equation}
 	\fl(\bb{v}_j)	= \bb{v}_j + \Delta \bb{v}_j\text{ where }|\Delta \bb{v}_j|\leq 
 	\begin{cases}
 	0,& j=1\\
-	(\gamma_{4}^l + \tilde{\gamma}_{m}^h)|\bb{v}_j|,&j=2:m-i+1.
+	(\gamma_{4}^{(l)} + \tilde{\gamma}_{m}^{(h)})|\bb{v}_j|,&j=2:m-i+1.
 	\end{cases}  \label{eqn:mpv}
 \end{equation}
 Using these, we can formulate the mixed precision version of \cref{eqn:applyP} where $\hat{\bb{y}}=\fl(\bb{P_vx})\in\R^m$ is computed with \cref{eqn:effH},
 \begin{equation}
-	\hat{\bb{y}} = \bb{y}+\bb{\Delta y},\;\; \|\bb{\Delta y}\|_2 \leq (\gamma_7^l + \tilde{\gamma}_{m}^h)\|\bb{y}\|_2.
+	\hat{\bb{y}} = \bb{y}+\Delta \bb{y},\;\; \|\Delta \bb{y}\|_2 \leq (\gamma_7^{(l)} + \tilde{\gamma}_{m}^{(h)})\|\bb{y}\|_2.
 \end{equation}
-Thus, a backward error can be formed using $\bb{\Delta P_v} = \bb{\Delta y}\bb{x}^{
+Thus, a backward error can be formed using $\Delta \bb{P_v} = \Delta \bb{y}\bb{x}^{
 \top}/\|\bb{x}\|_2^2$,
 \begin{equation}
-	\hat{\bb{y}} = (\bb{P_v} + \bb{\Delta P_v})\bb{x},\;\; \|\bb{\Delta P_v}\|_F\leq (\gamma_7^l + \tilde{\gamma}_{m}^h).
+	\hat{\bb{y}} = (\bb{P_v} + \Delta \bb{P_v})\bb{x},\;\; \|\Delta \bb{P_v}\|_F\leq (\gamma_7^{(l)} + \tilde{\gamma}_{m}^{(h)}).
 \end{equation}
 The error bounds for applying $n$ Householder transformations to $\bb{x}$ can be found using \cref{lem:3.7},
 \begin{align}
-\hat{\bb{y}} &= \bb{Q} (\bb{x} +\bb{\Delta x}) = (\bb{Q} + \bb{\Delta Q})\bb{x},\\
-\|\bb{\Delta y}\|_2 &\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h)\|\bb{x}\|_2,\;\; \|\bb{\Delta Q}\|_F\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h),\label{eqn:mp19.3}
+\hat{\bb{y}} &= \bb{Q} (\bb{x} +\Delta \bb{x}) = (\bb{Q} + \Delta \bb{Q})\bb{x},\\
+\|\Delta \bb{y}\|_2 &\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)})\|\bb{x}\|_2,\;\; \|\Delta \bb{Q}\|_F\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}),\label{eqn:mp19.3}
 \end{align} 
-where the leading order error is now $\cO(\gamma_n^l)$.
+where the leading order error is now $\cO(\gamma_n^{(l)})$.
 The analogous mixed precision QR factorization error bounds are shown in \cref{thm:mpHQR}.
 \begin{theorem}
 	\label{thm:mpHQR}
@@ -141,15 +143,15 @@ The analogous mixed precision QR factorization error bounds are shown in \cref{t
 	All other operations are carried out in precision $l$.
 	Then,
 	\begin{align*}
-%	\hat{\bb{R}} &= \bb{R} + \bb{\Delta R}__{mpHQR} = \fl(\hat{\bb{P}}_n\cdots\hat{\bb{P}}_1 \bb{A}),\\
-%	\hat{\bb{Q}} &= \bb{Q} + \bb{\Delta Q} = \fl(\hat{\bb{P}}_1\cdots\hat{\bb{P}}_n \bb{I}),\\
-	\|\bb{\Delta R}_{mpHQR}[:,j]\|_2&\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h) \|\bb{A}[:,j]\|_2,\;\; \|\bb{\Delta R}_{mpHQR}\|_F\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h) \|\bb{A}\|_F\\
-	\|\bb{\Delta Q}[:,j]_{mpHQR}\|_2&\leq (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h),\;\; \|\bb{\Delta Q}_{mpHQR}\|_F \leq n^{1/2} (\tilde{\gamma}_n^l+n\tilde{\gamma}_m^h).
+%	\hat{\bb{R}} &= \bb{R} + \Delta \bb{R}__{mpHQR} = \fl(\hat{\bb{P}}_n\cdots\hat{\bb{P}}_1 \bb{A}),\\
+%	\hat{\bb{Q}} &= \bb{Q} + \Delta \bb{Q} = \fl(\hat{\bb{P}}_1\cdots\hat{\bb{P}}_n \bb{I}),\\
+	\|\Delta \bb{R}_{mpHQR}[:,j]\|_2&\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}) \|\bb{A}[:,j]\|_2,\;\; \|\Delta \bb{R}_{mpHQR}\|_F\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}) \|\bb{A}\|_F\\
+	\|\Delta \bb{Q}[:,j]_{mpHQR}\|_2&\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}),\;\; \|\Delta \bb{Q}_{mpHQR}\|_F \leq n^{1/2} (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}).
 	\end{align*}
-%	Let $\bb{A}+\bb{\Delta A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
+%	Let $\bb{A}+\Delta \bb{A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
 %	Then the backward e|rror is
 %	\begin{equation}
-%	\|\bb{\Delta A}\|_F \leq n^{3/2}\tilde{\gamma}_{m}\|\bb{A}\|_F.
+%	\|\Delta \bb{A}\|_F \leq n^{3/2}\tilde{\gamma}_{m}\|\bb{A}\|_F.
 %	\end{equation}
 \end{theorem}
 
@@ -158,12 +160,12 @@ The analogous mixed precision QR factorization error bounds are shown in \cref{t
 \subsubsection{Round down at inner product: BQR}
 Now, we analyze \cref{algo:blockHQR} with the same mixed precision inner product. 
 At the $k^{th}$ block, we first apply the mixed precision HQR summarized in \cref{thm:mpHQR}.
-Next, we study updating $\bb{W_k}^{j-1}$ to $\bb{W_k}^{j}$.
+Next, we study updating $\bb{W}_{k}^{j-1}$ to $\bb{W}_{k}^{j}$.
 Since this update is applied with a single Householder transformation to the right, we can apply \cref{eqn:mp19.3} to form 
 \begin{equation}
-	\hat{\bb{z_k}}^{(j)}= \bb{z_k}^{(j)} + \bb{\Delta z_k}^{(j)},\;\; |\bb{\Delta z_k}^{(j)}| \leq(\tilde{\gamma}_j^l+j\tilde{\gamma}_{,m-(k-1)}^h)  |\bb{z_k}^{(j)}|\label{eqn:mpBQR-z},,
+	\hat{\bb{z}_{k}}^{(j)}= \bb{z}_{k}^{(j)} + \Delta \bb{z}_{k}^{(j)},\;\; |\Delta \bb{z}_{k}^{(j)}| \leq(\tilde{\gamma}_j^{(l)}+j\tilde{\gamma}_{m-(k-1)}^{(h)})  |\bb{z}_{k}^{(j)}|\label{eqn:mpBQR-z},
 \end{equation}
-and the error for $\hat{\bb{v_k}}^{(j)}$ is \cref{eqn:mpv} with $m$ replaced by $m-(k-1)r$.
+and the error for $\hat{\bb{v}_{k}}^{(j)}$ is \cref{eqn:mpv} with $m$ replaced by $m-(k-1)r$.
 
 
 \subsubsection{Round down at inner product: TSQR}

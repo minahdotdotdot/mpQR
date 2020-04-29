@@ -15,7 +15,7 @@ For example, a 1600-by-100 matrix can be partitioned into 2, 4, 8, or 16 initial
 Our numerical experiments show that the choice in the initial partition, which directly relates to the recursion depth of TSQR, has an impact in the accuracy of the QR factorization. \par
 
 We refer to \emph{level} as the number of recursions in a particular TSQR implementation. 
-An $L$-level TSQR algorithm partitions the original matrix into $2^L$ submatrices in the initial or $0^{th}$ level of the algorithm, and $2^{L-i}$ QR factorizations are performed in level $i$ for $i = 1 , \cdots, L$. 
+An $L$-level TSQR algorithm partitions the original matrix into $2^{(l)}$ submatrices in the initial or $0^{th}$ level of the algorithm, and $2^{L-i}$ QR factorizations are performed in level $i$ for $i = 1 , \cdots, L$. 
 The set of matrices that are QR factorized at each level $i$ are called $\bb{A}_j^{(i)}$ for $j = 1, \cdots, 2^{L-i}$, where superscript $(i)$ corresponds to the level and the subscript $j$ indexes the row-blocks within level $i$.
 In the following sections, \cref{algo:par_tsqr} ({\tt tsqr}) will find a TSQR factorization of a matrix $A\in\R^{m\times n}$ where $m \gg n$. 
 The inline function {\tt qr} refers to \cref{algo:hhQR} and we use \cref{algo:hh_v2} as a subroutine of {\tt qr}.
@@ -75,8 +75,8 @@ Bisecting  $\bb{Q}_1^{(1)}$ into two submatrices, i.e. $\tilde{\bb{Q}}_{1,1}^{(1
 \bb{Q}_1^{(0)}\tilde{\bb{Q}}_{1,1}^{(1)} \\ 
 \bb{Q}_2^{(0)}\tilde{\bb{Q}}_{1,2}^{(1)}
 \end{bmatrix}. \]
-More generally, \cref{algo:par_tsqr} takes a tall-and-skinny matrix $\bb{A}$ and level $L$ and finds a QR factorization by initially partitioning $\bb{A}$ into $2^L$ row-blocks and includes the building of $\bb{Q}$.
-For simplicity, we assume that $m$ is exactly $h2^L$ so that the initial partition yields $2^L$ blocks of equal sizes, $h$-by-$n$. 
+More generally, \cref{algo:par_tsqr} takes a tall-and-skinny matrix $\bb{A}$ and level $L$ and finds a QR factorization by initially partitioning $\bb{A}$ into $2^{(l)}$ row-blocks and includes the building of $\bb{Q}$.
+For simplicity, we assume that $m$ is exactly $h2^{(l)}$ so that the initial partition yields $2^{(l)}$ blocks of equal sizes, $h$-by-$n$. 
 Also, note that {\tt hh\_mult} refers to the action of applying multiple Householder transformations given a set of Householder vectors and constants, which can be performed by iterating line 6 of \cref{algo:hhQR}.
 This step can be done in a level-3 BLAS operation via a WY update if \cref{algo:par_tsqr} was modified to store the WY representation at the QR factorization of each block of each level, $\bb{A}_j^{(i)}$. 
 
@@ -94,7 +94,7 @@ We summarize the main results from \cite{Mori2012} in \cref{thm:moriTSQR}.
 \begin{theorem}
 	\label{thm:moriTSQR}
 	Let $\bb{A}\in\R^{m\times n}$ with $m\geq n$ have full rank, $n$, and $\hat{\bb{Q}}\in\R^{m\times n}$ and $\hat{\bb{R}}\in\R^{n\times n}$ be the thin QR factors of $\bb{A}$ obtained via \cref{algo:par_tsqr} with $L$ levels. 
-	Let us further assume that $m = h2^L$ and $n\tilde{\gamma}_{m2^{-L}}, n\tilde{\gamma}_{ 2n} \ll 1$.
+	Let us further assume that $m = h2^{(l)}$ and $n\tilde{\gamma}_{m2^{-L}}, n\tilde{\gamma}_{ 2n} \ll 1$.
 	Then, normwise error bounds for the $j^{th}$ column ($j=1:n$) are
 	\begin{align}
 	\|\hat{\bb{R}}_{TSQR}[:,j]-\bb{R}[:,j]\|_2 &\leq n(\tilde{\gamma}_{m2^{-L}} + L\tilde{\gamma}_{ 2n})\|\bb{A}[:,j]\|_2,  \label{eqn:tsqrRA}\\
