@@ -96,96 +96,104 @@ Then, the $\bb{Q}$ factor for a full QR factorization is $\bb{Q}:=\bb{P}_{1}\bb{
 \subsubsection{HQR: Rounding Error Analysis}
 Now we present an error analysis for \cref{algo:hhQR} by keeping track of the different operations of \cref{algo:hh_v2} and \cref{algo:hhQR}.
 \paragraph{Calculating the $i^{th}$ Householder vector and constant} 
-In \cref{algo:hhQR}, the $i^{th}$ Householder vector shares all but the first component with the target column, $\bb{A}[i:m,i]$. 
+In \cref{algo:hhQR}, the we compute the Householder vector and constant by using \cref{algo:hh_v2} to $\bb{A}[i:m,i]$.
+Let us consider zeroing out any vector $\bb{x}\in\R^m$ below its first component with a Householder transformation.
+%$i^{th}$ Householder vector shares all but the first component with the target column, . 
 We first calculate $\sigma$ as is implemented in line 2 of \cref{algo:hh_v2}.
 \begin{equation}
 \label{eqn:sigma}
-\fl(\sigma) = \hat{\sigma} = \rm{fl}(-\rm{sign}(\bb{A}_{i,i})\|\bb{A}[i:m,i]\|_2) = \sigma + \Delta \sigma,\quad |\Delta\sigma| \leq \gamma_{m-i+1}|\sigma|.
+\fl(\sigma) = \hat{\sigma} = \rm{fl}(-\rm{sign}(\bb{x}[1])\|\bb{x}\|_2) = \sigma + \Delta \sigma,\quad |\Delta\sigma| \leq \gamma_{m+1}|\sigma|.
 \end{equation}
-Note that the backward error incurred here is simply that an inner product of a vector in $\R^{m-i+1}$ with itself. 
-Let $\bb{\tilde{v}}_1\equiv \bb{A}_{i,i}-\sigma$, the penultimate value $\bb{v}[1]$. 
+Note that the backward error incurred here accounts for an inner product of a vector in $\R^{m}$ with itself and a square root operation to get the 2-norm. 
+Let $\bb{\tilde{v}}[1]\equiv \bb{x}[i]-\sigma$, the penultimate value $\bb{v}[1]$. 
 The subtraction adds a single additional rounding error via
-\begin{equation*}
-	\fl(\bb{\tilde{v}}_1) =\bb{\tilde{v}}_1 + \Delta \bb{\tilde{v}}_1 = (1+\dd) (\bb{A}_{i,i}-\sigma-\Delta\sigma)= (1+\tilde{\tth}_{m-i+2})(\bb{A}_{i,i}-\sigma)
-\end{equation*}
+\begin{equation}
+	\fl(\tilde{\bb{v}}[1]) =\tilde{\bb{v}}[1] + \Delta \tilde{\bb{v}}[1] = (1+\dd) (\bb{x}[i]-\sigma-\Delta\sigma)= (1+\tth_{m+2})\tilde{\bb{v}}[1]
+\end{equation}
 where the last equality is granted because the sign of $\sigma$ is chosen to prevent cancellation.  
 %TODO: comment reviewer
-For the sake of simplicity, we write $|\Delta \bb{\tilde{v}}_1 |\leq \tilde{\gamma}_{m-i+1}|\bb{\tilde{v}}_1|$ even though a tighter relative upper bound is $\tth_{m-i+2}$
-We sweep that minor difference (in comparison to $\cO(m-i)$) under the our use of the $\tilde{\gamma}$ notation defined in \cref{lem:gamma}.
+%For the sake of simplicity, we write $|\Delta \bb{\tilde{v}}[1] |\leq \tilde{\gamma}_{m-i+1}|\bb{\tilde{v}}[1]|$ even though a tighter relative upper bound is $\tth_{m-i+2}$.
+%We sweep that minor difference (in comparison to $\cO(m-i)$) under the our use of the $\tilde{\gamma}$ notation defined in \cref{lem:gamma}.
 Since \cref{algo:hh_v2} normalizes the Householder vector so that its first component is $1$, the remaining components of $\bb{v}$ are divided by $\fl(\tilde{\bb{v}}_1)$ incurring another single rounding error.
-As a result, the rounding errors in $\bb{v}$ are
+As a result, the components of $\bb{v}$ computed with FLOPs have error $\fl(\bb{v}[j])	= \bb{v}[j] + \Delta \bb{v}[j]$ where 
 \begin{equation}
-	\fl(\bb{v}_j)	= \bb{v}_j + \Delta \bb{v}_j\text{ where }|\Delta \bb{v}_j|\leq 
+|\Delta \bb{v}[j]|\leq 
 	\begin{cases}
 	0,& j=1\\
-	\tilde{\gamma}_{m-i+1}|\bb{v}_j|,&j=2:m-i+1.
+	\gamma_{1+2(m+2)}|\bb{v}[j]| =\tilde{\gamma}_{m}|\bb{v}[j]|,&j=2:m-i+1.
 	\end{cases}  \label{eqn:vbound}
 \end{equation}
-
+Since $1+2(m+2) += \cO(m)$, we have swept that minor difference between under our use of the $\tilde{\gamma}$ notation defined in \cref{lem:gamma}.
 Next, we consider the Householder constant, $\beta$, as is computed in line 4 of \cref{algo:hh_v2}.
 \begin{align}
-\hat{\beta} = \fl\left(-\frac{\tilde{\bb{v}[1]}}{\hat{\sigma}}\right) &=-(1+\dd)\frac{\bb{\tilde{v}}_1+\Delta \bb{\tilde{v}}_1}{\sigma + \Delta\sigma} \label{eqn:beta}\\
-&= \frac{(1+\dd)(1+\tth_{m-i+1})}{(1+\tth_{m-i+2})}\beta = (1+\tth_{3(m-i+2)})\beta \label{eqn:beta2}\\
-& = \beta + \Delta \beta,\text{ where } |\Delta\beta| \leq \tilde{\gamma}_{m-i+1} \beta\label{eqn:beta3}.
+\hat{\beta} = \fl\left(-\tilde{\bb{v}}[1]/\hat{\sigma}\right) &=-(1+\dd)\frac{\bb{\tilde{v}}[1]+\Delta \bb{\tilde{v}}[1]}{\sigma + \Delta\sigma} \label{eqn:beta}\\
+&= \frac{(1+\dd)(1+\tth_{m+2})}{(1+\tth_{m+1})}\beta = (1+\tth_{3m+5})\beta \label{eqn:beta2}\\
+& = \beta + \Delta \beta,\text{ where } |\Delta\beta| \leq \tilde{\gamma}_{m} \beta\label{eqn:beta3}.
 \end{align}
-We have shown \cref{eqn:beta} to keep our analysis simple in \cref{sec:mpanalysis} and \cref{eqn:beta2,eqn:beta3} show that the error incurred from calculating of $\|\bb{A}[i:m,i]\|_2$ accounts for the vast majority of the rounding error so far.
+We have shown \cref{eqn:beta} to keep our analysis simple in \cref{sec:mpanalysis} and \cref{eqn:beta2,eqn:beta3} show that the error incurred from calculating of $\|\bb{x}\|_2$ accounts for the vast majority of the rounding error so far.
+At iteration $i$, we replace $\bb{x}$ with $\bb{A}[i:m,i]\in\R^{m-i+1}$ and the $i^{th}$ Householder constant and vector ($\hat{\beta}_i$,$\bb{v}_i$) both have errors bounded by $\tilde{\gamma}_{m-i+1}$.
 \paragraph{Applying a Single Householder Transformation}
-Now we consider lines 4-6 of \cref{algo:hhQR}. 
-Since the entries in $\bb{A}[i+1:m,i]$ are simply zeroed out and $\bb{A}_{i,i}$ is replaced by $\sigma$, we only need to calculate the errors for applying a Householder transformation with the computed Householder vector and constant. 
-This is the most crucial building block of the rounding error analysis for any variant of HQR because the $\bb{Q}$ factor is formed by applying the Householder transformations to the identity and both of the blocked versions in \cref{sec:BQR} and \cref{sec:TSQR} require efficient implementations of this step. 
-In this section, we only consider a level-2 BLAS implementation of applying the Householder transformation, but in \cref{sec:BQR} we introduce a level-3 BLAS implementation.\par
+Now we consider lines 4-6 of \cref{algo:hhQR}.
+At iteration $i$, we set $\bb{A}[i+1:m]$ to zero and replace $\bb{A}[i,i]$ with $\sigma$ computed from \cref{algo:hh_v2}.
+Therefore, we now need to calculate the errors for applying a Householder transformation to the remaining columns, $\bb{A}[i:m, i+1:n]$ with the computed Householder vector and constant.
+This is the most crucial building block of the rounding error analysis for any variant of HQR because the $\bb{R}$ factor is formed by applying the Householder transformations to $\bb{A}$ and the $\bb{Q}$ factor is formed by applying them in reverse order to the identity.
+Both of the blocked versions in \cref{sec:BQR} and \cref{sec:TSQR} also  require efficient implementations of this step, although they may be implemented slightly differently.
+For example, BQR in \cref{algo:blockHQR} uses level-3 BLAS operations to apply multiple Householder transformations at once whereas the variant of HQR in \cref{algo:hhQR} can only use level-2 BLAS operations to apply Householder transformations.\par
 
 A Householder transformation is applied through a series of inner and outer products, since Householder matrices are rank-1 updates of the identity. 
 That is, computing  $\bb{P}_{\bb{v}}\bb{x}$ for any $\bb{x}\in\R^{m}$ is as simple as computing 
 \begin{equation}
-	\bb{y}:=\bb{x} - (\beta \bb{v}^{\top}\bb{x})\bb{v}.\label{eqn:effH}
+	\bb{y}:=\bb{P}_{\bb{v}}\bb{x} = \bb{x} - (\beta \bb{v}^{\top}\bb{x})\bb{v}.\label{eqn:effH}
 \end{equation}
 Let us assume that $\bb{x}$ is an exact vector and there were errors incurred in forming $\bb{v}$ and $\beta$. 
 The errors incurred from computing $\bb{v}$ and $\beta$ need to be included in addition to the new rounding errors accumulating from the action of applying $\bb{P}_{\bb{v}}$ to a column.
 In practice, $\bb{x}$ would be a column in $\bb{A}^{(i-1)}[i+1:m, i+1:n]$, where the superscript $(i-1)$ indicates that this submatrix of $\bb{A}$ has already been transformed by $i-1$ Householder transformations that zeroed out components below $\bb{A}_{j,j}$ for $j = 1:i-1$.
-We show the error for forming $\fl\left(\bb{\hat{v}}^{\top}\bb{x}\right)$ where we continue to let $\bb{v},\bb{x}\in\R^{m-i+1}$ as would be in the $i^{th}$ iteration of the for-loop in \cref{algo:hhQR}:
+We show the error for forming $\fl\left(\bb{\hat{v}}^{\top}\bb{x}\right)$ where we let $\bb{v},\bb{x}\in\R^{m}$:
 \begin{equation*}
-\fl\left(\bb{\hat{v}}^{\top}\bb{x}\right) = (1+\tth_{m-i+1})(\bb{v}+\Delta \bb{v})^{\top}\bb{x}.
+\fl\left(\bb{\hat{v}}^{\top}\bb{x}\right) = (1+\tth_{m})(\bb{v}+\Delta \bb{v})^{\top}\bb{x}.
 \end{equation*}
 Set $\bb{w}:=\beta\bb{v}^{\top}\bb{x}\bb{v}$.
 Then,
 \begin{equation*}
-\bb{\hat{w}} =(1+\tth_{m-i+1})(1+\dd)(1+\tilde{\dd})(\beta+\Delta\beta)(\bb{v}+\Delta \bb{v})^{\top}\bb{x}(\bb{v}+\Delta \bb{v}),
+\hat{\bb{w}} =(1+\tth_{m})(1+\dd)(1+\tilde{\dd})(\beta+\Delta\beta)(\bb{v}+\Delta \bb{v})^{\top}\bb{x}(\bb{v}+\Delta \bb{v}),
 \end{equation*}
-where $\tth_{m-i+1}$ is from computing the inner product $\hat{\bb{v}}^{\top}\bb{x}$, and $\dd$ and $\tilde{\dd}$ are from multiplying $\beta$, $\fl(\hat{\bb{v}}^{\top}\bb{x})$, and $\bb{\hat{v}}$ together. 
+where $\tth_{m}$ is from computing the inner product $\hat{\bb{v}}^{\top}\bb{x}$, and $\dd$ and $\tilde{\dd}$ are from multiplying $\beta$, $\fl(\hat{\bb{v}}^{\top}\bb{x})$, and $\bb{\hat{v}}$ together. 
+We can write \begin{equation*}
+	\hat{\bb{w}} = \bb{w} + \Delta \bb{w},\;\; |\Delta \bb{w}| \leq \tilde{\gamma}_m|\beta||\bb{v}|^{\top}|\bb{x}||\bb{v}|.
+\end{equation*}
 Finally, we can add in the vector subtraction operation and complete the rounding error analysis of applying a Householder transformation to any vector:
 \begin{equation}
-\fl(\hat{\bb{P_v}}\bb{x}) = \fl(\bb{x}-\bb{\hat{w}}) = (1+\dd)(\bb{x}-\bb{w}-\Delta \bb{w}) = \bb{y} + \Delta \bb{y},\label{eqn:applyP}
+\fl(\hat{\bb{P_v}}\bb{x}) = \fl(\bb{x}-\bb{\hat{w}}) = (1+\dd)(\bb{x}-\bb{w}-\Delta \bb{w}) = \bb{y} + \Delta \bb{y} = (\bb{P_v} + \Delta \bb{P_v})\bb{x},\label{eqn:applyP}
 \end{equation}
-where $|\Delta \bb{y}| \leq u|\bb{x}| + \tilde{\gamma}_{m-i+1} |\beta||\bb{v}||\bb{v}|^{\top}|\bb{x}|$.
+where $|\Delta \bb{y}| \leq u|\bb{x}| + \tilde{\gamma}_{m} |\beta||\bb{v}||\bb{v}|^{\top}|\bb{x}|$.
 Using $\sqrt{2/\beta} = \|\bb{v}\|_2$, we can conclude 
 \begin{equation}
-\|\Delta \bb{y}\|_2 \leq \tilde{\gamma}_{m-i+1}\|\bb{x}\|_2. \label{eqn:19.2c}
+\|\Delta \bb{y}\|_2 \leq \tilde{\gamma}_{m}\|\bb{x}\|_2. \label{eqn:19.2c}
 \end{equation} 
 Next, we convert this to a backward error for $\bb{P_v}$.
-Since $\Delta \bb{P_v}$ is exactly $\frac{1}{\bb{x}^{\top}\bb{x}}\Delta \bb{y}\bb{x}^{\top}$, we can compute its Frobenius norm by using $\Delta \bb{P}[i,j] = \frac{1}{\|\bb{x}\|_2^2}\Delta \bb{y}[i]\bb{x}[j]$,
+Since $\Delta \bb{P_v}$ is exactly $\frac{1}{\bb{x}^{\top}\bb{x}}\Delta \bb{y}\bb{x}^{\top}$, we can compute its Frobenius norm by using $\Delta \bb{P_v}[i,j] = \frac{1}{\|\bb{x}\|_2^2}\Delta \bb{y}[i]\bb{x}[j]$,
 	\begin{equation}
-	\|\Delta \bb{P}\|_F
+	\|\Delta \bb{P_v}\|_F
 	= \left(\sum_{i=1}^m\sum_{j=1}^m\left(\frac{1}{\|\bb{x}\|_2^2}\Delta \bb{y}[i]\bb{x}[j]\right)^2\right)^{1/2}
-	=  \frac{\|\Delta \bb{y}\|_2}{\|\bb{x}\|_2} \leq \tilde{\gamma}_{m-i+1}\label{eqn:outer},
+	=  \frac{\|\Delta \bb{y}\|_2}{\|\bb{x}\|_2} \leq \tilde{\gamma}_{m}\label{eqn:outer},
 	\end{equation}
 where the last inequality is a direct application of \cref{eqn:19.2c}.
-We summarize these results in \cref{lem:19.2}.
-\begin{lemma}
-	\label{lem:19.2}
-	Let $\bb{x}\in\R^m$ and consider the computation of $\hat{\bb{y}}=\fl(\bb{P_vx})$ via 
-	\begin{equation*}
-		\bb{y}+\Delta \bb{y} = (\bb{P_v} + \Delta \bb{P_v})\bb{x} =\fl(\bb{P_v}\bb{x}) = \fl(\bb{x}-\hat{\beta}\hat{\bb{v}}\hat{\bb{v}}^{\top}\bb{x})
-	\end{equation*}
-	and rounding errors incurred in forming $\hat{\bb{v}}$ and $\hat{\beta}$ are expressed componentwise via $\hat{\bb{v}} = \bb{v}+\Delta \bb{v}$ and $\hat{\beta} = \beta + \Delta \beta$ where the relative componentwise errors for both are bounded by quantity $\gamma_y$:  
-	\begin{equation}
-		|\Delta \bb{v}| \leq \gamma_y|\bb{v}|,\qquad |\Delta \beta| \leq\gamma_y |\beta|.
-	\end{equation}
-	Then, the normwise forward and backward errors are $\|\Delta \bb{y}\|_2 \leq \gamma_y\|\bb{y}\|_2$ and $ \|\Delta \bb{P_v}\|_F \leq \gamma_y.$
-\end{lemma}
-Note that in a uniform precision setting this bound is represented as $\gamma_y = \tilde{\gamma}_{m}$. 
+%We summarize these results in \cref{lem:19.2}.
+%\begin{lemma}
+%	\label{lem:19.2}
+%	Let $\bb{x}\in\R^m$ and consider the computation of $\hat{\bb{y}}=\fl(\bb{P_vx})$ via 
+%	\begin{equation*}
+%		\bb{y}+\Delta \bb{y} = (\bb{P_v} + \Delta \bb{P_v})\bb{x} =\fl(\bb{P_v}\bb{x}) = \fl(\bb{x}-\hat{\beta}\hat{\bb{v}}\hat{\bb{v}}^{\top}\bb{x})
+%	\end{equation*}
+%	and rounding errors incurred in forming $\hat{\bb{v}}$ and $\hat{\beta}$ are expressed componentwise via $\hat{\bb{v}} = \bb{v}+\Delta \bb{v}$ and $\hat{\beta} = \beta + \Delta \beta$ where the relative componentwise errors for both are bounded by quantity $\gamma_y$:  
+%	\begin{equation}
+%		|\Delta \bb{v}| \leq \gamma_y|\bb{v}|,\qquad |\Delta \beta| \leq\gamma_y |\beta|.
+%	\end{equation}
+%	Then, the normwise forward and backward errors are $\|\Delta \bb{y}\|_2 \leq \gamma_y\|\bb{y}\|_2$ and $ \|\Delta \bb{P_v}\|_F \leq \gamma_y.$
+%\end{lemma}
+%Note that in a uniform precision setting this bound is represented as $\gamma_y = \tilde{\gamma}_{m}$. 
 \paragraph{Applying many successive Householder transformations}
-Consider applying a sequence of transformations in the set $\\bb{P}_{i}\}_{i=1}^r\subset\R^{m\times m}$ to $\bb{x}\in\R^m$, where $\bb{P}_{i}$'s are all Householder transformations computed with $\tilde{\bb{v}}_i$'s and $\hat{\beta_i}$'s.
+Consider applying a sequence of transformations in the set $\{\bb{P}_{i}\}_{i=1}^r\subset\R^{m\times m}$ to $\bb{x}\in\R^m$, where $\bb{P}_{i}$'s are all Householder transformations computed with $\tilde{\bb{v}}_i$'s and $\hat{\beta_i}$'s.
 This is directly applicable to HQR as $\bb{Q}=\bb{P}_{1}\cdots\bb{P}_{n}\bb{I}$ and $\bb{R} = \bb{Q}^{\top}\bb{A} = \bb{P}_{n}\cdots\bb{P}_{1}\bb{A}$.
 \Cref{lem:3.7} is very useful for any sequence of transformations, where each transformation has a known bound.
 We will invoke this lemma to prove \cref{lem:19.3}, and use it in future sections for other sequential transformations.
@@ -223,14 +231,17 @@ We will invoke this lemma to prove \cref{lem:19.3}, and use it in future section
 	since $\bb{P}_{j}$'s are orthogonal and have 2-norm, 1.
 	While we omit the details here, we can show that $(1+\tilde{\gamma}_m)^r-1 \leq r\tilde{\gamma}_m$ using the argument for \cref{lem:gamma} if $r\tilde{\gamma}_m \leq 1/2$.
 \end{proof}
-In this current uniform precision error analysis, the important quantity $\tilde{\gamma}_{m}$ is derived from the backward error of applying one Householder transformation.
-To easily generalize this section for mixed precision analysis, we benefit from alternatively denoting this quantity as $\tilde{\gamma}_{\bb{P}}$ with the understanding that $\tilde{\gamma}_{\bb{P}}$ will be some combination of $\tilde{\gamma}$'s of differing precisions. 
-The bound in \Cref{eqn:19.3} would then be  replaced by $r\tilde{\gamma}_{\bb{P}}$.
+In this error analysis, the prevailing bound for errors at various stages of forming and applying a Householder transformation is $\tilde{\gamma}_{m}$ where $m$ corresponds to the dimension of the transformed vectors.
+In \cref{lem:19.3}, a factor of $r$ is introduced for applying $r$ Householder transformations to form the term $r\tilde{\gamma}_m \approx rmu$. 
+Therefore, we can expect that the columnwise norm error for a thin QR factorization should be $\cO(mnu)$ for a full rank matrix. 
+%To easily generalize this section for mixed precision analysis, we benefit from alternatively denoting this quantity as $\tilde{\gamma}_{\bb{P}}$ with the understanding that $\tilde{\gamma}_{\bb{P}}$ will be some combination of $\tilde{\gamma}$'s of differing precisions. 
+%The bound in \Cref{eqn:19.3} would then be  replaced by $r\tilde{\gamma}_{\bb{P}}$.
 %\begin{equation}
 %	(1+\tilde{\gamma}_{\bb{P}})^r-1 \leq r\tilde{\gamma}_{\bb{P}}. \label{eqn:algebra3}
 %\end{equation}
-Applying \cref{lem:19.2} directly to columns of $\bb{A}$ and $\bb{I}$ allows us to formulate 2-norm forward bounds for columns of $\bb{R}$ and $\bb{Q}$.
-We show how to convert these columnwise bounds into matrix norms for the $\bb{R}$ factor.
+In \cref{thm:feHQR}, we formalize this by applying \cref{lem:19.3} directly and also show the result of converting these columnwise bounds to matrix norm bounds.
+%Applying \cref{lem:19.3} directly to columns of $\bb{A}$ and $\bb{I}$ allows us to formulate 2-norm forward bounds for columns of $\bb{R}$ and $\bb{Q}$.
+%We show how to convert these columnwise bounds into matrix norms for the $\bb{R}$ factor.
 %Next, we apply \cref{eqn:19.3} to the $i^{th}$ columns of $\bb{Q},\bb{R}$ and set $r=n$ for a full rank matrix, $\bb{A}$.
 %Then,
 %\begin{align*}
@@ -253,12 +264,16 @@ We gather these results into \cref{thm:feHQR}.
 	\hat{\bb{Q}} &= \bb{Q} + \Delta \bb{Q} = \fl(\hat{\bb{P}}_1\cdots\hat{\bb{P}}_n \bb{I}),\;\; \|\Delta \bb{Q}[:,j]\|_2\leq n\tilde{\gamma}_{m},\;\; \|\Delta \bb{Q}\|_F \leq n^{3/2} \tilde{\gamma}_{m}.
 	\end{align*}
 	Let $\bb{A}+\Delta \bb{A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
-	Then the backward e|rror is
+	Then the backward error is
 	\begin{equation}
 	\|\Delta \bb{A}\|_F \leq n^{3/2}\tilde{\gamma}_{m}\|\bb{A}\|_F.
 	\end{equation}
 \end{theorem}
-For the remainder of this paper, we compare various QR factorizations with respect to $\|\hat{\bb{Q}}-\bb{Q}\|_F$, a comprehensive measure of orthogonality of the $\bb{Q}$ factor.
-The content of this section generalizes the standard rounding error analysis in \cite{Higham2002} by employing quantities denoted via $\Delta \beta$, $\Delta \bb{v}$, $\tilde{\gamma}_y$, and $\tilde{\gamma}_{\bb{P}}$. 
+Out of all of these different ways of measuring the error from computing a QR factorization (forward/backward errors for column/matrix norms), we will focus on $\|\hat{\bb{Q}}-\bb{Q}\|_F$ , a measure of orthogonality of the $\bb{Q}$ factor for the remainder of \cref{sec:algo} and for \cref{sec:mpanalysis}. 
+In \cref{sec:NE}, we will turn to the backward norm error, $\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F$ since it can actually be computed.
+% we compare various QR factorizations with respect to $\|\hat{\bb{Q}}-\bb{Q}\|_F$, a comprehensive measure of orthogonality of the $\bb{Q}$ factor.
+
+The content of this section shows the standard rounding error analysis in \cite{Higham2002} where some important stages are summarized in \cref{eqn:beta3,eqn:vbound,eqn:19.3}, which we will modify to different mixed precision settings in \cref{sec:mpanalysis}.
+%by employing quantities denoted via $\Delta \beta$, $\Delta \bb{v}$, $\tilde{\gamma}_y$, and $\tilde{\gamma}_{\bb{P}}$. 
 These quantities account for various forward and backward errors formed in computing essential components of HQR, namely the Householder constant and vector, as well as normwise errors of the action of applying Householder transformations.
 In the next sections, we present blocked variants of HQR that use \cref{algo:hhQR}.
