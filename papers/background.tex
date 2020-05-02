@@ -246,7 +246,9 @@ In \cref{lem:mp}, we present just a few rules adapted for multiple precisions fr
 
 We use these principles to establish a mixed precision rounding error analysis for computing the dot product, which is crucial in many linear algebra routines such as the QR factorization.
 Let us define a mixed precision setting that is similar to the TensorCore Fused Multiply-Add (FMA) block but works at the level of a dot product. 
-While the FMA block in TensorCore is for matrix-matrix products (level-3 BLAS), we consider a vector inner product(level-2 BLAS) FMA as defined in Assumption~\ref{assump:mp}.
+The main difference lies in that the FMA block in TensorCore is for matrix-matrix products (level-3 BLAS), but our ad hoc mixed precision inner product FMA defined in \cref{assump:mp} is a level-2 BLAS operation.
+Although our analysis concerns accuracy and stability and leaves out timing results of various hardwares, we add a general statement to \cref{assump:mp} that is analogous to that of TensorCore: the mixed precision FMA should perform approximately 2 times faster than in the higher precision.
+This gives a vague insight into the trade-offs between speediness and accuracy from some mixed precision computations.  
 %TODO: BLAS and FMA should have been introduced in the introduction section.
 %TODO: talk more about other FMA operations and cite properly.
 The full precision multiplication in Assumption~\ref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their precisions and exponent ranges. 
@@ -262,6 +264,8 @@ Thus, the summation and the final cast down operations are the only sources of r
 	Let $l$ and $h$ each denote low and high precision types with unit round-off values $u^{(l)}$ and $u^{(h)}$, where $1 \gg u^{(l)} \gg u^{(h)} >0$.
 	Consider an FMA operation for inner products that take vectors stored in precision $l$, compute products in full precision, and sum the products in precision $h$. 
 	Finally, the result is then cast back down to precision $l$.
+	Furthermore, we expect this procedure to be approximately twice as fast as if it were done entirely in the higher precision, and about the same as if it were done entirely in the lower precision. 
+	
 \end{assump}
 \par
 Let $\bb{x}^{(\text{fp16})},\bb{y}^{(\text{fp16})}$ be $m$-length vectors stored in fp16, $s_k$ b the $k^{th}$ partial sum, and $\hat{s_k}$ be $s_k$ computed with FLOPs.
@@ -277,7 +281,6 @@ The error for a general $m$-length vector dot product is then
 \label{eqn:dperr_2}
 \hat{s_m} = (\bb{x}[1]\bb{y}[1]+\bb{x}[2]\bb{y}[2])\prod_{k=1}^{m-1}(1+\dd_{k}^{(h)}) + \sum_{i=3}^n \bb{x}[i]\bb{y}[i]\left(\prod_{k=i-1}^{m-1}(1+\dd_{k}^{(h)})\right).
 \end{equation}
-
 Using Lemma \ref{lem:gamma}, we further simplify and form componentwise backward errors with
 \begin{equation}
 \fl(\bb{x}^{\top}\bb{y}) =(\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y})\quad\text{for }|\Delta \bb{x}| \leq \gamma^{(h)}_{m-1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{m-1}^{(h)}|\bb{y}|. \label{eqn:beforecd}
@@ -286,15 +289,34 @@ If we then cast down this result, the forward errors are
 \begin{equation}
 \fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\tilde{\Delta}\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\tilde{\Delta}\bb{y}), \label{eqn:aftercd}
 \end{equation}
-where $|\tilde{\Delta} \bb{x}| \leq ((1+u^l)(1+\gamma_{m-1}^h)-1)|\bb{x}|$ and $|\tilde{\Delta} \bb{y}| \leq ((1+u^l)(1+\gamma_{m-1}^h)-1)|\bb{y}|$.
+where $|\tilde{\Delta} \bb{x}| \leq ((1+u^{(l)})(1+\gamma_{m-1}^{(h)})-1)|\bb{x}|$ and $|\tilde{\Delta} \bb{y}| \leq ((1+u^{(l)})(1+\gamma_{m-1}^{(h)})-1)|\bb{y}|$.
 Our error of interest can be bounded in many ways,
 \begin{align*}
-	(1+u^l)(1+\gamma_{m-1}^h)-1 &\leq \gamma_{M+m-1}^h=\gamma_{1+(m-1)/M}^l, \;\; M = u^l/u^h\\
-	(1+u^l)(1+\gamma_{m-1}^h)-1 &\leq  u^l + \gamma_{m-1}^h + \min\{u^l, \gamma_{m-1}^h\},\;\; \gamma_{m-1}^h < 1
+	(1+u^{(l)})(1+\gamma_{m-1}^{(h)})-1 &\leq \gamma_{M_{l,h}+m-1}^{(h)}=\gamma_{1+(m-1)/M_{l,h}}^{(l)}, \;\; M_{l,h} = u^{(l)}/u^{(h)}\\
+	(1+u^{(l)})(1+\gamma_{m-1}^{(h)})-1 &\leq  u^{(l)} + \gamma_{m-1}^{(h)} + \min\{u^{(l)}, \gamma_{m-1}^{(h)}\},\;\; \gamma_{m-1}^{(h)} < 1
 \end{align*}
-where the tighter bound can be determined from context.
-All of these bounds clearly indicate that this error bounded by $\cO(u^l + mu^h + mu^lu^h)$.
-%where $|\Delta \bb{x}| \leq \gamma^{(l)}_{d+1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{d+1}^{(l)}|\bb{y}| $ componentwise.\par
+where the tighter bound can be determined from context, and the constant $M_{l,h}$ represents the disparity in the two precisions. 
+Both bounds clearly indicate that this error is bounded by $\cO(u^{(l)} + mu^{(h)} + mu^{(l)}u^{(h)})$.
+
+Without any analysis, we expect that a mixed precision inner product described in \cref{assump:mp} should perform better than if it were computed entirely in the lower precision and worse than if it were computed entirely in the high precision. 
+Our analysis in \cref{eqn:aftercd}shows us that the traditional error bound $\gamma_m$ is pushed to the higher precision, $\gamma_{m-1}^{(h)}$, which is a significant reduction from $\gamma_m^{(l)}$ since we can expect $M_{l,h} \gg 1$.
+This reduction is penalized by the cast down step, which increases the error bound by approximately $ u^{(l)}$. 
+The impact of the cast down step is measured relative to the length of the vector, $m$, since that determines which one out of $u^{(l)}$ and $mu^{(h)}$ is the leading order term. 
+There are 3 cases to consider. \\
+\textbf{Case 1: ($m\ll M_{l,h}$)} In this case, $u^{(l)}$ is the leading order term, and the mixed precision inner product can claim its superiority in accuracy in comparison to the inner product computed in the lower precision. 
+It is hard to determine that the speed-up in the FMA in \cref{assump:mp} exceeds that of some hardware with low precision arithmetic built in. 
+In conclusion, this inner product mixed precision successfully reduces the error from $mu^{(l)})$ to $u^{(l)}$ with no apparent improvements in timing.\\
+\textbf{Case 2: ($m = M_{l,h}$)}
+Both terms are now leading order. 
+Thus, this is still an improvement in comparison to the lower precision arithmetic as the error is reduced from $mu^{(l)}$ to $2u^{(l)}$.
+Comparing this to the inner product computed entirely in high precision shows that the error has doubled from $mu^{(h)}$ to $2mu^{(h)}$, but gained a factor of 2 speed-up in timing instead. 
+One can argue that the loss in accuracy and the improvement in speed have essentially cancelled each other out. \\
+\textbf{Case 3: ($m \gg M_{l,h}$)}
+Now the second term $\gamma_{m-1}^{(h)}$ is the leading order term. 
+As in the above two cases, this is an improvement in the context of the low precision accuracy since the error has been reduced from $\gamma_m^{(l)}$ to $\gamma_{m/M}^{(l)}$. 
+Since $u^{(l)} = Mu^{(h)} \ll mu^{(h)}$, the accuracy of the mixed precision inner product procedure from \cref{assump:mp} is what you would expect from carrying the computation out in the higher precision. 
+Therefore, we can expect about the same level of accuracy but a factor of 2 reduction in speed when compared to the higher precision.
+The remainder of this paper does not discuss improvements in speed and readers should refer to timing studies such as ..... but the above 3 cases cover a portion of the spectrum of possibilities in the current mixed precision computing.
 
 \Cref{eqn:beforecd,eqn:aftercd} are crucial for our analysis in \cref{sec:mpanalysis} since the TensorCore technology outputs a matrix product in fp16 or fp32. 
 Consider matrices $\bb{A}\in\F_{\text{fp16}}^{p\times m}$ and $\bb{B}\in\F_{\text{fp16}}^{m\times q}$, and $\bb{C}=\bb{A}\bb{B}\in\F_{\text{fp16}}^{p\times q}$.
