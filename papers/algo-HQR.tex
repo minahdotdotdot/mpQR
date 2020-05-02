@@ -219,18 +219,18 @@ We will invoke this lemma to prove \cref{lem:19.3}, and use it in future section
 	These Householder vectors and constants are computed via \cref{algo:hh_v2} and the rounding errors are bounded by \cref{eqn:beta3,eqn:vbound}.
 	If each transformation is computed via \cref{eqn:effH}, then
 	\begin{align}
-	\hat{\bb{y}} &= \bb{Q} (\bb{x} +\Delta \bb{x}) = (\bb{Q} + \Delta \bb{Q})\bb{x},\\
+	\hat{\bb{y}} &= \bb{Q} (\bb{x} +\Delta \bb{x}) = (\bb{Q} + \Delta \bb{Q})\bb{x} = \hat{\bb{Q}}\bb{x},\\
 	\|\Delta \bb{y}\|_2 &\leq r\tilde{\gamma}_m\|\bb{x}\|_2,\;\; \|\Delta \bb{Q}\|_F\leq r\tilde{\gamma}_m .\label{eqn:19.3}
 	\end{align}
 \end{lemma}
 \begin{proof}
 	Applying \cref{lem:3.7} directly to $\bb{Q}$ yields
 	\begin{align*}
-		\|\hat{\bb{Q}}-\bb{Q}\|_F &= \left|\left|\prod_{j=1}^r (\bb{P}_{j} + \Delta \bb{P}_{j})- \prod_{j=1}^r\bb{P}_{j} \right|\right|_F\leq\left(-1+\prod_{j-1}^r(1+\tilde{\gamma}_{m-j+1})^r\right)\prod_{j=1}^n\|\bb{P}_{j}\|_2 \\
+		\|\Delta\bb{Q}\|_F &= \left|\left|\prod_{j=1}^r (\bb{P}_{j} + \Delta \bb{P}_{j})- \prod_{j=1}^r\bb{P}_{j} \right|\right|_F\leq\left(-1+\prod_{j-1}^r(1+\tilde{\gamma}_{m-j+1})^r\right)\prod_{j=1}^n\|\bb{P}_{j}\|_2 \\
 		\leq -1+(1+\tilde{\gamma}_m)^r,
 	\end{align*}
 	since $\bb{P}_{j}$'s are orthogonal and have 2-norm, 1, and $m-j+1 \leq m$.
-	While we omit the details here, we can show that $(1+\tilde{\gamma}_m)^r-1 \leq r\tilde{\gamma}_m$ using the argument for \cref{lem:gamma} if $r\tilde{\gamma}_m \leq 1/2$.
+	While we omit the details here, we can show that $(1+\tilde{\gamma}_m)^r-1 \leq r\tilde{\gamma}_m$ using the argument from \cref{lem:gamma} if $r\tilde{\gamma}_m \leq 1/2$.
 \end{proof}
 In this error analysis, the prevailing bound for errors at various stages of forming and applying a Householder transformation is $\tilde{\gamma}_{m}$ where $m$ corresponds to the dimension of the transformed vectors.
 In \cref{lem:19.3}, a factor of $r$ is introduced for applying $r$ Householder transformations to form the term $r\tilde{\gamma}_m \approx rmu$. 
@@ -266,10 +266,11 @@ We gather these results into \cref{thm:feHQR}.
 	\end{align*}
 	Let $\bb{A}+\Delta \bb{A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
 	Then the backward error is
-	\begin{equation}
-	\|\Delta \bb{A}\|_F \leq n^{3/2}\tilde{\gamma}_{m}\|\bb{A}\|_F.
-	\end{equation}
+	\begin{equation*}
+	\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F \leq n^{3/2}\tilde{\gamma}_{m}\|\bb{A}\|_F.
+	\end{equation*}
 \end{theorem}
+Note that the last backward error result follows from the columnwise forward errors for $\hat{\bb{R}}$ and $\hat{\bb{Q}}$.
 Out of all of these different ways of measuring the error from computing a QR factorization (forward/backward errors for column/matrix norms), we will focus on $\|\hat{\bb{Q}}-\bb{Q}\|_F$ , a measure of orthogonality of the $\bb{Q}$ factor for the remainder of \cref{sec:algo} and for \cref{sec:mpanalysis}. 
 In \cref{sec:NE}, we will turn to the backward norm error, $\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F$ since it can actually be computed.
 % we compare various QR factorizations with respect to $\|\hat{\bb{Q}}-\bb{Q}\|_F$, a comprehensive measure of orthogonality of the $\bb{Q}$ factor.
