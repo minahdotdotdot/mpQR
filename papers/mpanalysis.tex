@@ -113,40 +113,63 @@ This mixed precision BQR variant is rich in level-3 BLAS operations can be imple
 		%$\bb{V}_i,\bm{\beta}_i,\bb{A}_{n_{i-1}+1:m,n_{i-1}+1:n_i}\gets$ {\tt hhQR}$(\bb{A}_{n_{i-1}:m,n_{i-1}+1:n_i})$\tcc*{\Cref{algo:hhQR}}
 		$\bb{W}_{k}\gets $ {\tt buildWY}$(\bb{V}_{k},\bm{\beta}_k)$ \tcc*{\Cref{algo:buildWY} in high precision}
 		$[\bb{V}_{k},\bb{W}_{k}]\gets ${\tt castdown}($[\bb{V}_{k},\bb{W}_{k}]$)\;
-		$[\bb{C}_{k+1}\cdots\bb{C}_{N}]$ -= $\bb{V}_{k} \left(\bb{W}_{k}^{\top}[\bb{C}_{k+1}\cdots\bb{C}_{N}]\right) $ \tcc*{returned in high precision}
+		$[\bb{C}_{k+1}\cdots\bb{C}_{N}]$ -= $\bb{V}_{k} \left(\bb{W}_{k}^{\top}[\bb{C}_{k+1}\cdots\bb{C}_{N}]\right) $ \tcc*{returned in low precision}
 	}
 	\tcp{Now build $\bb{Q}$ using level-3 BLAS operations.} 
 	$\bb{Q}\gets \bb{I}$\tcc*{$\bb{I}_m$ if full QR, and $\bb{I}_{m\times n}$ if thin QR.}
-	\For{$k=N:-1:2$}{
-		\tcp{All but the last WY update are returned in high precision.}
-		$\bb{Q}[(k-1)r+1:m,(k-1)r+1:n]$-= $\bb{W}_i \left(\bb{V}_k^{\top}\bb{Q}[(k-1)r+1:m,(k-1)r+1:n]\right)$
+	\For{$k=N:-1:1$}{
+		\tcp{All updates are returned in low precision.}
+		$\bb{Q}[(k-1)r+1:m,(k-1)r+1:n]$-= $\bb{W}_k \left(\bb{V}_k^{\top}\bb{Q}[(k-1)r+1:m,(k-1)r+1:n]\right)$
 	}
-	\tcp{The last update is returned in low precision.}
-	$\bb{Q}$-= $\bb{W}_1 \left(\bb{V}_1^{\top}\bb{Q}\right)$\;
+	%\tcp{The last update is returned in low precision.}
+	%$\bb{Q}$-= $\bb{W}_1 \left(\bb{V}_1^{\top}\bb{Q}\right)$\;
 	\Return $\bb{Q},\bb{A}$
 	\caption{\label{algo:mpBQR} $\hat{\bb{Q}}_{mpBQR},\hat{\bb{R}}_{mpBQR}\gets {\tt mpBQR}(\bb{A}, r)$: Perform Householder QR factorization of matrix $\bb{A}$ with column partitions of size $r$. All inputs and outputs are stored in low precision. Matrix-matrix multiplication and accumulate operations in lines 10, 13, and 14 require low precision inputs but can return in either of the two precisions.}
 \end{algorithm2e}
+
+
+Since $\hat{\bb{W}}_{k},\hat{\bb{Y}}_k$'s are computed with \cref{algo:buildWY} then cast down, the low precision WY update is $\hat{\bb{X}}_{k}^{(l)} = \bb{I}-\bb{I}^{(l)}\hat{\bb{W}}_k\bb{I}^{(l)}\hat{\bb{V}}_k^{(\top)}$.
+Consider applying $\hat{\bb{X}}_k^{(l)}$ to some matrix stored in low precision, $\bb{B}$ using the TensorCore block FMAs.
+We analyze a single column $\bb{b}_j:=\bb{B}[:,j] \in \F_l^{m-(k-1)r}$ even though this operation is done on $\bb{B}$ as a whole.
+Let $\bb{I}^{(l)}\hat{\bb{W}}_k = \hat{\bb{W}}_k + \bb{E}_W\hat{\bb{W}}_k$ and $\bb{I}^{(l)}\hat{\bb{W}}_k = \hat{\bb{Y}}_k + \bb{E}_Y\hat{\bb{Y}}_k$, where $|\bb{E}_W|,|\bb{E}_Y| \leq u^{(l)}$ componentwise.  
+Since \[\hat{\bb{X}}_{k}^{(l)}- \bb{X}_k = \hat{\bb{X}}_{k}^{(l)} -\hat{\bb{X}}_{k}+ \hat{\bb{X}}_{k}- \bb{X}_k= \hat{\bb{X}}_{k}^{(l)} -\hat{\bb{X}}_{k}+ \Delta \bb{X}_{k},\]
+we only need to add the errors introduced from casting down to the errors derived in \cref{eqn:deltX},
+\begin{align*}
+	\|(\hat{\bb{X}}_{k}^{(l)}- \hat{\bb{X}}_{k}+ \Delta \bb{X}_{k})\bb{b}_j \|_2 %&=\| (\bb{b}_j-(\hat{\bb{W}}_k + \bb{E}_W\hat{\bb{W}}_k)((\hat{\bb{Y}}_k + \bb{E}_Y\hat{\bb{Y}}_k)^{\top}\bb{b}_j)) - (\bb{b}_j-\hat{\bb{W}}_k(\hat{\bb{Y}}_k^{(\top)}\bb{b}_j) + \Delta \bb{X}_{k} \bb{b}_j\|_2\\
+	&= \| \left(-\left(\bb{E}_W+\bb{E}_Y+ \bb{E}_W\bb{E}_Y\right)\hat{\bb{W}}_k\hat{\bb{Y}}_k^{\top} + \Delta \bb{X}_{k} \right)\bb{b}_j\|_2,\\
+	&= (\gamma_2^{(l)}(1+r\tilde{\gamma}_{m-(k-1)r}^{(h)}) + r\tilde{\gamma}_{m-(k-1)r}^{(h)}) \|\bb{b}_j\|_2.
+%	\text{\tt castdown}(\hat{\bb{P}}_{k'}^{(1)}\cdots\hat{\bb{P}}_{k'}^{(r)}) \\
+%	\|\hat{\bb{X}}_{k'} - \bb{X}_{k'}\|_F &= \|\bb{I}^{(l)}\hat{\bb{P}}_{k'}^{(1)}\cdots\hat{\bb{P}}_{k'}^{(r)} -\bb{P}_{k'}^{(1)}\cdots\bb{P}_{k'}^{(r)} \|_F \leq (1+u^{(l)})(1+r\tilde{\gamma}_{m-(k'-1)r})-1,
+\end{align*}
+Therefore, we have $\|(\hat{\bb{X}}_k^{(l)}-\bb{X}_k)\bb{b}_j\|_2 \leq (\gamma_2^{(l)} +r\tilde{\gamma}_{m-(k-1)r}^{(h)} + r\gamma_2^{(l)}\tilde{\gamma}_{m-(k-1)r}^{(h)}) \|\bb{b}_j\|_2 $ and the error bound on the corresponding backward matrix norm is
+
+\begin{equation}
+	\|\Delta^{(l)}\bb{X}_k\|_F \leq \gamma_2^{(l)} +r\tilde{\gamma}_{m-(k-1)r}^{(h)} + r\gamma_2^{(l)}\tilde{\gamma}_{m-(k-1)r}^{(h)},\label{eqn:mpdeltX}
+\end{equation}
+where $\Delta^{(l)}\bb{X}_k = \hat{\bb{X}}_k^{(l)}-\bb{X}_k$.
+
+We can finally compute the forward errors on the QR factorization computed via \cref{algo:mpBQR}.
 Consider the $j^{th}$ column of the $\bb{Q}$ factor, which we denote with $\bb{q}_j:=\hat{\bb{Q}}_{mpBQR}[:,j]$, and let $k = \lfloor j/r\rfloor$.
-Since $\hat{\bb{X}}_{k'}$'s are computed with \cref{algo:buildWY} then cast down, we can represent the error via
-\begin{align}
-	\hat{\bb{X}}_{k'} &= \text{\tt castdown}(\hat{\bb{P}}_{k'}^{(1)}\cdots\hat{\bb{P}}_{k'}^{(r)}) \\
-	\|\hat{\bb{X}}_{k'} - \bb{X}_{k'}\|_F &= \|\bb{I}^{(l)}\hat{\bb{P}}_{k'}^{(1)}\cdots\hat{\bb{P}}_{k'}^{(r)} -\bb{P}_{k'}^{(1)}\cdots\bb{P}_{k'}^{(r)} \|_F \leq (1+u^{(l)})(1+r\tilde{\gamma}_{m-(k'-1)r})-1,
-\end{align}
-for $k'=1:N$, and the bound in \cref{eqn:deltX} was used and \cref{lem:3.7} was invoked.
+for $k'=1:N$, and \cref{eqn:mpdeltX} was used to invoke \cref{lem:3.7}.
 Then the columnwise error is 
 \begin{align}
-	\|\Delta \bb{q}_j \|_2 &\leq -1 + (1+u^{(l)})\prod_{k'=1}^k (1+u^{(l)})(1+r\tilde{\gamma}_{m-(k'-1)r})\\ 
-	&\leq \gamma_{k+1}^{(l)} + kr\tilde{\gamma}_m^{(h)} + kr\gamma_{k+1}^{(l)}\tilde{\gamma}_m^{(h)}, \label{eqn:mpBQRcol}
+	\|\Delta \bb{q}_j \|_2 &\leq -1 + \prod_{k'=1}^k (1+\gamma_2^{(l)})(1+r\tilde{\gamma}_{m-(k'-1)r}^{(h)})\\ 
+	&\leq k\gamma_{2}^{(l)} + kr\tilde{\gamma}_m^{(h)} + k^2r\gamma_{2}^{(l)}\tilde{\gamma}_m^{(h)}, \label{eqn:mpBQRcol}
 \end{align} 
-where $\Delta \bb{q}_j = (\bb{I}^{(l)}\hat{\bb{X}}_1\cdots\hat{\bb{X}}_k - \bb{X}_1\cdots\bb{X}_k )\hat{e}_j.$
+where $\Delta \bb{q}_j = (\hat{\bb{X}}_1^{(l)}\cdots\hat{\bb{X}}_k^{(l)} - \bb{X}_1\cdots\bb{X}_k )\hat{e}_j.$
 Summing over the columns to find a matrix norm error bound yields
 \begin{equation}
-	\|\hat{\bb{Q}}_{mpBQR}-\bb{Q}\|_F \leq n^{1/2} \tilde{\gamma}_{N+1}^{(l)} + n^{(3/2)}\tilde{\gamma}_m^{(h)},
+	\|\hat{\bb{Q}}_{mpBQR}-\bb{Q}\|_F \leq n^{1/2}\tilde{\gamma}_{N}^{(l)} + n^{(3/2)}\tilde{\gamma}_m^{(h)},
 \end{equation}
-where the summation of the third term in \cref{eqn:mpBQRcol} is swept under the tilde notation in $n^{1/2} \tilde{\gamma}_{N+1}^{(l)}$.
-This bound shows that \cref{algo:mpBQR} only adds $n^{1/2}\gamma_{N+1}^{(l)}$ order errors to the bounds in \cref{eqn:BQRmat}.
-Whether this loss in accuracy by $n^{1/2}\gamma_{N+1}^{(l)}$ is worth the speed-ups is an open question that can be tackled in future research.
-We expect that the number of blocks $N$, the dimension of the input matrix $m,n$, and hardware specificities will be contributing factors. 
+where the summation of the third term in \cref{eqn:mpBQRcol} is swept under the tilde notation in $n^{1/2} \tilde{\gamma}_{N}^{(l)}$.
+This bound shows that \cref{algo:mpBQR} only adds $n^{1/2}\tilde{\gamma}_{N}^{(l)}$ order errors to the bounds in \cref{eqn:BQRmat}.
+Using that $u^{(l)}=M_{l,h}u^{(h)}$, this increase corresponds to a multiplicative factor shown below,
+\begin{equation}
+	n^{1/2}\tilde{\gamma}_{N}^{(l)} + n^{(3/2)}\tilde{\gamma}_m^{(h)} \approx \left(1+\frac{M_{l,h}}{rm}\right)n^{(3/2)}\tilde{\gamma}_m^{(h)}.
+\end{equation}
+Therefore, the loss in accuracy due to mixed precision computing is relatively small when the disparity in precision ($M_{l,h}$) is small in comparison to the block size, $mr$.
+Whether this loss in accuracy in the worst-case scenario is worth the speed-ups from using mixed precision hardware is an open question that can be tackled in future research.
+We expect that the block size $r$, the dimension of the input matrix $m,n$, and hardware specificities will be contributing factors. 
 %Furthermore, the bounds in \cref{eqn:mpBQR1,eqn:mpBQR2} show that the loss in precision that can occur from cast downs are linear to the number of cast downs.
 \subsubsection{Round down at block level: TSQR}\label{sec:mp-3t}
 Let us now consider a WY variant of TSQR, where all instances of {\tt qr} (lines 6,7,9 of \cref{algo:par_tsqr}) are followed by {\tt buildWY} (see \cref{algo:buildWY}), and all instances of {\tt hh\_mult} is replaced by a WY update (line 6 of \cref{algo:blockHQR}).
