@@ -301,3 +301,15 @@ Recall that the block mixed precision variant of \cref{sec:mp-3b} yielded a mult
 This implies that the mixed precision inner product introduces low precision error $r\times $ larger than the low precision errors incurred from casting down at the block level.
 However, if $m$ is sufficiently larger than $M_{l,h}$, the mixed precision inner product can still had non-leading order error terms to the worst-case scenario.
 \subsubsection{Round down at inner product: TSQR}
+Finally, we consider using the mixed precision inner product of \cref{assump:mp} in \cref{algo:par_tsqr}.
+This corresponds to replacing every instance of $n\tilde{\gamma}_{m'}$ for $m'\in\{2n, m2^{-L}\}$ in \cref{thm:moriTSQR} with $\tilde{\gamma}_n^{(l)} + n\tilde{\gamma}_{m'}^{(h)}$.
+We first consider the norm errors for the $j^{th}$ column of the $\bb{Q}$ factor computed by this mixed precision variant of \cref{algo:par_tsqr},
+\begin{equation}
+	\|\hat{\bb{Q}}_{mpTSQR2}[:,j] -\bb{Q}[:,j]\|_2 \leq (L+1)\tilde{\gamma}_n^{(l)} +n(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)}).\label{eqn:mptsqr2Qcol}
+\end{equation} 
+Then, the matrix norm error bound is 
+\begin{align}
+\|\hat{\bb{Q}}_{mpTSQR2}-\bb{Q}\|_F \leq n^{1/2}(L+1)\tilde{\gamma}_n^{(l)} +n^{3/2}(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)})\\
+\approx \left(1+ \frac{M_{l,h}L}{m2^{-L}+ 2Ln}\right)n^{3/2}(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)}).\label{eqn:mptsqr2Q}
+\end{align} 
+%TODO: conclude
