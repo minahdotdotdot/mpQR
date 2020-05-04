@@ -228,7 +228,8 @@ Using Lemma \ref{lem:gamma}, we further simplify and form componentwise backward
 \begin{equation}
 \fl(\bb{x}^{\top}\bb{y}) =(\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y})\quad\text{for }|\Delta \bb{x}| \leq \gamma^{(h)}_{m-1}|\bb{x}|,\;\; |\Delta \bb{y}|  \leq \gamma_{m-1}^{(h)}|\bb{y}|. \label{eqn:beforecd}
 \end{equation}
-If we then cast down this result, the forward errors are
+Suppose that $|\fl(\bb{x}^{\top}\bb{y})|$ is smaller than the largest representable number in the lower precision.
+Casting this down to $\F_l$ results in the forward errors, 
 \begin{equation}
 \fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\tilde{\Delta}\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\tilde{\Delta}\bb{y}), \label{eqn:aftercd}
 \end{equation}
@@ -249,15 +250,17 @@ Therefore, this inner product mixed precision successfully reduces the error fro
 Both terms are now leading order. 
 Thus, this is still an improvement in comparison to the lower precision arithmetic as the error is reduced from $mu^{(l)}$ to $2u^{(l)}$.
 Comparing this to the inner product computed entirely in the higher precision shows that the error has doubled from $mu^{(h)}$ to $2mu^{(h)}$, but gained a factor of 2 speed-up in timing instead. 
-One can argue that the loss in accuracy and the improvement in speed have essentially canceled each other out. \\
+One can argue that the loss in accuracy and the improvement in speed have essentially canceled each other out, but this can be reevaluated if the speed-up greatly exceeds a factor of 2. \\
 \textbf{Case 3: ($m \gg M_{l,h}$)}
 Now the second term $\gamma_{m-1}^{(h)}$ is the leading order term. 
-As in the above two cases, this is an improvement in the context of the low precision accuracy since the error has been reduced from $\gamma_m^{(l)}$ to $\gamma_{m/M}^{(l)}\equiv \gamma_m^{(h)}$. 
-Since $u^{(l)} = Mu^{(h)} \ll mu^{(h)}$, the accuracy of the mixed precision inner product procedure from \cref{assump:mp} is what you would expect from carrying the computation out in the higher precision. 
-Therefore, we can expect about the same level of accuracy but a factor of 2 reduction in speed when compared to the higher precision.\par
-The remainder of this paper focuses only on accuracy and does not discuss the impact of mixed precision computations on speed and readers should refer to timing studies such as .....
+As in the above two cases, this is an improvement in the context of the low precision accuracy since the error has been reduced from $\gamma_m^{(l)}$ to $\gamma_{m/M_{l,h}}^{(l)}\equiv \gamma_m^{(h)}$. 
+Since $u^{(l)} = M_{l,h}u^{(h)} \ll mu^{(h)}$, the error from the mixed precision inner product is in the same \emph{order} as the error from carrying the computation out in the higher precision. 
+Therefore, we can expect about the same level of accuracy but a factor of 2 or greater reduction in speed when compared to the higher precision.\par
+While the analysis in the above cases establish 3 regimes of trade-offs between accuracy and speed in mixed precision computing, the remainder of this paper focuses only on accuracy and does not consider the impact of mixed precision computations on speed.
+Readers should refer to timing studies such as .....
 %TODO: cite
-While the analysis in the above cases establish 3 regimes of trade-offs between accuracy and speed in mixed precision computing, we can also simplify the error in \cref{eqn:aftercd} via,
+Finally, we present alternate ways of understanding the error bound in \cref{eqn:aftercd}.
+This bound can be simplified using the following rules,
 \begin{align*}
 (1+u^{(l)})(1+\gamma_{m-1}^{(h)})-1 &\leq \gamma_{M_{l,h}+m-1}^{(h)}=\gamma_{1+(m-1)/M_{l,h}}^{(l)}, \;\; M_{l,h} = u^{(l)}/u^{(h)},\\
 (1+u^{(l)})(1+\gamma_{m-1}^{(h)})-1 &\leq  u^{(l)} + \gamma_{m-1}^{(h)} + \min\{u^{(l)}, \gamma_{m-1}^{(h)}\},\;\; \gamma_{m-1}^{(h)} < 1.
@@ -318,8 +321,8 @@ We summarize these ways of combining $\gamma$ terms of different precisions in \
 \Cref{eqn:beforecd,eqn:aftercd} are crucial for our analysis in \cref{sec:mpanalysis} since they closely resemble the TensorCore FMA block which can return a matrix product in fp16 or fp32. 
 Consider matrices $\bb{A}\in\F_{\text{fp16}}^{p\times m}$ and $\bb{B}\in\F_{\text{fp16}}^{m\times q}$, and $\bb{C}=\bb{A}\bb{B}\in\F_{\text{fp16}}^{p\times q}$.
 If $\fl(\bb{C})$ is desired in fp16, then each component of that matrix incurs rounding errors as shown in \cref{eqn:aftercd} and if it is desired in fp32, the componentwise rounding error is given by \cref{eqn:beforecd}.
-Similarly, we could consider other mixed precision algorithms that cast down at various points within the algorithm to take advantage of better storage properties of lower precision types. 
-In general, error bounds in the fashion of \cref{eqn:beforecd} can be used before the cast down operations, and the action of the cast down is best represented by error bounds similar to \cref{eqn:aftercd}.\par
+Similarly, we could consider other mixed precision algorithms that cast down at various points within the algorithm instead after every matrix multiplication and still take advantage of the better storage properties of lower precision types. 
+In general, error bounds in the fashion of \cref{eqn:beforecd} can be used before the cast down operations and the action of the cast down is best represented by error bounds similar to \cref{eqn:aftercd}.\par
 
 We have demonstrated a need for rounding error analysis that is accurate for mixed precision procedures and analyzed the inner product in a mixed precision procedure similar to that of TensorCore.
 We will use this to analyze some QR factorization algorithms.

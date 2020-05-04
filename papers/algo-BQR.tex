@@ -63,7 +63,7 @@ Next, $\bb{I} -\bb{Y}_{k}\bb{W}_{k}^{\top}$ is applied to $[\bb{C}_2 \cdots  \bb
 BQR performs approximately $1-\cO(1/N)$ fraction of its FLOPs in Level-3 BLAS operations (see section 5.2.3 of \cite{golub2013matrix}), and can reap the benefits from the accelerated block FMA feature of TensorCore. 
 Note that BQR does require strictly more FLOPs when compared to HQR, but these additional FLOPs are negligble in standard precision and does not impact the numerical stability.
 %TODO: some statement about experiment about this in low/mixed precision
-A pseudoalgorithm for BQR is shown in \cref{algo:blockHQR} where we assume that $n$ is divisible by $r$ so that $N= \lceil n/r\rceil =n/r$ to make our error analysis in \cref{sec:BQRerr} simple.
+A pseudoalgorithm for BQR is shown in \cref{algo:blockHQR} where we assume that $n=Nr$ to make our error analysis in \cref{sec:BQRerr} simple.
 In practice, an efficient implementation might require $r$ to be a power of two or a product of small prime factors and result a thinner $N^{th}$ block compared to the rest. 
 This discrepancy is easily fixed by padding the matrix with zeros, a standard procedure for standard algorithms like the Fast Fourier Transform (FFT).
 %TODO: cite?
@@ -116,11 +116,12 @@ Since $\hat{\bb{X}}_k^{(1)} = \bb{I} - \hat{\beta}_k^{(1)}\hat{\bb{v}}_k^{(1)}\h
 \end{equation}
 
 \paragraph{HQR within each block: line 3 of \cref{algo:blockHQR}}
-We apply \Cref{algo:hhQR} to the $k^{th}$ block, $\bb{C}_k^{((k-1)r)}$, which applies $r$ more Householder transformations to columns that had been transformed by $(k-1)r$ Householder transformations in prior iterations.
+We apply \Cref{algo:hhQR} to the $k^{th}$ block, $\hat{\bb{X}}_{k-1}\cdots\hat{\bb{X}}_1\bb{C}_k$, which applies $r$ more Householder transformations to columns that had been transformed by $(k-1)$ WY transformations in prior iterations.
 The upper trapezoidal factor that results from applying HQR to $\bb{C}_{k}^{((k-1)r)}$ corresponds to the $(k-1)r+1^{st}$ to $kr^{th}$ columns of $\hat{\bb{R}}_{BQR}$, and applying \cref{lem:3.7,lem:19.3} yields
 \begin{equation*}
-	\|\hat{\bb{R}}_{BQR}[:,j]-\bb{R}[:,j]\|_2 \leq r\tilde{\gamma}_{m}\|\bb{A}^{((k-1)r)}[:,j]\|_2\leq kr\tilde{\gamma}_{m}\|\bb{A}[:,j]\|_2,\;\; j=(k-1)r+1:kr.
+	\|\hat{\bb{R}}_{BQR}[:,j]-\bb{R}[:,j]\|_2 \leq r\tilde{\gamma}_{m}\|\hat{\bb{X}}_{k-1}\cdots\hat{\bb{X}}_1^{\top}\bb{C}_k[:,j]\|_2,\;\; j=(k-1)r+1:kr.%\leq kr\tilde{\gamma}_{m}\|\bb{A}[:,j]\|_2,\;\; j=(k-1)r+1:kr.
 \end{equation*}
+%where $\bb{A}^{((k-1)r)}[:,j]$ has been transformed with $k-1$ WY updates already.
 %Let $\bb{R}_{k}$ be the $\bb{R}$ factor acquired from applying HQR on $\bb{C}_k$ : $ \hat{\bb{R}}_{k} = \bb{Q}^{\top} (\bb{C}_{k} + \Delta \bb{C}_{k}), $ where $\Delta \bb{C}_{k}$ represent the backward error incurred in this step. 
 %Then, applying \cref{lem:19.3} to the $j^{th}$ column of $\bb{C}_{k}$ yields 
 %\begin{equation*}
@@ -166,7 +167,7 @@ Using \cref{eqn:deltX,eqn:vbound,eqn:beta3}, we find
 %	&\leq \|\bb{X}_k^{(j)-1}(\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}-\beta_k^{(j)}\bb{v}_k^{(j)})\|_2 + \|\Delta \bb{X}_k^{(j-1)}\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}\|_2 \\
 %&\leq \tilde{\gamma}_{m-(k-1)r}\|\bb{X}_k^{(j-1)}\|_2\|\beta_k^{(j)}\bb{v}_k^{(j)}\|_2 + \|\Delta \bb{X}_k^{(j-1)}\|_F\|\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}\|_2 \\
 \end{align*}
-Componentwise bounds follow immediately, and are summarized in summarized in \cref{lem:BQR-build}.
+Componentwise bounds follow immediately, and are summarized in \cref{lem:BQR-build}.
 \begin{lemma}\label{lem:BQR-build}
 	Consider the construction of the WY representation for the $k^{th}$ partition of matrix $\bb{A}\in\R^{m\times n}$ given a set of Householder constants and vectors, $\{\beta_k^{(j)}\}_{j=1}^r$ and $\{\bb{v}_{k}^{(j)}\}$ via \cref{algo:buildWY}.
 	Then, 
@@ -262,16 +263,16 @@ Then,
 %\|\Delta \bb{Q'}_{BQR}\| & \leq \sum_{k=N}^1 (1+\tilde{\gamma}_{\bb{Q}_{k})  -1 \label{eqn:BQR-mp}\\
 %&\leq \sum_{k=N}^1 (1+ r\tilde{\gamma}_{m-(k-1)r})-1 \leq rN\tilde{\gamma}_m \equiv n\tilde{\gamma}_m \label{eqn:BQR}.
 %\end{align}
-Now we can form the normwise bound for the $j'^{\ th}$ column of $\hat{\bb{Q}}_{BQR},\hat{\bb{R}}_{BQR}$. 
+We can also form the normwise bound for the $j'^{\ th}$ column of $\hat{\bb{Q}}_{BQR},\hat{\bb{R}}_{BQR}$. 
 If we let $k' = \lceil j'/r\rceil^{th}$, then the $j'^{\ th}$ column is the result of applying $k'-1$ WY updates and an additional HQR. 
 Applying \cref{lem:3.7} yields 
 \begin{align}
 \|\Delta \bb{R}_{BQR}[:,j']\|_2 \leq rk'\tilde{\gamma}_{m} \|\bb{A}[:,j]\|_2 \\
-\|\Delta \bb{Q}_{BQR}[:,j']\|_2 \leq rk'\tilde{\gamma}_{m},
+\|\Delta \bb{Q}_{BQR}[:,j']\|_2 \leq rk'\tilde{\gamma}_{m}\label{eqn:BQRcol}
 \end{align}
 and near orthogonality of the $\bb{Q}$ factor is still achieved,
 \begin{equation}
-	\|\Delta \bb{Q}_{BQR}\|_F = r\tilde{\gamma}_{m}\sum_{j=1}^n \lceil j/r\rceil = n^{3/2}\tilde{\gamma}_{m}.
+	\|\Delta \bb{Q}_{BQR}\|_F = r\tilde{\gamma}_{m}\sum_{j=1}^n \lceil j/r\rceil = n^{3/2}\tilde{\gamma}_{m}.\label{eqn:BQRmat}
 \end{equation}
 The primary goal of the analysis presented in this section is to provide the basic skeleton for the standard BQR rounding error analysis to make the generalization to mixed precision settings in \cref{sec:mpanalysis} easier.
 Readers should refer to \cite{golub2013matrix,Higham2002} for full details.
