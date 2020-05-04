@@ -210,7 +210,7 @@ Summing up the columns for a matrix norm error bound, we result in
 \end{equation}
 Therefore, we can convert the additional low precision rounding errors into a multiplicative factor of the original bound in \cref{eqn:tsqrQ},
 \begin{equation}
-	n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right) = (1+ \frac{M_{l,h}L}{n(2nL+m2^{-L})})n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right).
+	n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right) = \left(1+ \frac{M_{l,h}L}{n(2nL+m2^{-L})}\right)n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right).
 \end{equation}
 Once again, the constant that represents the disparity in the two precisions, $M_{l,h}$ is compared against the original matrix size $m,n$ and the block size specifications defined by $2^{L}$ and the number of levels, $L$.
 %TODO: conclusion maybe a parameter regime analysis for m, n, L, M?
@@ -295,7 +295,7 @@ Then, the $j^{th}$ column of the $\bb{Q}$ factor resulting from this mixed preci
 \end{equation}
 and the matrix norm error bound is, 
 \begin{equation}
-	\|\hat{\bb{Q}}_{mpBQR2}\|_F \leq n^{1/2}N\tilde{\gamma}_{r}^{(l)} + n^{3/2}\tilde{\gamma}_{m}^{(h)} \approx (1+\frac{M_{l,h}}{m})n^{3/2}\tilde{\gamma}_{m}^{(h)}. \label{eqn:mpBQR2}
+	\|\hat{\bb{Q}}_{mpBQR2}\|_F \leq n^{1/2}N\tilde{\gamma}_{r}^{(l)} + n^{3/2}\tilde{\gamma}_{m}^{(h)} \approx \left(1+\frac{M_{l,h}}{m}\right)n^{3/2}\tilde{\gamma}_{m}^{(h)}. \label{eqn:mpBQR2}
 \end{equation}
 Recall that the block mixed precision variant of \cref{sec:mp-3b} yielded a multiplicative factor of $(1+\frac{M_{l,h}}{rm})$ (see \cref{eqn:mpBQR3}).
 This implies that the mixed precision inner product introduces low precision error $r\times $ larger than the low precision errors incurred from casting down at the block level.
