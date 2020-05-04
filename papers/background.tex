@@ -268,8 +268,7 @@ This bound can be simplified using the following rules,
 These two alternate bounds can be useful in different contexts.
 Nevertheless, they both indicate that the error is $\cO(u^{(l)} + mu^{(h)} + mu^{(l)}u^{(h)})$ and are slightly larger than the original bound, on the LHS.
 We summarize these ways of combining $\gamma$ terms of different precisions in \cref{lem:mp}, which is a simple modification of some of the rules from \cref{lem:up}.
-\begin{lemma}
-	\label{lem:mp}
+\begin{lemma}\label{lem:mp}
 	For any nonnegative integers $k_l$, $k_h$ and some precision $q$ defined with respect to the unit round-off, $u^{(q)}$, define $\gamma^{(q)}_{k} := \frac{k u^{(q)} }{1-ku^{(q)}}$.
 	%, let $\tth^{(q)}_{k}$ denote a quantity bounded according to $|\tth^{(q)}_{k}|\leq \frac{k u^{(q)} }{1-ku^{(q)}} =:\gamma^{(q)}_{k}$.
 	%	The following relations hold for two precisions l (low) and h (high), positive integers, $j_{l}$,$j_{h}$, non-negative integers $k_{l}$, and $k_{h}$, and $c>0$:
@@ -286,19 +285,23 @@ We summarize these ways of combining $\gamma$ terms of different precisions in \
 	%%	\end{alignedat}\right.
 	%%	\end{align}
 	%Without loss of generality, let $1 \gg u_{l} \gg u_{h}>0$.
-	Consider a low precision and a high precision where $1 \gg u_{l} \gg u_{h}>0$.
-	Then,
+	Consider a low precision and a high precision where $1 \gg u_{l} \gg u_{h}>0$, and $k_l$, $k_h$ small enough such that $\max\{\gamma^{(h)}_{k_{h}},\gamma^{(l)}_{k_{l}}\} < 1/2$.
+	Then the following rules help us accumulate $\gamma$'s of different precisions,
 	%	Let $d$, a nonnegative integer, and $r\in[0, \lfloor\frac{u_l}{u_h}\rfloor]$ be numbers that satisfy $k_{h}u_h = d u_l + r u_h$. 
 	%	Alternatively, $d$ can be defined by $d := \lfloor\frac{k_{h}u_h}{u_l}\rfloor$.
 	%	Then,
-	\begin{align*}
-	\gamma^{(h)}_{k_{h}}\gamma^{(l)}_{k_{l}} &\leq \gamma^{(l)}_{k_{l}}, \quad\text{for } k_{h} u^{(h)} \leq \frac{1}{2},  \\
-	\gamma^{(h)}_{k_{h}}+u^{(l)} &\leq \gamma^{(l)}_{d_1}, \\
-	\gamma^{(l)}_{k_{l}} + u^{(h)} &\leq \gamma^{(l)}_{k_{l}+1}, \\ %\quad{\color{blue}\text{(A loose bound)}}
-	\gamma^{(l)}_{k_{l}}+\gamma^{(h)}_{k_{h}}+\gamma^{(l)}_{k_{l}}\gamma^{(h)}_{k_{h}} & < \gamma^{(l)}_{k_{l}+ d_2},% \label{eqn:mp1}
-	\end{align*} 
-	where $d_1 = \lceil(u^{(l)}+k_hu^{(h)})/u^{(l)}\rceil$ and $d_2 = \lceil k_hu^{(h)}/u^{(l)}\rceil$.
+	\begin{align}
+	\gamma^{(h)}_{k_{h}}\gamma^{(l)}_{k_{l}} &\leq \min\{\gamma^{(h)}_{k_{h}},\gamma^{(l)}_{k_{l}} \},\\ 
+	(1+\tilde{\gamma}_{k_l}^{(l)})(1+\tilde{\gamma}_{k_h}^{(h)}) -1 &= \tilde{\gamma}_{k_l}^{(l)}+\tilde{\gamma}_{k_h}^{(h)}. \label{eqn:mpgamma}
+%	\gamma^{(h)}_{k_{h}}+u^{(l)} &\leq \gamma^{(l)}_{d_1}, \\
+%	\gamma^{(l)}_{k_{l}}+\gamma^{(h)}_{k_{h}}+\gamma^{(l)}_{k_{l}}\gamma^{(h)}_{k_{h}} & < \gamma^{(l)}_{k_{l}+ d_2},
+	\end{align} 
+%	where $d_1 = \lceil(u^{(l)}+k_hu^{(h)})/u^{(l)}\rceil$ and $d_2 = \lceil k_hu^{(h)}/u^{(l)}\rceil$, and 
+%	\begin{equation}
+%		(1+\tilde{\gamma}_{k_l}^{(l)})(1+\tilde{\gamma}_{k_h}^{(h)}) -1 = \tilde{\gamma}_{k_l}^{(l)}+\tilde{\gamma}_{k_h}^{(h)}. \label{eqn:mpgamma}
+%	\end{equation}
 \end{lemma}
+Note that \cref{eqn:mpgamma} drops the term $\tilde{\gamma}_{k_l}^{(l)}\tilde{\gamma}_{k_h}^{(h)}$ since both $\tilde{\gamma}_{k_l}^{(l)}$ and $\tilde{\gamma}_{k_h}^{(h)}$ are larger than their product and this product can be swept under the small integer $c > 0$ assumption implicitly included in the $\tilde{\gamma}$ notation.
 %We show the proof for \cref{eqn:mp1}.
 %\begin{proof}
 %	%We wish to round up to the lower precision, $p$, since $1\gg u^{(l)} \gg u^{(h)}$.  
