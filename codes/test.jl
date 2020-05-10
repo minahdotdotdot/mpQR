@@ -17,16 +17,16 @@ writedlm("../txtfiles/"*mpname*"b.txt", ["Compare mpBQR against BQR"])
 writedlm("../txtfiles/"*mpname*"f.txt", ["Compare mpBQR against BQR"])
 for (i,n) in enumerate(ns)
     @printf("\n n=%d, trial: ",n)
-    open("../txtfiles/"*name*".btxt", "a") do io
+    open("../txtfiles/"*name*"b.txt", "a") do io
         writedlm(io, string(n)*"\n")
     end
-    open("../txtfiles/"*name*".ftxt", "a") do io
+    open("../txtfiles/"*name*"f.txt", "a") do io
         writedlm(io, string(n)*"\n")
     end
-    open("../txtfiles/"*mpname*".btxt", "a") do io
+    open("../txtfiles/"*mpname*"b.txt", "a") do io
         writedlm(io, string(n)*"\n")
     end
-    open("../txtfiles/"*mpname*".ftxt", "a") do io
+    open("../txtfiles/"*mpname*"f.txt", "a") do io
         writedlm(io, string(n)*"\n")
     end
     for t = 1 : trials
