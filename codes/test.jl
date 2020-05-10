@@ -1,33 +1,38 @@
-using PyPlot
+using PyPlot, Printf
 include("blockHQR.jl")
 include("mpblockHQR.jl")
 
 l = Float16; h=Float32; d=Float64;
-m = 10000;
-ns = [250, 500, 1000, 2500, 5000, 10000]
-berr = zeros(d, length(ns), 3);
-ferr = zeros(d, length(ns), 3);
+m = 5000;
+ns = [100, 250, 500, 1000, 2500, 5000]
+trials = 10;
+berr = zeros(d, length(ns), 3, trials);
+ferr = zeros(d, length(ns), 3, trials);
 r = 250;
 for (i,n) in enumerate(ns)
-	A = randn(l, m, n);
-	Ah = Matrix{h}(A);
-	Ad = Matrix{d}(A);
+        @printf("\n n=%d, trial: ",n)
+	for t = 1 : trials
+            @printf("%d\t",t)
+            A = randn(l, m, n);
+	    Ah = Matrix{h}(A);
+	    Ad = Matrix{d}(A);
 
-	# Inner product mixed precision
-	Q, R = bhh_QR(A, r);
-	berr[i,1] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
-	ferr[i,1] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
+	    # Inner product mixed precision
+	    #Q, R = bhh_QR(A, r);
+	    #berr[i,1,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
+	    #ferr[i,1,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
 
-	# Block mixed precision
-	Q, R = mpbhh_QR(A, r);
-	berr[i,2] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
-	ferr[i,2] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
+	    # Block mixed precision
+	    Q, R = mpbhh_QR(A, r);
+	    berr[i,2,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
+	    ferr[i,2,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
 
 
-	# High precision 
-	Q, R = bhh_QR(Ah, r);
-	berr[i,3] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
-	ferr[i,3] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
+	    # High precision 
+	    Q, R = bhh_QR(Ah, r);
+	    berr[i,3,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
+	    ferr[i,3,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
+        end
 end
 
 
