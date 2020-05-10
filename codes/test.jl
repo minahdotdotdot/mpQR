@@ -11,10 +11,10 @@ trials = 1;
 berr = zeros(d, length(ns), 3, trials);
 ferr = zeros(d, length(ns), 3, trials);
 r = 250;
-writedlm("../txtfiles/"*name*"b.txt", ["Compare mpBQR against BQR"]))
-writedlm("../txtfiles/"*name*"f.txt", ["Compare mpBQR against BQR"]))
-writedlm("../txtfiles/"*mpname*"b.txt", ["Compare mpBQR against BQR"]))
-writedlm("../txtfiles/"*mpname*"f.txt", ["Compare mpBQR against BQR"]))
+writedlm("../txtfiles/"*name*"b.txt", ["Compare mpBQR against BQR"])
+writedlm("../txtfiles/"*name*"f.txt", ["Compare mpBQR against BQR"])
+writedlm("../txtfiles/"*mpname*"b.txt", ["Compare mpBQR against BQR"])
+writedlm("../txtfiles/"*mpname*"f.txt", ["Compare mpBQR against BQR"])
 for (i,n) in enumerate(ns)
     @printf("\n n=%d, trial: ",n)
     open("../txtfiles/"*name*".btxt", "a") do io
@@ -52,16 +52,16 @@ for (i,n) in enumerate(ns)
         ferr[i,3,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
     end
     open("../txtfiles/"*name*"b.txt", "a") do io
-        writedlm(io, b_err[i, 3, :]')
+        writedlm(io, berr[i, 3, :]')
     end
     open("../txtfiles/"*name*"f.txt", "a") do io
-        writedlm(io, f_err[i, 3, :]')
+        writedlm(io, ferr[i, 3, :]')
     end
     open("../txtfiles/"*mpname*"b.txt", "a") do io
-        writedlm(io, b_err[i, 2, :]')
+        writedlm(io, berr[i, 2, :]')
     end
     open("../txtfiles/"*mpname*"f.txt", "a") do io
-        writedlm(io, f_err[i, 2, :]')
+        writedlm(io, ferr[i, 2, :]')
     end
 end
 
