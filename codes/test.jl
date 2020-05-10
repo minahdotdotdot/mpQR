@@ -1,38 +1,68 @@
-using PyPlot, Printf
+using PyPlot, Printf, DelimitedFiles
 include("blockHQR.jl")
 include("mpblockHQR.jl")
 
+name = "BQR"
+mpname ="BQR"
 l = Float16; h=Float32; d=Float64;
 m = 5000;
-ns = [100, 250, 500, 1000, 2500, 5000]
-trials = 10;
+ns = [250, 500, 1000, 2500, 5000]
+trials = 1;
 berr = zeros(d, length(ns), 3, trials);
 ferr = zeros(d, length(ns), 3, trials);
 r = 250;
+writedlm("../txtfiles/"*name*"b.txt", ["Compare mpBQR against BQR"]))
+writedlm("../txtfiles/"*name*"f.txt", ["Compare mpBQR against BQR"]))
+writedlm("../txtfiles/"*mpname*"b.txt", ["Compare mpBQR against BQR"]))
+writedlm("../txtfiles/"*mpname*"f.txt", ["Compare mpBQR against BQR"]))
 for (i,n) in enumerate(ns)
-        @printf("\n n=%d, trial: ",n)
-	for t = 1 : trials
-            @printf("%d\t",t)
-            A = randn(l, m, n);
-	    Ah = Matrix{h}(A);
-	    Ad = Matrix{d}(A);
+    @printf("\n n=%d, trial: ",n)
+    open("../txtfiles/"*name*".btxt", "a") do io
+        writedlm(io, string(n)*"\n")
+    end
+    open("../txtfiles/"*name*".ftxt", "a") do io
+        writedlm(io, string(n)*"\n")
+    end
+    open("../txtfiles/"*mpname*".btxt", "a") do io
+        writedlm(io, string(n)*"\n")
+    end
+    open("../txtfiles/"*mpname*".ftxt", "a") do io
+        writedlm(io, string(n)*"\n")
+    end
+    for t = 1 : trials
+       @printf("%d\t",t)
+        A = randn(l, m, n);
+        Ah = Matrix{h}(A);
+        Ad = Matrix{d}(A);
 
-	    # Inner product mixed precision
-	    #Q, R = bhh_QR(A, r);
-	    #berr[i,1,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
-	    #ferr[i,1,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
+        # Inner product mixed precision
+        #Q, R = bhh_QR(A, r);
+        #berr[i,1,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
+        #ferr[i,1,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
 
-	    # Block mixed precision
-	    Q, R = mpbhh_QR(A, r);
-	    berr[i,2,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
-	    ferr[i,2,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
+        # Block mixed precision
+        Q, R = mpbhh_QR(A, r);
+        berr[i,2,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
+        ferr[i,2,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
 
 
-	    # High precision 
-	    Q, R = bhh_QR(Ah, r);
-	    berr[i,3,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
-	    ferr[i,3,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
-        end
+        # High precision 
+        Q, R = bhh_QR(Ah, r);
+        berr[i,3,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)
+        ferr[i,3,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
+    end
+    open("../txtfiles/"*name*"b.txt", "a") do io
+        writedlm(io, b_err[i, 3, :]')
+    end
+    open("../txtfiles/"*name*"f.txt", "a") do io
+        writedlm(io, f_err[i, 3, :]')
+    end
+    open("../txtfiles/"*mpname*"b.txt", "a") do io
+        writedlm(io, b_err[i, 2, :]')
+    end
+    open("../txtfiles/"*mpname*"f.txt", "a") do io
+        writedlm(io, f_err[i, 2, :]')
+    end
 end
 
 
