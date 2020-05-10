@@ -2,8 +2,8 @@ using PyPlot, Printf, DelimitedFiles
 include("blockHQR.jl")
 include("mpblockHQR.jl")
 
-name = "BQR"
-mpname ="mpBQR"
+name = "BQR-1k-"
+mpname ="mpBQR-1k-"
 l = Float16; h=Float32; d=Float64;
 m = 1000;
 ns = [25, 50, 100, 250, 500, 1000]
@@ -16,11 +16,9 @@ writedlm("../txtfiles/"*name*"f.txt", ["BQR: forward error"])
 writedlm("../txtfiles/"*mpname*"b.txt", ["mpBQR: backward error"])
 writedlm("../txtfiles/"*mpname*"f.txt", ["mpBQR: forward error"])
 
-berr = randn(2,3,2);
-    ferr = randn(2,3,2);
 for (i,n) in enumerate(ns)
     #@printf("\n n=%d, trial: ",n)
-    #=
+    
     open("../txtfiles/"*name*"b.txt", "a") do io
         writedlm(io, [string(n)])
     end
@@ -33,7 +31,7 @@ for (i,n) in enumerate(ns)
     open("../txtfiles/"*mpname*"f.txt", "a") do io
         writedlm(io, [string(n)])
     end
-    =#
+    
     
     for t = 1 : trials
        @printf("%d\t",t)
