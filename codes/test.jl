@@ -3,7 +3,7 @@ include("blockHQR.jl")
 include("mpblockHQR.jl")
 
 name = "BQR"
-mpname ="BQR"
+mpname ="mpBQR"
 l = Float16; h=Float32; d=Float64;
 m = 5000;
 ns = [250, 500, 1000, 2500, 5000]
