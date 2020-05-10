@@ -8,28 +8,28 @@ l = Float16; h=Float32; d=Float64;
 m = 5000;
 rs = [100, 250, 500, 1000, 2500];
 trials = 10;
-berr = zeros(d, length(ns), 3, trials);
-ferr = zeros(d, length(ns), 3, trials);
+berr = zeros(d, length(rs), 3, trials);
+ferr = zeros(d, length(rs), 3, trials);
 n = 5000;
 writedlm("../txtfiles/"*name*"b.txt", ["BQR: backward error"])
 writedlm("../txtfiles/"*name*"f.txt", ["BQR: forward error"])
 writedlm("../txtfiles/"*mpname*"b.txt", ["mpBQR: backward error"])
 writedlm("../txtfiles/"*mpname*"f.txt", ["mpBQR: forward error"])
 
-for (i,n) in enumerate(ns)
+for (i,r) in enumerate(rs)
     #@printf("\n n=%d, trial: ",n)
     
     open("../txtfiles/"*name*"b.txt", "a") do io
-        writedlm(io, [string(n)])
+        writedlm(io, [string(r)])
     end
     open("../txtfiles/"*name*"f.txt", "a") do io
-        writedlm(io, [string(n)])
+        writedlm(io, [string(r)])
     end
     open("../txtfiles/"*mpname*"b.txt", "a") do io
-        writedlm(io, [string(n)])
+        writedlm(io, [string(r)])
     end
     open("../txtfiles/"*mpname*"f.txt", "a") do io
-        writedlm(io, [string(n)])
+        writedlm(io, [string(r)])
     end
     
     for t = 1 : trials

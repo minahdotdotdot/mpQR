@@ -2,15 +2,15 @@ using PyPlot, Printf, DelimitedFiles
 include("blockHQR.jl")
 include("mpblockHQR.jl")
 
-name = "BQR-1k-"
-mpname ="mpBQR-1k-"
+name = "oBQR-5k-"
+mpname ="ompBQR-5k-"
 l = Float16; h=Float32; d=Float64;
-m = 1000;
-ns = [25, 50, 100, 250, 500, 1000]
+m = 5000;
+ns = [100, 250, 500, 1000, 2500];
 trials = 10;
-berr = zeros(d, length(ns), 3, trials);
-ferr = zeros(d, length(ns), 3, trials);
-r = 25;
+#berr = zeros(d, length(ns), 3, trials);
+#ferr = zeros(d, length(ns), 3, trials);
+r = 50;
 writedlm("../txtfiles/"*name*"b.txt", ["BQR: backward error"])
 writedlm("../txtfiles/"*name*"f.txt", ["BQR: forward error"])
 writedlm("../txtfiles/"*mpname*"b.txt", ["mpBQR: backward error"])
@@ -32,7 +32,7 @@ for (i,n) in enumerate(ns)
         writedlm(io, [string(n)])
     end
     
-    
+    #=
     for t = 1 : trials
        @printf("%d\t",t)
         A = randn(l, m, n);
@@ -55,7 +55,7 @@ for (i,n) in enumerate(ns)
         berr[i,3,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)/norm(Ad)
         ferr[i,3,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
     end
-
+=#
     open("../txtfiles/"*name*"b.txt", "a") do io
         writedlm(io, [berr[i, 3, :]'])
     end
