@@ -25,7 +25,7 @@ for t = 1 : trials
         Ad = Matrix{d}(A);
 
         # Block mixed precision
-        Q, R = mpbhh_QR(A, r);
+        Q, R = bhh_QR(A, r);
         berr[i,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)/norm(Ad)
         ferr[i,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
     end
