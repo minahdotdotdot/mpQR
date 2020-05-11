@@ -34,4 +34,3 @@ for t = 1 : trials
         writedlm(io, [ferr[:, t]'])
     end
 end
-
