@@ -22,7 +22,8 @@ function mpbhh_QR(
     A::Matrix{l}, r::Int;
     want_Q::Bool=true, 
     thin::Bool=true, 
-    hhvec::String= "n2"
+    hhvec::String= "n2",
+    b=4
     )
 	m,n = size(A);
 	if m < n
@@ -47,7 +48,9 @@ function mpbhh_QR(
         R[λ:end, λ:τ] = Matrix{l}(C);
         W[k] = Matrix{l}(W[k]);
         Y[k] = Matrix{l}(Y[k]);
-        R[λ:end, τ+1:end] = mpWYupdate(W[k], Y[k], R[λ:end, τ+1:end])
+
+        # Update right blocks
+        R[λ:end, τ+1:end] = mpWYupdate(Y[k], W[k], R[λ:end, τ+1:end])
         #R[λ:end, τ+1:end] -= Y[k]*(W[k]' * R[λ:end, τ+1:end]);
         λ = τ + 1;
     end
@@ -56,26 +59,27 @@ function mpbhh_QR(
 	    	Q = Matrix{l}(I,m,n);
 	    	R = R[1:n,1:n]
 	       for i = N:-1:1
-	    	  Q[(i-1)*r+1:end,(i-1)*r+1:end] -= W[i] * (Y[i]'*Q[(i-1)*r+1:end,(i-1)*r+1:end])
+	    	  Q[(i-1)*r+1:end,(i-1)*r+1:end] = mpWYupdate(W[i], Y[i], Q[(i-1)*r+1:end,(i-1)*r+1:end])
 	       end
 	       return Q, R
         end
     end
 end
 
-function mpWYupdate(W::Matrix{l}, Y::Matrix{l}, B::Matrix{l})
+function mpWYupdate(W::Matrix{l}, Y::Matrix{l}, B::Matrix{l};b=4)
     h = Float32
-    temp = bFMA(W, bFMA(-Y', B); C=B);
+    temp = bFMA(W, bFMA(-Y', B,b=b); C=B,b=b);
     return temp
 end
 
 
 # bFMA emulates TensorCore matrix-matrix multiply and accumulate in mixed precision
-function bFMA(A::Matrix{l}, B::Matrix{l}; C=0, b=4)
+function bFMA(A::T, B::Matrix{l}; C=0, b=4) where T<: Union{Matrix{l}, Adjoint{l,Matrix{l}}}
     h=Float32;
     #return Matrix{l}(Matrix{h}(A)*Matrix{h}(B)+Matrix{h}(C))
     return Matrix{l}(bMMM(Matrix{h}(A), Matrix{h}(B),C=C, b=b))
 end
+
 
 # bMMM emulates block matrix-matrix multiply and accumulate in uniform precision
 function bMMM(A::Matrix{T}, B::Matrix{T}; C=0, b::Int) where T<:AbstractFloat
