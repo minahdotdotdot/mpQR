@@ -4,9 +4,10 @@ include("mpblockHQR.jl")
 include("genmat.jl")
 using DelimitedFiles, Printf
 
-name = "H"
+name = "H2"
 l = Float16; h=Float32; d=Float64;
-m = 1024; ns = 2 .^(6:10)
+#m = 1024; ns = 2 .^(6:10)
+m=2048; ns=2 .^(7:11)
 trials = 10;
 c = 10.
 berr = zeros(d, length(ns), trials);
