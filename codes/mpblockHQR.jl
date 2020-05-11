@@ -70,23 +70,36 @@ function mpWYupdate(W::Matrix{l}, Y::Matrix{l}, B::Matrix{l})
 end
 
 
-# bFMA emulates TensorCore matrix-matrix multiply and accumulate
-function bFMA(A::Matrix{l}, B::Matrix{l}; C=0)
+# bFMA emulates TensorCore matrix-matrix multiply and accumulate in mixed precision
+function bFMA(A::Matrix{l}, B::Matrix{l}; C=0, b=4)
     h=Float32;
-    m,p=size(A); n=size(B)[2]
-    if C == 0
-        C = zeros(h,m,n);
-    end
-    return Matrix{l}(Matrix{h}(A)*Matrix{h}(B)+Matrix{h}(C))
-
+    #return Matrix{l}(Matrix{h}(A)*Matrix{h}(B)+Matrix{h}(C))
+    return Matrix{l}(bMMM(Matrix{h}(A), Matrix{h}(B),C=C, b=b))
 end
 
-function bFMA(A::Adjoint{l,Matrix{l}}, B::Matrix{l}; C=0)
-    h=Float32;
-    m,p=size(A); n=size(B)[2]
+# bMMM emulates block matrix-matrix multiply and accumulate in uniform precision
+function bMMM(A::Matrix{T}, B::Matrix{T}; C=0, b::Int) where T<:AbstractFloat
+    m,p=size(A); n=size(B)[2];
+    mm = ceil(Int, m/b)*b; pp = ceil(Int, p/b)*b; nn = ceil(Int, n/b)*b;
+    AA = zeros(T, mm, pp); AA[1:m,1:p]=A;
+    BB = zeros(T, pp, nn); BB[1:p,1:n]=B;
     if C == 0
-        C = zeros(h,m,n);
+        CC = zeros(T,mm,nn);
+    else
+        CC = zeros(T, mm, nn); CC[1:m,1:n]=Matrix{T}(C);
     end
-    return Matrix{l}(Matrix{h}(A)*Matrix{h}(B)+Matrix{h}(C))
-
+    x=0
+    while x < mm
+        y=0
+        while y < nn
+            z=0
+            while z < pp
+                CC[x+1:x+b, y+1:y+b] += AA[x+1:x+b, z+1:z+b]*BB[z+1:z+b, y+1:y+b];
+                z+=b
+            end
+            y+=b
+        end
+        x+=b
+    end
+    return CC[1:m,1:n]
 end
