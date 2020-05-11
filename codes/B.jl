@@ -9,8 +9,8 @@ l = Float16; h=Float32; d=Float64;
 m = 2048; ns = 2 .^(7:11)
 trials = 10;
 c = 10.
-berr = zeros(d, length(cs), trials);
-ferr = zeros(d, length(cs), trials);
+berr = zeros(d, length(ns), trials);
+ferr = zeros(d, length(ns), trials);
 r = 128;
 writedlm("../txtfiles/"*name*"b.txt", ["mpBQR: backward error"])
 writedlm("../txtfiles/"*name*"f.txt", ["mpBQR: forward error"])
