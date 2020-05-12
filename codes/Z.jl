@@ -4,6 +4,7 @@ include("mpblockHQR.jl")
 include("mpTSQR.jl")
 include("TSQR.jl")
 
+using DelimitedFiles
 name = "Z"
 l = Float16; h=Float32; d=Float64;
 m = 4096; n = 1024;
@@ -11,7 +12,8 @@ trials = 10;
 cs = exp10.(range(0, stop=4, length=9));
 berr = zeros(d, length(cs), trials,7);
 oerr = zeros(d, length(cs), trials,7);
-r = 256; L = 2;
+r = 256; 
+L = 2;
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"fo.txt", ["Condition orthogonal"])
 for t = 1 : trials
@@ -58,12 +60,24 @@ for t = 1 : trials
         oerr[i,t,7] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
         
     end
-    open("../txtfiles/"*name*"o.txt", "a") do io
-        writedlm(io, [berr[:, t,:]'])
+    open("../txtfiles/"*name*"b.txt", "a") do io
+        writedlm(io, [berr[:,t,1]'])
+        writedlm(io, [berr[:,t,2]'])
+        writedlm(io, [berr[:,t,3]'])
+        writedlm(io, [berr[:,t,4]'])
+        writedlm(io, [berr[:,t,5]'])
+        writedlm(io, [berr[:,t,6]'])
+        writedlm(io, [berr[:,t,7]'])
         writedlm(io, ['\n'])
     end
-    open("../txtfiles/"*name*"f.txt", "a") do io
-        writedlm(io, [oerr[:, t,:]'])
+    open("../txtfiles/"*name*"fo.txt", "a") do io
+        writedlm(io, [oerr[:,t,1]'])
+        writedlm(io, [oerr[:,t,2]'])
+        writedlm(io, [oerr[:,t,3]'])
+        writedlm(io, [oerr[:,t,4]'])
+        writedlm(io, [oerr[:,t,5]'])
+        writedlm(io, [oerr[:,t,6]'])
+        writedlm(io, [oerr[:,t,7]'])
         writedlm(io, ['\n'])
     end
 end
