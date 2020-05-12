@@ -3,9 +3,9 @@ include("mpTSQR.jl")
 include("genmat.jl")
 using DelimitedFiles, Printf
 
-name = "D"
+name = "D2"
 l = Float16; h=Float32; d=Float64;
-m = 4000; n = 100;
+m = 8192; n = 256;
 trials = 10;
 cs = exp10.(range(0, stop=2, length=9));
 berr = zeros(d, length(cs), trials);
