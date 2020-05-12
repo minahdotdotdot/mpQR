@@ -1,5 +1,5 @@
 #mpTSQR3, change condition number
-include("mpTSQR.jl")
+include("TSQR.jl")
 include("genmat.jl")
 using DelimitedFiles, Printf
 

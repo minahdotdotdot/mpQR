@@ -1,5 +1,5 @@
 #mpTSQR2, change rows
-include("mpTSQR.jl")
+include("TSQR.jl")
 include("genmat.jl")
 using DelimitedFiles, Printf
 
