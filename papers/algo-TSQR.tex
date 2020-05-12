@@ -8,7 +8,7 @@ Additionally, our numerical simulations (discussed in \cref{sec:NE}) show that T
 \subsubsection{TSQR/AllReduce Algorithm}
 \Cref{algo:par_tsqr} partitions the rows of a tall-and-skinny matrix, $\bb{A}$. 
 HQR is performed on each of those blocks and pairs of $\bb{R}$ factors are combined to form the next set of $\bb{A}$ matrices to be QR factorized. 
-This process is repeated until only a single $\bb{R}$ factor remains, and the $\bb{Q}$ factor is built from all of the Householder constants and vectors stored at each level.
+This process is repeated until only a single $\bb{R}$ factor remains, and the $\bb{Q}$ factor is built from all of the HH constants and vectors stored at each level.
 The most gains from parallelization can be made in the initial level where the maximum number of independent HQR factorizations occur. 
 Although more than one configuration of this algorithm may be available for a given tall-and-skinny matrix, the number of nodes available and the shape of the matrix eliminate some of those choices. 
 For example, a 1600-by-100 matrix can be partitioned into 2, 4, 8, or 16 initial row-blocks but may be restricted by a machine with only 4 nodes, and a 1600-by-700 matrix can only be partitioned into 2 initial blocks.
@@ -79,7 +79,7 @@ Bisecting  $\bb{Q}_1^{(1)}$ into two submatrices, i.e. $\tilde{\bb{Q}}_{1,1}^{(1
 \end{bmatrix}. \]
 More generally, \cref{algo:par_tsqr} takes a tall-and-skinny matrix $\bb{A}$ and level $L$ and finds a QR factorization by initially partitioning $\bb{A}$ into $2^{(l)}$ row-blocks and includes the building of $\bb{Q}$.
 For simplicity, we assume that $m$ is exactly $h2^{(l)}$ so that the initial partition yields $2^{(l)}$ blocks of equal sizes, $h$-by-$n$. 
-Also, note that {\tt hh\_mult} refers to the action of applying multiple Householder transformations given a set of Householder vectors and constants, which can be performed by iterating line 6 of \cref{algo:hhQR}.
+Also, note that {\tt hh\_mult} refers to the action of applying multiple HH transformations given a set of HH vectors and constants, which can be performed by iterating line 6 of \cref{algo:hhQR}.
 This step can be done in a level-3 BLAS operation via a WY update if \cref{algo:par_tsqr} was modified to store the WY representation at the QR factorization of each block of each level, $\bb{A}_j^{(i)}$. 
 
 \subsubsection{TSQR: Rounding Error Analysis}

@@ -1,17 +1,15 @@
 \subsection{Householder QR (HQR)}\label{sec:HQR}
-The HQR algorithm uses Householder transformations to zero out elements below the diagonal of a matrix (see \cite{Householder1958}). 
+The HQR algorithm uses Householder (HH) transformations to zero out elements below the diagonal of a matrix (see \cite{Householder1958}). 
 We present this as zeroing out all but the first element of some vector, $\bb{x}\in\R^m$.
 \begin{lemma}
-	Given vector $\bb{x}\in\R^{m}$, there exist Householder vector, $\bb{v}$, and |Householder transformation matrix, $\bb{P}_{\bb{v}}$, such that $\bb{P}_{\bb{v}}$ zeros out $\bb{x}$ below the first element. 
+	Given vector $\bb{x}\in\R^{m}$, there exist a HH vector , $\bb{v}$, and a HH constant, $\beta$, that define the HH transformation matrix, $\bb{P}_{\bb{v}}:=\bb{I}_{m} - \beta \bb{v}\bb{v}^{\top}$, such that $\bb{P}_{\bb{v}}$ zeros out $\bb{x}$ below the first element. 
+	The HH vector and constant are defined via
 	\begin{equation}
-	\begin{alignedat}{3} 
-	\sigma =& -\rm{sign}(\bb{x}[1])\|\bb{x}\|_2, &&\quad  \bb{v} = \bb{x} -\sigma \hat{e_1},\\
-	\beta = & \frac{2}{\bb{v}^{\top}\bb{v}}=-\frac{1}{\sigma\bb{v}[1]}, && \quad \bb{P}_{\bb{v}}=  \bb{I}_{m} - \beta \bb{v}\bb{v}^{\top}.
-	\end{alignedat}
+	\sigma = -\rm{sign}(\bb{x}[1])\|\bb{x}\|_2, \quad  \bb{v} = \bb{x} -\sigma \hat{\bb{e}}_{1},\mbox{ and } \beta =\frac{2}{\bb{v}^{\top}\bb{v}}=-\frac{1}{\sigma\bb{v}[1]}.
 	\label{eqn:HH} 
 	\end{equation}
-	The transformed vector, $\bb{P_vx}$, has the same 2-norm as $\bb{x}$ since Householder transformations are orthogonal: $\bb{P}_{\bb{v}}\bb{x} = \sigma\hat{\bb{e}_1}$.
-	In addition, $\bb{P}_{\bb{v}}$ is symmetric and orthogonal, $\bb{P}_{\bb{v}}=\bb{P}_{\bb{v}}^{\top}=\bb{P}_{\bb{v}}^{-1}$.
+	Note that $\bb{P}_{\bb{v}}$ is symmetric and orthogonal, $\bb{P}_{\bb{v}}=\bb{P}_{\bb{v}}^{\top}=\bb{P}_{\bb{v}}^{-1}$.
+	As a result, the transformed vector, $\bb{P_vx}=\sigma\hat{\bb{e}_1}$, has the same 2-norm as $\bb{x}$.
 	\label{lem:hhvec}
 \end{lemma}
 \subsubsection{HQR: Algorithm}
@@ -23,35 +21,35 @@ For $i = 1, 2, \cdots, n,$
 \end{enumerate}
 
 Consider the following $4$-by-$3$ matrix example adapted from \cite{Higham2002}. 
-Let $\bb{P}_{i}$ represent the $i^{th}$ Householder transformation of this algorithm. 
-\[\bb{A} = \left[ \begin{array}{ccc}
+Let $\bb{P}_{i}$ represent the $i^{th}$ HH transformation of this algorithm. 
+\[\footnotesize\bb{A} = \left[ \begin{array}{ccc}
 \times & \times & \times \\
 \times & \times & \times \\
 \times & \times & \times \\
 \times & \times & \times
 \end{array}
-\right]\xrightarrow{\text{apply $\bb{P}_{1}$ to $\bb{A}$}}\left[ \begin{array}{c|cc}
+\right]\xrightarrow{\bb{P}_{1}\bb{A}}\left[ \begin{array}{c|cc}
 \times & \times & \times \\ \hline
 0 & \times & \times \\
 0 & \times & \times \\
 0 & \times & \times
 \end{array}
 \right]
-\xrightarrow{\text{apply $\bb{P}_{2}$ to $\bb{P}_{1}\bb{A}$}}\]
-\[ \left[
+\xrightarrow{\bb{P}_{2}\bb{P}_{1}\bb{A}}\left[
 \begin{array}{cc|c}
 \times & \times & \times \\
 0 & \times & \times \\ \hline
 0 & 0 & \times \\
 0 & 0 & \times 
 \end{array} \right]
-\xrightarrow{\text{apply $\bb{P}_{3}$ to $\bb{P}_{2}\bb{P}_{1}\bb{A}$}} \left[ \begin{array}{ccc}
+\xrightarrow{\bb{P}_{3}\bb{P}_{2}\bb{P}_{1}\bb{A}} \left[ \begin{array}{ccc}
 \times & \times & \times \\
 0 & \times & \times \\
 0 & 0 & \times \\
 0 & 0 & 0 
-\end{array}\right] = \bb{P}_{3}\bb{P}_{2}\bb{P}_{1}\bb{A}=:\bb{R} \] 
-Then, the $\bb{Q}$ factor for a full QR factorization is $\bb{Q}:=\bb{P}_{1}\bb{P}_{2}\bb{P}_{3}$ since $\bb{P}_{i}$'s are symmetric, and the thin factors for a general matrix $\bb{A}\in\R^{m\times n}$ are
+\end{array}\right]\]
+The resulting matrix is the $\bb{R}$ factor, $\bb{R}:= \bb{P}_{3}\bb{P}_{2}\bb{P}_{1}\bb{A}$, and the $\bb{Q}$ factor for a full QR factorization is $\bb{Q}:=\bb{P}_{1}\bb{P}_{2}\bb{P}_{3}$ since $\bb{P}_{i}$'s are symmetric.
+The thin factors for a general matrix $\bb{A}\in\R^{m\times n}$ are
 \begin{equation}
 \bb{Q}_{\text{thin}} = \bb{P}_{1} \cdots \bb{P}_{n}\bb{I}_{m\times n}\quad \text{and} \quad \bb{R}_{\text{thin}} = \bb{I}_{m\times n}^{\top}\bb{P}_{n}\cdots \bb{P}_{1}\bb{A}.
 \end{equation}
@@ -59,16 +57,17 @@ Then, the $\bb{Q}$ factor for a full QR factorization is $\bb{Q}:=\bb{P}_{1}\bb{
 \begin{algorithm2e}[H]
 	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
 	\KwIn{$\bb{x}\in\R^m$}
-	\KwOut{$\bb{v}\in\R^m$, and $\sigma, \beta\in\R$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} = \pm \|\bb{x}\|_2 \hat{e_1} = \sigma\hat{e_1}$ }
+	\KwOut{$\bb{v}\in\R^m$, and $\sigma, \beta\in\R$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} = \pm \|\bb{x}\|_2 \hat{\bb{e}}_{1} = \sigma\hat{\bb{e}}_{1}$ }
 	%\tcc{We choose the sign of sigma to avoid cancellation of $\bb{x}[1]$ (As is the standard in LAPACK, LINPACK packages \cite{Higham2002}). This makes $\beta>0$.}
 	$\bb{v}\gets$ {\tt copy}($\bb{x}$)\\
 	$\sigma \gets -\rm{sign}(\bb{x}[1])\|\bb{x}\|_2$\\
 	$\bb{v}[1] \gets \bb{x}[1]-\sigma$ \\
 	%\tcp*{This is referred to as $\bb{\tilde{v}}_1$ later on.} 
 	$\beta \gets -\frac{\bb{v}[1]}{\sigma}$\\
+	${\bf v} \leftarrow {\bf v} / {\bf v}[1]$\\
 	%$\bb{v} \gets \frac{1}{\bb{v}[1]}\bb{v}$\\
-	\Return $\beta$, $\bb{v}/\bb{v}[1]$, $\sigma$
-	\caption{$\beta$, $\bb{v}$, $\sigma = {\tt hh\_vec}(\bb{x})$. Given a vector $\bb{x}\in\R^n$, return $\bb{v}$, $\beta$, $\sigma$ that satisfy $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} =\sigma\hat{e_1}$ and $\bb{v}[1]=1$ (see \cite{LAPACK, Higham2002}).}
+	\Return $\beta$, $\bb{v}$, $\sigma$
+	\caption{$\beta$, $\bb{v}$, $\sigma = {\tt hh\_vec}(\bb{x})$. Given a vector $\bb{x}\in\R^n$, return $\bb{v}$, $\beta$, $\sigma$ that satisfy $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} =\sigma\hat{\bb{e}}_{1}$ and $\bb{v}[1]=1$ (see \cite{LAPACK, Higham2002}).}
 	\label{algo:hh_v2}
 \end{algorithm2e}
 
@@ -78,27 +77,27 @@ Then, the $\bb{Q}$ factor for a full QR factorization is $\bb{Q}:=\bb{P}_{1}\bb{
 	
 	\KwOut{$\bb{V}$,$\bm{\beta}$, $\bb{R}$}
 	%	\tcc{$\bb{v}_i = V[i:m, i] \in \R^{m-(i-1)}$ and $\bb{B}_i = \bb{B}[i:m, i:d] \in \R^{(m-(i-1))\times(d-(i-1))}$.}
-	$\bb{V}, \bm{\beta} \gets \bb{0}_{m\times n}, \bb{0}_m$ \\
+	Initialize $\bb{V} \gets \bb{0}_{m\times n}$, $\bm{\beta} \gets \bb{0}_m$ \\
 	
 	\For{$i=1 : n$}{
 		$\bb{v}, \beta, \sigma \gets \mathrm{hh\_vec}(\bb{A}[i:\mathrm{end}, i])$ \tcc*{\Cref{algo:hh_v2}}
 		$\bb{V}[i:\mathrm{end},i]$, $\bm{\beta}_i$,  $\bb{A}[i,i] \gets \bb{v}, \beta, \sigma$\\
-		%\tcp*{Stores the Householder vectors and constants.}
+		%\tcp*{Stores the HH vectors and constants.}
 		%\tcc{The next two steps update $\bb{A}$.}
 		$\bb{A}[i+1:\mathrm{end}, i]\gets \mathrm{zeros}(m-i)$\\
 		$\bb{A}[i:\mathrm{end}, i+1:\mathrm{end}]\gets \bb{A}[i:\mathrm{end}, i+1:\mathrm{end}] - \beta \bb{v} \bb{v}^{\top}\bb{A}[i:\mathrm{end}, i+1:\mathrm{end}]$
 		
 	}
 	\Return $\bb{V}$, $\bm{\beta}$, $\bb{A}[1:n, 1:n]$
-	\caption{$\bb{V}$, $\bm{\beta}$, $\bb{R}$ = ${\tt HQR2}(A)$. A Level-2 BLAS implementation of the Householder QR algorithm. Given a matrix $\bb{A}\in\R^{m\times n}$ where $m\geq n$, return matrix $\bb{V}\in\R^{m\times n}$, vector $\bm{\beta}\in\R^{n}$, and upper triangular matrix $\bb{R}$. An orthogonal matrix $\bb{Q}$ can be generated from $\bb{V}$ and $\bm{\beta}$, and $\bb{QR}=\bb{A}$.}
+	\caption{$\bb{V}$, $\bm{\beta}$, $\bb{R}$ = ${\tt HQR2}(A)$. A Level-2 BLAS implementation of the HH QR algorithm. Given a matrix $\bb{A}\in\R^{m\times n}$ where $m\geq n$, return matrix $\bb{V}\in\R^{m\times n}$, vector $\bm{\beta}\in\R^{n}$, and upper triangular matrix $\bb{R}$. An orthogonal matrix $\bb{Q}$ can be generated from $\bb{V}$ and $\bm{\beta}$, and $\bb{QR}=\bb{A}$.}
 	\label{algo:hhQR}
 \end{algorithm2e}
 \subsubsection{HQR: Rounding Error Analysis}
 Now we present an error analysis for \cref{algo:hhQR} by keeping track of the different operations of \cref{algo:hh_v2} and \cref{algo:hhQR}.
-\paragraph{Calculating the $i^{th}$ Householder vector and constant} 
-In \cref{algo:hhQR}, the we compute the Householder vector and constant by using \cref{algo:hh_v2} to $\bb{A}[i:m,i]$.
-Let us consider zeroing out any vector $\bb{x}\in\R^m$ below its first component with a Householder transformation.
-%$i^{th}$ Householder vector shares all but the first component with the target column, . 
+\paragraph{Calculating the $i^{th}$ HH vector and constant} 
+In \cref{algo:hhQR}, the we compute the HH vector and constant by using \cref{algo:hh_v2} to $\bb{A}[i:m,i]$.
+Let us consider zeroing out any vector $\bb{x}\in\R^m$ below its first component with a HH transformation.
+%$i^{th}$ HH vector shares all but the first component with the target column, . 
 We first calculate $\sigma$ as is implemented in line 2 of \cref{algo:hh_v2}.
 \begin{equation}
 \label{eqn:sigma}
@@ -114,40 +113,37 @@ where the last equality is granted because the sign of $\sigma$ is chosen to pre
 %TODO: comment reviewer
 %For the sake of simplicity, we write $|\Delta \bb{\tilde{v}}[1] |\leq \tilde{\gamma}_{m-i+1}|\bb{\tilde{v}}[1]|$ even though a tighter relative upper bound is $\tth_{m-i+2}$.
 %We sweep that minor difference (in comparison to $\cO(m-i)$) under the our use of the $\tilde{\gamma}$ notation defined in \cref{lem:gamma}.
-Since \cref{algo:hh_v2} normalizes the Householder vector so that its first component is $1$, the remaining components of $\bb{v}$ are divided by $\fl(\tilde{\bb{v}}_1)$ incurring another single rounding error.
+Since \cref{algo:hh_v2} normalizes the HH vector so that its first component is $1$, the remaining components of $\bb{v}$ are divided by $\fl(\tilde{\bb{v}}_1)$ incurring another single rounding error.
 As a result, the components of $\bb{v}$ computed with FLOPs have error $\fl(\bb{v}[j])	= \bb{v}[j] + \Delta \bb{v}[j]$ where 
 \begin{equation}
-|\Delta \bb{v}[j]|\leq 
-	\begin{cases}
-	0,& j=1\\
-	\gamma_{1+2(m+2)}|\bb{v}[j]| =\tilde{\gamma}_{m}|\bb{v}[j]|,&j=2:m-i+1.
-	\end{cases}  \label{eqn:vbound}
+|\Delta \bb{v}[j]|\leq \gamma_{1+2(m+2)}|\bb{v}[j]| =\tilde{\gamma}_{m}|\bb{v}[j]|\quad j=2:m-i+1,\label{eqn:vbound}
 \end{equation}
+and $|\Delta {\bf v}[1]| = 0$.
 Since $1+2(m+2) += \cO(m)$, we have swept that minor difference between under our use of the $\tilde{\gamma}$ notation defined in \cref{lem:gamma}.
-Next, we consider the Householder constant, $\beta$, as is computed in line 4 of \cref{algo:hh_v2}.
+Next, we consider the HH constant, $\beta$, as is computed in line 4 of \cref{algo:hh_v2}.
 \begin{align}
 \hat{\beta} = \fl\left(-\tilde{\bb{v}}[1]/\hat{\sigma}\right) &=-(1+\dd)\frac{\bb{\tilde{v}}[1]+\Delta \bb{\tilde{v}}[1]}{\sigma + \Delta\sigma} \label{eqn:beta}\\
 &= \frac{(1+\dd)(1+\tth_{m+2})}{(1+\tth_{m+1})}\beta = (1+\tth_{3m+5})\beta \label{eqn:beta2}\\
 & = \beta + \Delta \beta,\text{ where } |\Delta\beta| \leq \tilde{\gamma}_{m} \beta\label{eqn:beta3}.
 \end{align}
 We have shown \cref{eqn:beta} to keep our analysis simple in \cref{sec:mpanalysis} and \cref{eqn:beta2,eqn:beta3} show that the error incurred from calculating of $\|\bb{x}\|_2$ accounts for the vast majority of the rounding error so far.
-At iteration $i$, we replace $\bb{x}$ with $\bb{A}[i:m,i]\in\R^{m-i+1}$ and the $i^{th}$ Householder constant and vector ($\hat{\beta}_i$,$\bb{v}_i$) both have errors bounded by $\tilde{\gamma}_{m-i+1}$.
-\paragraph{Applying a Single Householder Transformation}
+At iteration $i$, we replace $\bb{x}$ with $\bb{A}[i:m,i]\in\R^{m-i+1}$ and the $i^{th}$ HH constant and vector ($\hat{\beta}_i$,$\bb{v}_i$) both have errors bounded by $\tilde{\gamma}_{m-i+1}$.
+\paragraph{Applying a Single HH Transformation}
 Now we consider lines 4-6 of \cref{algo:hhQR}.
-At iteration $i$, we set $\bb{A}[i+1:m]$ to zero and replace $\bb{A}[i,i]$ with $\sigma$ computed from \cref{algo:hh_v2}.
-Therefore, we now need to calculate the errors for applying a Householder transformation to the remaining columns, $\bb{A}[i:m, i+1:n]$ with the computed Householder vector and constant.
-This is the most crucial building block of the rounding error analysis for any variant of HQR because the $\bb{R}$ factor is formed by applying the Householder transformations to $\bb{A}$ and the $\bb{Q}$ factor is formed by applying them in reverse order to the identity.
+At iteration $i$, we set $\bb{A}[i+1:m,:]$ to zero and replace $\bb{A}[i,i]$ with $\sigma$ computed from \cref{algo:hh_v2}.
+Therefore, we now need to calculate the errors for applying a HH transformation to the remaining columns, $\bb{A}[i:m, i+1:n]$ with the computed HH vector and constant.
+This is the most crucial building block of the rounding error analysis for any variant of HQR because the $\bb{R}$ factor is formed by applying the HH transformations to $\bb{A}$ and the $\bb{Q}$ factor is formed by applying them in reverse order to the identity.
 Both of the blocked versions in \cref{sec:BQR} and \cref{sec:TSQR} also  require efficient implementations of this step, although they may be implemented slightly differently.
-For example, BQR in \cref{algo:blockHQR} uses level-3 BLAS operations to apply multiple Householder transformations at once whereas the variant of HQR in \cref{algo:hhQR} can only use level-2 BLAS operations to apply Householder transformations.\par
+For example, BQR in \cref{algo:blockHQR} uses level-3 BLAS operations to apply multiple HH transformations at once whereas the variant of HQR in \cref{algo:hhQR} can only use level-2 BLAS operations to apply HH transformations.\par
 
-A Householder transformation is applied through a series of inner and outer products, since Householder matrices are rank-1 updates of the identity. 
+A HH transformation is applied through a series of inner and outer products, since HH matrices are rank-1 updates of the identity. 
 That is, computing  $\bb{P}_{\bb{v}}\bb{x}$ for any $\bb{x}\in\R^{m}$ is as simple as computing 
 \begin{equation}
 	\bb{y}:=\bb{P}_{\bb{v}}\bb{x} = \bb{x} - (\beta \bb{v}^{\top}\bb{x})\bb{v}.\label{eqn:effH}
 \end{equation}
 Let us assume that $\bb{x}$ is an exact vector and there were errors incurred in forming $\bb{v}$ and $\beta$. 
 The errors incurred from computing $\bb{v}$ and $\beta$ need to be included in addition to the new rounding errors accumulating from the action of applying $\bb{P}_{\bb{v}}$ to a column.
-In practice, $\bb{x}$ would be a column in $\bb{A}^{(i-1)}[i+1:m, i+1:n]$, where the superscript $(i-1)$ indicates that this submatrix of $\bb{A}$ has already been transformed by $i-1$ Householder transformations that zeroed out components below $\bb{A}_{j,j}$ for $j = 1:i-1$.
+In practice, $\bb{x}$ would be a column in $\bb{A}^{(i-1)}[i+1:m, i+1:n]$, where the superscript $(i-1)$ indicates that this submatrix of $\bb{A}$ has already been transformed by $i-1$ HH transformations that zeroed out components below $\bb{A}[j,j]$ for $j = 1:i-1$.
 We show the error for forming $\fl\left(\bb{\hat{v}}^{\top}\bb{x}\right)$ where we let $\bb{v},\bb{x}\in\R^{m}$:
 \begin{equation*}
 \fl\left(\bb{\hat{v}}^{\top}\bb{x}\right) = (1+\tth_{m})(\bb{v}+\Delta \bb{v})^{\top}\bb{x}.
@@ -161,7 +157,7 @@ where $\tth_{m}$ is from computing the inner product $\hat{\bb{v}}^{\top}\bb{x}$
 We can write \begin{equation*}
 	\hat{\bb{w}} = \bb{w} + \Delta \bb{w},\;\; |\Delta \bb{w}| \leq \tilde{\gamma}_m|\beta||\bb{v}|^{\top}|\bb{x}||\bb{v}|.
 \end{equation*}
-Finally, we can add in the vector subtraction operation and complete the rounding error analysis of applying a Householder transformation to any vector:
+Finally, we can add in the vector subtraction operation and complete the rounding error analysis of applying a HH transformation to any vector:
 \begin{equation}
 \fl(\hat{\bb{P_v}}\bb{x}) = \fl(\bb{x}-\bb{\hat{w}}) = (1+\dd)(\bb{x}-\bb{w}-\Delta \bb{w}) = \bb{y} + \Delta \bb{y} = (\bb{P_v} + \Delta \bb{P_v})\bb{x},\label{eqn:applyP}
 \end{equation}
@@ -192,8 +188,8 @@ where the last inequality is a direct application of \cref{eqn:19.2c}.
 %	Then, the normwise forward and backward errors are $\|\Delta \bb{y}\|_2 \leq \gamma_y\|\bb{y}\|_2$ and $ \|\Delta \bb{P_v}\|_F \leq \gamma_y.$
 %\end{lemma}
 %Note that in a uniform precision setting this bound is represented as $\gamma_y = \tilde{\gamma}_{m}$. 
-\paragraph{Applying many successive Householder transformations}
-Consider applying a sequence of transformations in the set $\{\bb{P}_{i}\}_{i=1}^r\subset\R^{m\times m}$ to $\bb{x}\in\R^m$, where $\bb{P}_{i}$'s are all Householder transformations computed with $\tilde{\bb{v}}_i$'s and $\hat{\beta_i}$'s.
+\paragraph{Applying many successive HH transformations}
+Consider applying a sequence of transformations in the set $\{\bb{P}_{i}\}_{i=1}^r\subset\R^{m\times m}$ to $\bb{x}\in\R^m$, where $\bb{P}_{i}$'s are all HH transformations computed with $\tilde{\bb{v}}_i$'s and $\hat{\beta_i}$'s.
 This is directly applicable to HQR as $\bb{Q}=\bb{P}_{1}\cdots\bb{P}_{n}\bb{I}$ and $\bb{R} = \bb{Q}^{\top}\bb{A} = \bb{P}_{n}\cdots\bb{P}_{1}\bb{A}$.
 \Cref{lem:3.7} is very useful for any sequence of transformations, where each transformation has a known bound.
 We will invoke this lemma to prove \cref{lem:19.3}, and use it in future sections for other sequential transformations.
@@ -215,8 +211,8 @@ We will invoke this lemma to prove \cref{lem:19.3}, and use it in future section
 \begin{lemma}\label{lem:19.3}
 	Consider applying a sequence of transformations $\bb{Q}=\bb{P}_{r}\cdots\bb{P}_{2}\bb{P}_1$ onto vector $\bb{x}\in\R^m$ to form $\hat{\bb{y}} =\fl(\hat{\bb{P}}_{r}\cdots\hat{\bb{P}}_{2}\hat{\bb{P}}_{1}\bb{x}),$
 	%$\bb{x}_{k+1} = \bb{P}_k\bb{x}_k$ for $k=1,\cdots,r$, where $\bb{x}[1] = \bb{x}\in\R^{m}$
-	where $\hat{\bb{P}}_{k}$'s are Householder transformations constructed from $\hat{\beta}_k$ and $\hat{\bb{v}}_{k}$.
-	These Householder vectors and constants are computed via \cref{algo:hh_v2} and the rounding errors are bounded by \cref{eqn:beta3,eqn:vbound}.
+	where $\hat{\bb{P}}_{k}$'s are HH transformations constructed from $\hat{\beta}_k$ and $\hat{\bb{v}}_{k}$.
+	These HH vectors and constants are computed via \cref{algo:hh_v2} and the rounding errors are bounded by \cref{eqn:beta3,eqn:vbound}.
 	If each transformation is computed via \cref{eqn:effH}, then
 	\begin{align}
 	\hat{\bb{y}} &= \bb{Q} (\bb{x} +\Delta \bb{x}) = (\bb{Q} + \Delta \bb{Q})\bb{x} = \hat{\bb{Q}}\bb{x},\\
@@ -232,8 +228,8 @@ We will invoke this lemma to prove \cref{lem:19.3}, and use it in future section
 	since $\bb{P}_{j}$'s are orthogonal and have 2-norm, 1, and $m-j+1 \leq m$.
 	While we omit the details here, we can show that $(1+\tilde{\gamma}_m)^r-1 \leq r\tilde{\gamma}_m$ using the argument from \cref{lem:gamma} if $r\tilde{\gamma}_m \leq 1/2$.
 \end{proof}
-In this error analysis, the prevailing bound for errors at various stages of forming and applying a Householder transformation is $\tilde{\gamma}_{m}$ where $m$ corresponds to the dimension of the transformed vectors.
-In \cref{lem:19.3}, a factor of $r$ is introduced for applying $r$ Householder transformations to form the term $r\tilde{\gamma}_m \approx rmu$. 
+In this error analysis, the prevailing bound for errors at various stages of forming and applying a HH transformation is $\tilde{\gamma}_{m}$ where $m$ corresponds to the dimension of the transformed vectors.
+In \cref{lem:19.3}, a factor of $r$ is introduced for applying $r$ HH transformations to form the term $r\tilde{\gamma}_m \approx rmu$. 
 Therefore, we can expect that the columnwise norm error for a thin QR factorization should be $\cO(mnu)$ for a full rank matrix. 
 %To easily generalize this section for mixed precision analysis, we benefit from alternatively denoting this quantity as $\tilde{\gamma}_{\bb{P}}$ with the understanding that $\tilde{\gamma}_{\bb{P}}$ will be some combination of $\tilde{\gamma}$'s of differing precisions. 
 %The bound in \Cref{eqn:19.3} would then be  replaced by $r\tilde{\gamma}_{\bb{P}}$.
@@ -277,5 +273,5 @@ In \cref{sec:NE}, we will turn to the backward norm error, $\|\hat{\bb{Q}}\hat{\
 
 The content of this section shows the standard rounding error analysis in \cite{Higham2002} where some important stages are summarized in \cref{eqn:beta3,eqn:vbound,eqn:19.3}, which we will modify to different mixed precision settings in \cref{sec:mpanalysis}.
 %by employing quantities denoted via $\Delta \beta$, $\Delta \bb{v}$, $\tilde{\gamma}_y$, and $\tilde{\gamma}_{\bb{P}}$. 
-These quantities account for various forward and backward errors formed in computing essential components of HQR, namely the Householder constant and vector, as well as normwise errors of the action of applying Householder transformations.
+These quantities account for various forward and backward errors formed in computing essential components of HQR, namely the HH constant and vector, as well as normwise errors of the action of applying HH transformations.
 In the next sections, we present blocked variants of HQR that use \cref{algo:hhQR}.

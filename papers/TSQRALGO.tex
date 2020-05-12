@@ -10,7 +10,7 @@
 		$\bb{A}_j^{(0)} \gets \bb{A}[(j-1)h+1: jh, :]$ 
 	}
 	%$\bb{A}_{2^L}^{(0)} \gets \bb{A}[(2^L-1)h:m, :]$ \tcp*{Last block may have more rows.} 
-	\tcc{Store Householder vectors as columns of matrix $\bb{V}_j^{(i)}$, Householder constants as components of vector $\bm{\beta}_j^{(i)}$, and set up the next level.}
+	\tcc{Store HH vectors as columns of matrix $\bb{V}_j^{(i)}$, HH constants as components of vector $\bm{\beta}_j^{(i)}$, and set up the next level.}
 	\For{$i = 0 : L-1$}{
 		\tcc{The inner loop can be parallelized.}
 		\For {$j = 1 : 2^{L-i}$ }{

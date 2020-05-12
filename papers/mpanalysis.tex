@@ -22,7 +22,7 @@ Then, $\bb{E} = \Delta \bb{x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same a
 \end{equation}
 Using this in \cref{lem:3.7} to analyze the forward norm error for the $j^{th}$ column of the $\bb{Q}$ factor computed with \cref{algo:hhQR} yields
 \begin{equation}
-	\|\text{\tt castdown}(\hat{\bb{Q}}_{HQR}[:,j]) - \bb{Q}[:,j]\|_2 = \|\bb{I}_l\hat{\bb{P}}_{1}\cdots\hat{\bb{P}}_{n}\hat{e}_j\|_2 \leq u^{(l)}+n\tilde{\gamma}_m^{(h)} + nu^{(l)}\tilde{\gamma}_m^{(h)}.\label{eqn:HQR-mp}
+	\|\text{\tt castdown}(\hat{\bb{Q}}_{HQR}[:,j]) - \bb{Q}[:,j]\|_2 = \|\bb{I}_l\hat{\bb{P}}_{1}\cdots\hat{\bb{P}}_{n}\hat{\bb{e}}_j\|_2 \leq u^{(l)}+n\tilde{\gamma}_m^{(h)} + nu^{(l)}\tilde{\gamma}_m^{(h)}.\label{eqn:HQR-mp}
 \end{equation}
 %To convert this bound to the lower precision, we define function $d$,
 %\begin{equation}
@@ -91,7 +91,7 @@ Therefore, a cast down operation should occur at every block/level and the inser
 Consider the input matrix, $\bb{A}\in\F_l^{m\times n}$, partitioned into $N$ blocks of $r$ columns, $\bb{A}=[\bb{C}_1 \cdots \bb{C}_N]$ as was in the analysis in \cref{sec:BQR}.
 We assume that the returned factors should also be represented in the lower precision, $\F_l$, and modify \cref{algo:blockHQR} so that matrix-matrix multiply and accumulate operations are performed with TensorCore block FMAs.
 Since approximately $\cO(1/N)$ (small) fraction of FLOPs are performed in level-1 and level-2 BLAS operations, we assume that we can afford to compute these in high precision.
-Let us store the $\bb{R}$ factor from each call to HQR in low precision, and keep the Householder constants and vectors ($\bm{\beta}_k^{(j)}$,$\bb{v}_k^{(j)}$)in high precision to build the WY representation.
+Let us store the $\bb{R}$ factor from each call to HQR in low precision, and keep the HH constants and vectors ($\bm{\beta}_k^{(j)}$,$\bb{v}_k^{(j)}$)in high precision to build the WY representation.
 Since the WY representations ($\bb{W}_k$, $\bb{V}_k$) should be stored in low precision, we enforce a cast down at the end of \cref{algo:buildWY}.
 Finally, all but the last WY update for each block are stored in the higher precision, and the last WY update returned in low precision. 
 This mixed precision BQR variant is rich in level-3 BLAS operations can be implemented with TensorCore block FMAs easily, and is formally introduced in \cref{algo:mpBQR}.
@@ -124,7 +124,7 @@ This mixed precision BQR variant is rich in level-3 BLAS operations can be imple
 	%\tcp{The last update is returned in low precision.}
 	%$\bb{Q}$-= $\bb{W}_1 \left(\bb{V}_1^{\top}\bb{Q}\right)$\;
 	\Return $\bb{Q},\bb{A}$
-	\caption{\label{algo:mpBQR} $\hat{\bb{Q}}_{mpBQR},\hat{\bb{R}}_{mpBQR}\gets {\tt mpBQR}(\bb{A}, r)$: Perform Householder QR factorization of matrix $\bb{A}$ with column partitions of size $r$. All inputs and outputs are stored in low precision. Matrix-matrix multiplication and accumulate operations in lines 10, 13, and 14 require low precision inputs but can return in either of the two precisions.}
+	\caption{\label{algo:mpBQR} $\hat{\bb{Q}}_{mpBQR},\hat{\bb{R}}_{mpBQR}\gets {\tt mpBQR}(\bb{A}, r)$: Perform HH QR factorization of matrix $\bb{A}$ with column partitions of size $r$. All inputs and outputs are stored in low precision. Matrix-matrix multiplication and accumulate operations in lines 10, 13, and 14 require low precision inputs but can return in either of the two precisions.}
 \end{algorithm2e}
 
 
@@ -156,7 +156,7 @@ Then the columnwise error is
 	\|\Delta \bb{q}_j \|_2 &\leq -1 + \prod_{k'=1}^k (1+\gamma_2^{(l)})(1+r\tilde{\gamma}_{m-(k'-1)r}^{(h)})\\ 
 	&\leq k\gamma_{2}^{(l)} + kr\tilde{\gamma}_m^{(h)} + k^2r\gamma_{2}^{(l)}\tilde{\gamma}_m^{(h)}, \label{eqn:mpBQRcol}
 \end{align} 
-where $\Delta \bb{q}_j = (\hat{\bb{X}}_1^{(l)}\cdots\hat{\bb{X}}_k^{(l)} - \bb{X}_1\cdots\bb{X}_k )\hat{e}_j.$
+where $\Delta \bb{q}_j = (\hat{\bb{X}}_1^{(l)}\cdots\hat{\bb{X}}_k^{(l)} - \bb{X}_1\cdots\bb{X}_k )\hat{\bb{e}}_j.$
 Summing over the columns to find a matrix norm error bound yields
 \begin{equation}
 	\|\hat{\bb{Q}}_{mpBQR}-\bb{Q}\|_F \leq n^{1/2}\tilde{\gamma}_{N}^{(l)} + n^{(3/2)}\tilde{\gamma}_m^{(h)},
@@ -178,14 +178,14 @@ We expect that the block size $r$, the dimension of the input matrix $m,n$, and 
 %TSQR is best suited for tall-and-skinny matrices where $m\gg n$. 
 %The majority of the computational gains are from parallelizing the QR factorizations of the initial level blocks, which are performed by different node/tasks ideally.
 Let us now consider a variant of TSQR, where all instances of {\tt hh\_mult} are replaced by some level-3 BLAS operations.
-Note that for all blocks in all levels, exactly $n$ Householder transformations of lengths either $m2^{-L}$ or $2n$ are applied via {\tt hh\_mult}.
+Note that for all blocks in all levels, exactly $n$ HH transformations of lengths either $m2^{-L}$ or $2n$ are applied via {\tt hh\_mult}.
 Let $\tilde{m} := \max\{m2^{-L},2n\}$ be the larger of the two. 
-We consider two ways of applying $n$ Householder transformations with level-3 BLAS operations.
+We consider two ways of applying $n$ HH transformations with level-3 BLAS operations.
 \begin{enumerate}
 	\item Consider building the WY representation using high precision arithmetic, casting them down and then applying the update with TensorCore block FMAs.
 	The multiplication by the $\bb{Y}$ factor requires at most $\tilde{m}$-length inner products and a cast down operation and the multiplication by the $\bb{W}$ factor requires $n$-length inner products and another cast down operation.
 	The errors accumulated from these actions are bounded by $\cO(3u^{(l)}+\tilde{\gamma}_{\tilde{m}n}^{(h)})$ componentwise.
-	\item Now, consider applying the $n$ Householder transformations by forming the operator explicitly then computing a single matrix-matrix product.
+	\item Now, consider applying the $n$ HH transformations by forming the operator explicitly then computing a single matrix-matrix product.
 	We form the operator using the same steps as forming the $\bb{Q}$ factor in HQR in high precision arithmetic, then cast the result down. 
 	The construction of the operator and the cast down result in error bounded by $\cO(u^{(l)}+\tilde{\gamma}_{\tilde{m}n}^{(h)})$, and the matrix-matrix product requires $\tilde{m}$-length inner products and another cast down operation. 
 	This option also accrues error bounded by $\cO(2u^{(l)}+\tilde{\gamma}_{\tilde{m}n}^{(h)})$.
@@ -196,8 +196,8 @@ The level-3 variants are built during the formation of the $\bb{R}$ factor and c
 Notice that unlike BQR which is rich in level-3 BLAS operations by design, it is not clear whether implementing TSQR with level-3 BLAS operations has obvious benefits.
 Regardless, we still perform a rounding error analysis of TSQR performed with mixed precision level-3 BLAS operations, i.e. TensorCore block FMAs.
 
-The analysis in \cite{Mori2012} shows that each column of $\bb{Q}$ is transformed by $n$ Householder transformations of length $2n$ from levels $L:-1:1$, and another set of $n$ Householder transformations of length $m2^{-L}$ at level $0$.
-We can easily modify the analysis in \cite{Mori2012} and applying \cref{lem:3.7} by adding $(1+2u^{(l)})$ to every set of $n$ Householder transformations in each level.
+The analysis in \cite{Mori2012} shows that each column of $\bb{Q}$ is transformed by $n$ HH transformations of length $2n$ from levels $L:-1:1$, and another set of $n$ HH transformations of length $m2^{-L}$ at level $0$.
+We can easily modify the analysis in \cite{Mori2012} and applying \cref{lem:3.7} by adding $(1+2u^{(l)})$ to every set of $n$ HH transformations in each level.
 There are two low precision rounding errors in each block per level since casting down the matrix operator formed with high precision is cast down to the low precision, and the matrix-matrix product used in applying this operator with TensorCore block FMAs incurs another low precision rounding error. 
 Therefore, all instances of $n\tilde{\gamma}_{m2^{-L}},n\tilde{\gamma}_{2n}$ are replaced with \[(1+2u^{(l)})(1+n\tilde{\gamma}_{m2^{-L}}^{(h)})-1,\quad\text{and}\quad (1+2u^{(l)})(1+n\tilde{\gamma}_{2n}^{(h)})-1.\]
 Then, the $\bb{Q}$ factor formed with this mixed precision variant of TSQR is denoted with $\hat{\bb{Q}}_{mpTSQR}$ and its $j^{th}$ column has rounding errors bounded by,
@@ -222,13 +222,13 @@ Once again, the constant that represents the disparity in the two precisions, $M
 
 \subsection{Round down at inner-product}\label{sec:mp-2}
 While the previous section discussed blocked variants of HQR that can be easily adapted for the mixed precision setting specific to TensorCore's level-3 BLAS operations, we want to provide a more general mixed precision environment in this section.
-Recall that HQR, BQR, and TSQR all rely on Householder transformations in one way or another, and Householder transformations are essentially performed via \cref{eqn:effH}.
-This implementation capitalizes on the rank-1 update structure of Householder transformations where the predominant share of FLOPs is spent on an inner product, and computing the Householder vector and constant also rely heavily on inner products.
+Recall that HQR, BQR, and TSQR all rely on HH transformations in one way or another, and HH transformations are essentially performed via \cref{eqn:effH}.
+This implementation capitalizes on the rank-1 update structure of HH transformations where the predominant share of FLOPs is spent on an inner product, and computing the HH vector and constant also rely heavily on inner products.
 Therefore, we can attribute nearly all of the computational tasks for \cref{algo:hhQR,algo:blockHQR,algo:par_tsqr} to the inner product.
 In addition, the inner product is just as important in non-HQR linear algebra tools, where some examples include projections and matrix-vector, matrix-matrix multiply.
 Consequently, we return to the mixed precision setting described in \cref{sec:background}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}.
 \subsubsection{Round down at inner product: HQR}
-Consider forming a Householder transformation that zeros out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 
+Consider forming a HH transformation that zeros out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 
 We need to compute $\sigma$, $\beta$, $\tilde{\bb{v}}_1$, and $\bb{v}$ as defined in \cref{sec:HQR}:
 \begin{align}
 \fl(\sigma) &= \rm{fl}(-\rm{sign}(\bb{x}[1])\|\bb{x}\|_2) = \sigma + \Delta \sigma,\;\;|\Delta\sigma| \leq (\gamma_{2}^{(l)}+\gamma_{m}^{(h)}+\gamma_{2}^{(l)}\gamma_{m}^{(h)})|\sigma|,\label{eqn:mpsigma}\\
@@ -254,7 +254,7 @@ Thus, a backward error can be formed using $\Delta \bb{P_v} = \Delta \bb{y}\bb{x
 \begin{equation}
 	\hat{\bb{y}} = (\bb{P_v} + \Delta \bb{P_v})\bb{x},\;\; \|\Delta \bb{P_v}\|_F\leq (\gamma_{25}^{(l)} + \tilde{\gamma}_{m}^{(h)}). \label{eqn:mpapplyP}
 \end{equation}
-Now, we form the error bounds for applying $n$ Householder transformations to $\bb{x}$ using \cref{lem:3.7},
+Now, we form the error bounds for applying $n$ HH transformations to $\bb{x}$ using \cref{lem:3.7},
 \begin{align}
 \hat{\bb{y}} &= \bb{Q} (\bb{x} +\Delta \bb{x}) = (\bb{Q} + \Delta \bb{Q})\bb{x},\\
 \|\Delta \bb{y}\|_2 &\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)})\|\bb{x}\|_2,\;\; \|\Delta \bb{Q}\|_F\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}).\label{eqn:mp19.3}
@@ -291,7 +291,7 @@ Next, we construct the WY representation, where we can now use \cref{eqn:mpdelty
 \end{equation}
 Then, the $j^{th}$ column of the $\bb{Q}$ factor resulting from this mixed precision variant of BQR incurs rounding errors bounded by
 \begin{equation}
-	\|\hat{\bb{Q}}_{mpBQR2}[:,j]\|_F = \|\hat{\bb{X}}_1\cdots\hat{\bb{X}}_N\hat{e}_j\|_2\leq N\tilde{\gamma}_{r}^{(l)} + n\tilde{\gamma}_{m}^{(h)},
+	\|\hat{\bb{Q}}_{mpBQR2}[:,j]\|_F = \|\hat{\bb{X}}_1\cdots\hat{\bb{X}}_N\hat{\bb{e}}_j\|_2\leq N\tilde{\gamma}_{r}^{(l)} + n\tilde{\gamma}_{m}^{(h)},
 \end{equation}
 and the matrix norm error bound is, 
 \begin{equation}

@@ -59,20 +59,22 @@ Multiple successive operations introduce multiple rounding error terms, and keep
 Lemma \ref{lem:gamma} introduces a convenient and elegant bound that simplifies accumulation of rounding error. 
 \begin{lemma}[Lemma 3.1 \cite{Higham2002}]
 	\label{lem:gamma}
-	Let $|\dd_i|<u$ and $\rho_i \in\{-1, +1\}$, for $i = 1 , \cdots, k$ and $ku < 1$. Then, 
+	Let $|\dd_i|<u$ and $\rho_i \in\{-1, +1\}$, for $i = 1:k$ and $ku < 1$. Then, 
 	\begin{equation}
 	\prod_{i=1}^k (1+\dd_i)^{\rho_i} = 1 + \tth_{k},
 	\qquad \mbox{where} \qquad
-	|\tth_{k}|\leq \frac{ku}{1-ku}=:\gamma_{k}.
+	|\tth_{k}|\leq \frac{ku}{1-ku}=:\gamma_{k},
 	\end{equation}
-	We also use 
-	\begin{equation*}
-	\tilde{\gamma}_{k} = \frac{cku}{1-cku},
-	\end{equation*}
-	where $c>0$ is a small integer and further extend this to $\tth$ so that $|\tilde{\tth}_k| \leq \tilde{\gamma}_k$.
+	$$\mbox{and }|\tilde{\tth}_k| \leq \tilde{\gamma}_k,\mbox{ where } \tilde{\gamma}_{k} = \frac{cku}{1-cku} \mbox{ for a small integer, $c>0$.}$$
+%	We also use 
+%	\begin{equation*}
+%	\tilde{\gamma}_{k} = \frac{cku}{1-cku},
+%	\end{equation*}
+%	where $c>0$ is a small integer and further extend this to $\tth$ so that $|\tilde{\tth}_k| \leq \tilde{\gamma}_k$.
 \end{lemma}
 In other words, $\tth_{k}$ represents the accumulation of rounding errors from $k$ successive operations, and it is bounded by $\gamma_{k}$. 
 Allowing $\tth_{k}$'s to be any arbitrary value within the corresponding $\gamma_{k}$ bounds further aids in keeping a clear, simple error analysis. 
+We also use the tilde notation to keep track of the leading order error terms.
 Applying this lemma to our example of adding three numbers results in
 \begin{equation}
 \fl(x+y+z) = (1+\tilde{\dd})(1+\dd) (x+y) + (1+\tilde{\dd})z = (1+\tth_{2})(x+y) + (1+\tth_{1})z. \label{eqn:FPbasic4}
@@ -94,12 +96,10 @@ Since higher precision floating points have smaller unit round-off values, they 
 Table \ref{table:ieeen} shows the maximum number of successive floating point operations that still guarantees a relative error below $100$\% for various floating point types. 
 \begin{table}[h]
 	\centering
-	\begin{tabular}{||c|c|c||} 
+	\begin{tabular}{||c|c|c|c||} 
 		\hline
-		precision &$\tilde{k} = \arg\max_{k}(\gamma_k \leq 1)$ \\ \hline
-		FP16 & {\tt 512}\\
-		FP32 & $\approx$ {\tt 4.194e06} \\ 
-		FP64 &  $\approx$ {\tt 2.252e15}\\ \hline 
+		precision & fp16 & fp32 & fp64 \\ \hline
+		$\arg\max_{k}(\gamma_k \leq 1)$ & {\tt 512} & $\approx$ {\tt 4.194e06} & $\approx$ {\tt 2.252e15} \\ \hline
 	\end{tabular}
 	\caption{Upper limits of meaningful relative error bounds in the $\gamma^{(k)}$ notation.}
 	\label{table:ieeen}
@@ -132,7 +132,7 @@ Table \ref{table:HPdoterr} shows some statistics from computing the relative err
 	\centering
 	\begin{tabular}{||c|c|c|c||} 
 		\hline
-		Random Distribution & Average & \makecell{Standard\\deviation}& Maximum\\ \hline
+		Random Distribution & Average & \makecell{Stan. Dev.}& Maximum\\ \hline
 		Standard normal &{\tt 1.627e-04} & {\tt 1.640e-04 } & {\tt 2.838e-03}\\ \hline
 		Uniform $(0,1)$ & {\tt 2.599e-03}& {\tt 1.854e-03} & {\tt 1.399e-02}\\ \hline
 	\end{tabular}
@@ -170,22 +170,21 @@ These rules summarize how to accumulate errors represented by $\tth$'s and $\gam
 
 \begin{lemma}
 \label{lem:up}
-For any positive integer $k$, let $\tth_{k}$ denote a quantity bounded according to $|\tth_{k}|\leq \frac{k u }{1-ku} =:\gamma_{k}$. The following relations hold for positive integers $i$, $j$, and nonnegative integer $k$.
-Arithmetic operations between $\tth_{k}$'s: 
+For any positive integer $k$, let $\tth_{k}$ denote a quantity bounded according to $|\tth_{k}|\leq \frac{k u }{1-ku} =:\gamma_{k}$. The following relations hold for positive integers $j,n$ and nonnegative integer $k$.
+Arithmetic operations between bounded terms, $\tth_{k}$'s, are: 
 \begin{equation}
 (1+\tth_{k})(1+\tth_{j})=(1+\tth_{k+j})\qquad \mbox{and} \qquad\frac{1+\tth_{k}}{1+\tth_{j}} =
 \begin{cases}
 	1+\tth_{k+j},& j \leq k\\
 	1+\tth_{k+2j},& j > k\\
-\end{cases} 
+\end{cases} .
 \end{equation}
-	Operations on $\gamma$'s: 
+If $\rm{max}_{(j,k)} u \leq \frac{1}{2}$ and $n \leq \frac{1}{uk}$, the operations on the bounds, $\gamma$'s, are:
 	\begin{align*}
-	\gamma_{k}\gamma_{j} &\leq \gamma_{\rm{min}(k,j)}, \quad\text{for } \rm{max}_{(j,k)} u \leq \frac{1}{2}, \\
-	n\gamma_{k} &\leq \gamma_{nk}, \quad \mbox{for} \quad n \leq \frac{1}{uk},\\
-	\gamma_{k} + u &\leq \gamma_{k+1}, \\ 
-	\gamma_{k}+\gamma_{j}+\gamma_{k}\gamma_{j} & \leq \gamma_{k+j}.
+	\gamma_{k}\gamma_{j} \leq \gamma_{\rm{min}(k,j)}&,\qquad n\gamma_{k} \leq \gamma_{nk},\\
+	\gamma_{k} + u \leq \gamma_{k+1}&,\qquad \gamma_{k}+\gamma_{j}+\gamma_{k}\gamma_{j} \leq \gamma_{k+j}.
 	\end{align*}
+Note that all the rules hold when replaced by $\tilde{\gamma}$'s, but result in looser bounds.
 \end{lemma}
 
 Let us define a mixed precision setting that is similar to the TensorCore Fused Multiply-Add (FMA) block but works at the level of a dot product. 
@@ -212,17 +211,16 @@ Thus, the summation and the final cast down operations are the only sources of r
 %Regardless of the specific details of a mixed precision setting, a rounding error analysis for mixed precision arithmetic must support at least two different precision types. 
 We now analyze the rounding error for the inner product scheme described in \cref{assump:mp}.
 Let $\bb{x}^{(l)},\bb{y}^{(l)}$ be $m$-length vectors stored in some low precision float, $\F_l$, $s_k$ be the exact $k^{th}$ partial sum, and $\hat{s_k}$ be $s_k$ computed with FLOPs.
-Then,
+Then the first three partial sums are,
 \begin{align*}
-\hat{s_1} &= \fl (\bb{x}[1]\bb{y}[1]) = \bb{x}[1]\bb{y}[1],\\
-\hat{s_2} &= \fl(\hat{s_1} + \bb{x}[2]\bb{y}[2]) = \left(\bb{x}[1]\bb{y}[1]+ \bb{x}[2]\bb{y}[2]\right)(1+\dd_{1}^{(h)}),\\
-\hat{s_3} &= \fl(\hat{s_2}+\bb{x}[3]\bb{y}[3]) = \left[\left(\bb{x}[1]\bb{y}[1] + \bb{x}[2]\bb{y}[2]\right)(1+\dd_{1}^{(h)})  + \bb{x}[3]\bb{y}[3]\right](1+\dd_{2}^{(h)}).
+\hat{s}_1 &= \fl (\bb{x}[1]\bb{y}[1]) = \bb{x}[1]\bb{y}[1],\quad \hat{s}_2 = \fl(\hat{s_1} + \bb{x}[2]\bb{y}[2]) = \left(\bb{x}[1]\bb{y}[1]+ \bb{x}[2]\bb{y}[2]\right)(1+\dd_{1}^{(h)}),\\
+\hat{s}_3 &= \fl(\hat{s_2}+\bb{x}[3]\bb{y}[3]) = \left[\left(\bb{x}[1]\bb{y}[1] + \bb{x}[2]\bb{y}[2]\right)(1+\dd_{1}^{(h)})  + \bb{x}[3]\bb{y}[3]\right](1+\dd_{2}^{(h)}).
 \end{align*}
 We can see a pattern emerging. 
 The error for an $m$-length vector dot product is then
 \begin{equation}
 \label{eqn:dperr_2}
-\hat{s_m} = (\bb{x}[1]\bb{y}[1]+\bb{x}[2]\bb{y}[2])\prod_{k=1}^{m-1}(1+\dd_{k}^{(h)}) + \sum_{i=3}^n \bb{x}[i]\bb{y}[i]\left(\prod_{k=i-1}^{m-1}(1+\dd_{k}^{(h)})\right).
+\hat{s}_m = (\bb{x}[1]\bb{y}[1]+\bb{x}[2]\bb{y}[2])\prod_{k=1}^{m-1}(1+\dd_{k}^{(h)}) + \sum_{i=3}^n \bb{x}[i]\bb{y}[i]\left(\prod_{k=i-1}^{m-1}(1+\dd_{k}^{(h)})\right).
 \end{equation}
 Using Lemma \ref{lem:gamma}, we further simplify and form componentwise backward errors with
 \begin{equation}

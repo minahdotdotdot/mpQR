@@ -3,10 +3,10 @@ We refer to the blocked variant of HQR where the columns are partitioned as BQR.
 Note that this section relies on the WY representation described in \cite{Bischof1987} instead of the storage-efficient version of \cite{Schreiber1989}, even though both are known to be just as numerically stable as HQR.
 %, which is widely implemented.
 \subsubsection{The WY Representation}
-A convenient matrix representation that accumulates $r$ Householder reflectors is known as the WY representation (see \cite{Bischof1987,golub2013matrix}).
-\Cref{lem:WY} shows how to update a rank-$j$ update of the identity, $\bb{Q}^{(j)}$, with a Householder transformation, $\bb{P}$, to produce a rank-$(j+1)$ update of the identity, $\bb{Q}^{(j+1)}$. 
-With the correct initialization of $\bb{W}$ and $\bb{Y}$, we can build the WY representation of successive Householder transformations as shown in \Cref{algo:buildWY}. 
-This algorithm assumes that the Householder vectors, $\bb{V}$, and constants,$\bm{\beta}$, have already been computed.
+A convenient matrix representation that accumulates $r$ HH reflectors is known as the WY representation (see \cite{Bischof1987,golub2013matrix}).
+\Cref{lem:WY} shows how to update a rank-$j$ update of the identity, $\bb{Q}^{(j)}$, with a HH transformation, $\bb{P}$, to produce a rank-$(j+1)$ update of the identity, $\bb{Q}^{(j+1)}$. 
+With the correct initialization of $\bb{W}$ and $\bb{Y}$, we can build the WY representation of successive HH transformations as shown in \Cref{algo:buildWY}. 
+This algorithm assumes that the HH vectors, $\bb{V}$, and constants,$\bm{\beta}$, have already been computed.
 Since the $\bb{Y}$ factor is exactly $\bb{V}$, we only need to compute the $\bb{W}$ factor.
 \begin{lemma}\label{lem:WY}
 	Suppose $\bb{X}^{(j)}=\bb{I}-\bb{W}^{(j)}\bb{Y}^{(j)\top}\in\R^{m\times m}$ is an orthogonal matrix with $\bb{W}^{(j)},\bb{Y}^{(j)}\in\R^{m\times j}$.
@@ -46,14 +46,14 @@ Since the $\bb{Y}$ factor is exactly $\bb{V}$, we only need to compute the $\bb{
 	\label{algo:buildWY}
 \end{algorithm2e}
 
-In HQR, $\bb{A}$ is transformed into an upper triangular matrix $\bb{R}$ by identifying a Householder transformation that zeros out a column below the diagonal, then applying that Householder transformation to the bottom right partition. 
-For example, the $k^{th}$ Householder transformation finds an $m-k+1$ sized Householder transformation that zeros out column $k$ below the diagonal and then applies it to the $(m-k+1)$-by-$(n-k)$ partition of the matrix, $\bb{A}[k:m,k+1:n]$.
-Since the $k+1^{st}$ column is transformed by the $k^{th}$ Householder transformation, this algorithm must be executed serially as shown in \cref{algo:hhQR}.
+In HQR, $\bb{A}$ is transformed into an upper triangular matrix $\bb{R}$ by identifying a HH transformation that zeros out a column below the diagonal, then applying that HH transformation to the bottom right partition. 
+For example, the $k^{th}$ HH transformation finds an $m-k+1$ sized HH transformation that zeros out column $k$ below the diagonal and then applies it to the $(m-k+1)$-by-$(n-k)$ partition of the matrix, $\bb{A}[k:m,k+1:n]$.
+Since the $k+1^{st}$ column is transformed by the $k^{th}$ HH transformation, this algorithm must be executed serially as shown in \cref{algo:hhQR}.
 The highest computational burden at each iteration falls on \cref{algo:hhQR} line 6, which requires Level-2 BLAS operations when computed efficiently. \par
 
 In contrast, BQR replaces this step with Level-3 BLAS operations by partitioning $\bb{A}$ into blocks of columns.
 Let $\bb{A} = [\bb{C}_1 \cdots  \bb{C}_N]$ where $\bb{C}_1,\cdots,\bb{C}_{N-1}$ are each $m$-by-$r$, and $\bb{C}_N$ holds the remaining columns.
-The $k^{th}$ block, $\bb{C}_k$, is transformed with HQR (\cref{algo:hhQR}), and the WY representation of these $r$ successive Householder transformations is constructed as in \cref{algo:buildWY}.
+The $k^{th}$ block, $\bb{C}_k$, is transformed with HQR (\cref{algo:hhQR}), and the WY representation of these $r$ successive HH transformations is constructed as in \cref{algo:buildWY}.
 We write the WY update as
 \begin{equation}
 	\bb{X}_k = \bb{I}_m -\bb{W}_{k}\bb{Y}_{k}^{\top} = \bb{P}_k^{(1)}\cdots\bb{P}_{k}^{(r)}.
@@ -68,7 +68,7 @@ In practice, an efficient implementation might require $r$ to be a power of two 
 This discrepancy is easily fixed by padding the matrix with zeros, a standard procedure for standard algorithms like the Fast Fourier Transform (FFT).
 %TODO: cite?
 For any variable $x\in\{\bb{X},\bb{W}, \bb{Y}, \bb{z}, \beta, \bb{v}, \bb{P}\}$,  $x_k^{(j)}$ corresponds to the $j^{th}$ update for the $k^{th}$ block.
-%Note that the subscripts on $\bb{W}_{k},\bb{Y}_k$ indicate the WY representation for the Householder transformations on the $k^{th}$ block of $\bb{A}$, $\bb{C}_{k}$, whereas the superscripts on $\bb{W}_k^{(j)}$ in \cref{lem:WY} refers to the $j^{th}$ update within building a WY representation. 
+%Note that the subscripts on $\bb{W}_{k},\bb{Y}_k$ indicate the WY representation for the HH transformations on the $k^{th}$ block of $\bb{A}$, $\bb{C}_{k}$, whereas the superscripts on $\bb{W}_k^{(j)}$ in \cref{lem:WY} refers to the $j^{th}$ update within building a WY representation. 
 \begin{algorithm2e}
 	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
 	\KwIn{$\bb{A}\in\R^{m \times n}$, $r\in\R$ where $r < n$.}
@@ -92,13 +92,13 @@ For any variable $x\in\{\bb{X},\bb{W}, \bb{Y}, \bb{z}, \beta, \bb{v}, \bb{P}\}$,
 		$\bb{Q}[(i-1)r+1:m,(i-1)r+1:n]$-= $\bb{W}_i \left(\bb{V}_i^{\top}\bb{Q}[(i-1)r+1:m,(i-1)r+1:n]\right)$
 	}
 	\Return $\bb{Q},\bb{A}$
-	\caption{\label{algo:blockHQR} $\bb{Q},\bb{R}\gets {\tt blockHQR}(\bb{A}, r)$: Perform Householder QR factorization of matrix $\bb{A}$ with column partitions of size $r$.}
+	\caption{\label{algo:blockHQR} $\bb{Q},\bb{R}\gets {\tt blockHQR}(\bb{A}, r)$: Perform HH QR factorization of matrix $\bb{A}$ with column partitions of size $r$.}
 \end{algorithm2e}
 \subsubsection{BQR: Rounding Error Analysis}\label{sec:BQRerr}
 We now present the basic structure for the rounding error analysis for \cref{algo:blockHQR}, which consist of: 1)HQR, 2)building the W factor, and 3) updating the remaining blocks with the WY representation.
 We have adapted the analysis from \cite{Higham2002} to fit this exact variant, and denote $\hat{\bb{Q}}_{BQR},\hat{\bb{R}}_{BQR}$ to be the outputs from \cref{algo:blockHQR}.
 First, we analyze the error accumulated from updating $\bb{X}_k^{(j-1)}$ to $\bb{X}_k^{(j)}$, which applies a rank-1 update via the subtraction of the outer product $\hat{\bb{z}}_{k}^{(j)}\hat{\bb{v}}_{k}^{(j)\top}$.
-Since $\bb{z}_{k}^{(j)} = \beta_k^{(j)}\bb{X}_{k}^{(j-1)}\bb{v}_{k}^{(j)}$, this update requires a single Householder transformation on the right side in the same efficient implementation that is discussed in \cref{eqn:effH},
+Since $\bb{z}_{k}^{(j)} = \beta_k^{(j)}\bb{X}_{k}^{(j-1)}\bb{v}_{k}^{(j)}$, this update requires a single HH transformation on the right side in the same efficient implementation that is discussed in \cref{eqn:effH},
 \begin{equation}
 \hat{\bb{X}_k^{(j)}} = 
 %\bb{I}-\begin{bmatrix}
@@ -116,7 +116,7 @@ Since $\hat{\bb{X}}_k^{(1)} = \bb{I} - \hat{\beta}_k^{(1)}\hat{\bb{v}}_k^{(1)}\h
 \end{equation}
 
 \paragraph{HQR within each block: line 3 of \cref{algo:blockHQR}}
-We apply \Cref{algo:hhQR} to the $k^{th}$ block, $\hat{\bb{X}}_{k-1}\cdots\hat{\bb{X}}_1\bb{C}_k$, which applies $r$ more Householder transformations to columns that had been transformed by $(k-1)$ WY transformations in prior iterations.
+We apply \Cref{algo:hhQR} to the $k^{th}$ block, $\hat{\bb{X}}_{k-1}\cdots\hat{\bb{X}}_1\bb{C}_k$, which applies $r$ more HH transformations to columns that had been transformed by $(k-1)$ WY transformations in prior iterations.
 The upper trapezoidal factor that results from applying HQR to $\bb{C}_{k}^{((k-1)r)}$ corresponds to the $(k-1)r+1^{st}$ to $kr^{th}$ columns of $\hat{\bb{R}}_{BQR}$, and applying \cref{lem:3.7,lem:19.3} yields
 \begin{equation*}
 	\|\hat{\bb{R}}_{BQR}[:,j]-\bb{R}[:,j]\|_2 \leq r\tilde{\gamma}_{m}\|\hat{\bb{X}}_{k-1}\cdots\hat{\bb{X}}_1^{\top}\bb{C}_k[:,j]\|_2,\;\; j=(k-1)r+1:kr.%\leq kr\tilde{\gamma}_{m}\|\bb{A}[:,j]\|_2,\;\; j=(k-1)r+1:kr.
@@ -136,26 +136,26 @@ The upper trapezoidal factor that results from applying HQR to $\bb{C}_{k}^{((k-
 %\|\Delta \bb{Q'}_k^{\top}\|_F &= \left|\left| \prod_{j=r}^{1}\left(\bb{P}_{(k-1)r+j} +\Delta\bb{P}_{(k-1)r+j}\right) - \prod_{j=r}^{1}\bb{P}_{(k-1)r+j} \right|\right|_F,\label{eqn:rPs-BQR}\\
 %&\leq \left(\prod_{i=1}^r(1+\tilde{\gamma}_{m-(r-1)k})-1\right)\prod_{i=r}^1\|\bb{P}_i\|_2 = (1+\tilde{\gamma}_{m-(r-1)k})^r-1. \label{eqn:rPs-BQR-uniform}
 %\end{align}
-%Since the $j^{th}$ Householder vector for $\bb{C}_{k}$ zeros out the $r(k-1)+j^{th}$ column of $\bb{A}$ below the diagonal, it has length  $m -(k-1)r-j+1$. 
+%Since the $j^{th}$ HH vector for $\bb{C}_{k}$ zeros out the $r(k-1)+j^{th}$ column of $\bb{A}$ below the diagonal, it has length  $m -(k-1)r-j+1$. 
 %This corresponds to setting $i=r(k-1)+j$ in \cref{eqn:vbound,eqn:beta3}
 \paragraph{Build WY at each block: line 4 of \cref{algo:blockHQR}}
-%The WY representation of $r$ Householder transformations in full precision is exactly that, just another representation. 
-We now calculate the rounding errors incurred from building the WY representation when given a set of Householder vectors and constants as shown in \cref{algo:buildWY}.
+%The WY representation of $r$ HH transformations in full precision is exactly that, just another representation. 
+We now calculate the rounding errors incurred from building the WY representation when given a set of HH vectors and constants as shown in \cref{algo:buildWY}.
 %Consider the $j^{th}$ update of the WY representation for block $\bb{C}_{k}$.
 %Our goal is to analyze the error accumulated from updating the WY representation from the $j-1^{st}$ step to the $j^{th}$ for block $\bb{C}_{k}$.
-%Let us represent the $j^{th}$ Householder constant and vector of the $k^{th}$ block computed with FLOPs as with $\hat{\beta}_k^{(j)}$ and $\hat{\bb{v}}_{k}^{(j)}$ and the $j^{th}$ update to the WY representation as $$\bb{X}_{k}^{(j)} = \bb{I} - \hat{\bb{W}}_{k}^{(j)}\hat{\bb{Y}}_{k}^{(j)\top}.$$ %we write $\bb{V}_k[:,1:j]=:\bb{Y}_k^{(j)}$ to make a clear connection to \cref{lem:WY}, and also denote
+%Let us represent the $j^{th}$ HH constant and vector of the $k^{th}$ block computed with FLOPs as with $\hat{\beta}_k^{(j)}$ and $\hat{\bb{v}}_{k}^{(j)}$ and the $j^{th}$ update to the WY representation as $$\bb{X}_{k}^{(j)} = \bb{I} - \hat{\bb{W}}_{k}^{(j)}\hat{\bb{Y}}_{k}^{(j)\top}.$$ %we write $\bb{V}_k[:,1:j]=:\bb{Y}_k^{(j)}$ to make a clear connection to \cref{lem:WY}, and also denote
 %The update in \cref{lem:WY} applies a rank-1 update via the subtraction of the outer product $\hat{\bb{z}}_{k}^{(j)}\hat{\bb{v}}_{k}^{(j)\top}$ to apply $\hat{\bb{P}}_{\bb{(k-1)r+j}}\equiv \hat{\bb{P}}_k^{(j)}$ on the right. 
-%Since $\bb{z}_{k}^{(j)} = \beta_k^{(j)}\bb{X}_{k}^{(j-1)}\bb{v}_{k}^{(j)}$, this update requires a single Householder transformation in the same efficient implementation that is discussed in \cref{eqn:effH}, but on the right side:
+%Since $\bb{z}_{k}^{(j)} = \beta_k^{(j)}\bb{X}_{k}^{(j-1)}\bb{v}_{k}^{(j)}$, this update requires a single HH transformation in the same efficient implementation that is discussed in \cref{eqn:effH}, but on the right side:
 %\begin{align*}
 %	\bb{X}_{k}^{(j)} &=\bb{X}_{k}^{(j-1)} - \bb{z}_k^{(j)}\bb{v}_k^{(j)\top}\\ %&=\bb{X}_{k}^{(j-1)}-\beta_k^{j}\bb{X}_{k}^{(j-1)}\bb{v}_{k}^{(j)}\bb{v}_{k}^{(j-1)\top} \\
 %	&= \bb{X}_{k}^{(j-1)} (\bb{I}-\beta_k^{(j)}\bb{v}_{k}^{(j)}\bb{v}_{k}^{(j)\top})=  \bb{X}_{k}^{(j-1)}\bb{P}_{k}^{(j)}.
 %\end{align*}
 %The analysis for this update is slightly different as it is applied to a matrix, but the componentwise error remains the same
-%Traveling up this recursion relation to $j=1$, we find that $\hat{\bb{X}}_{k}^{(j)}$ is built from applying a sequence of Householder transformations $\{\hat{\bb{P}}_{k}^{(2)},\cdots \hat{\bb{P}}_k^{(j)}\}$ to $\bb{P}_k^{(1)}$.
+%Traveling up this recursion relation to $j=1$, we find that $\hat{\bb{X}}_{k}^{(j)}$ is built from applying a sequence of HH transformations $\{\hat{\bb{P}}_{k}^{(2)},\cdots \hat{\bb{P}}_k^{(j)}\}$ to $\bb{P}_k^{(1)}$.
 %Therefore, we can apply \cref{eqn:19.3} (set $\bb{Q}=\bb{X}_{k}^{(j-1)}$, $\bb{x}=\fl(\hat{\beta}_k^{(j)}\hat{\bb{v}}_{k}^{(j)})$, and $\bb{y}=\bb{z}_{k}^{(j)}$) to form \cref{eqn:BQR-z}.
 % directly for the construction of $\bb{z}_{k}^{(j)}$
 Since the columns of $\hat{\bb{Y}}_k$ are simply $\{\hat{\bb{v}}_k^(j)\}$ built in \cref{algo:hhQR} the errors for forming these are shown in \cref{eqn:vbound} where $m$ should be replaced by $m-(k-1)r$.
-The Householder constants, $\hat{\beta}_k^{(j)}$ are bounded by \cref{eqn:beta3} modified similarly. 
+The HH constants, $\hat{\beta}_k^{(j)}$ are bounded by \cref{eqn:beta3} modified similarly. 
 Thus, $\bb{z}_k^{(j)}$ is the only newly computed quantity. 
 Using \cref{eqn:deltX,eqn:vbound,eqn:beta3}, we find
 \begin{align*}
@@ -169,7 +169,7 @@ Using \cref{eqn:deltX,eqn:vbound,eqn:beta3}, we find
 \end{align*}
 Componentwise bounds follow immediately, and are summarized in \cref{lem:BQR-build}.
 \begin{lemma}\label{lem:BQR-build}
-	Consider the construction of the WY representation for the $k^{th}$ partition of matrix $\bb{A}\in\R^{m\times n}$ given a set of Householder constants and vectors, $\{\beta_k^{(j)}\}_{j=1}^r$ and $\{\bb{v}_{k}^{(j)}\}$ via \cref{algo:buildWY}.
+	Consider the construction of the WY representation for the $k^{th}$ partition of matrix $\bb{A}\in\R^{m\times n}$ given a set of HH constants and vectors, $\{\beta_k^{(j)}\}_{j=1}^r$ and $\{\bb{v}_{k}^{(j)}\}$ via \cref{algo:buildWY}.
 	Then, 
 	\begin{align}
 		\hat{\bb{z}}_{k}^{(j)}& = \bb{z}_{k}^{(j)} + \Delta \bb{z}_{k}^{(j)},\;\; |\Delta \bb{z}_{k}^{(j)}| \leq j\tilde{\gamma}_{m-(k-1)r} |\bb{z}_{k}^{(j)}|\label{eqn:BQR-z}\\
@@ -177,7 +177,7 @@ Componentwise bounds follow immediately, and are summarized in \cref{lem:BQR-bui
 	\end{align}
 	where the second bound is derived from \cref{eqn:vbound}.
 \end{lemma}
-Most importantly, this shows that constructing the WY update is just as numerically stable as applying successive Householder transformations (see Section 19.5 of \cite{Higham2002}).
+Most importantly, this shows that constructing the WY update is just as numerically stable as applying successive HH transformations (see Section 19.5 of \cite{Higham2002}).
 
 \paragraph{Update blocks to the right: line 5 of \cref{algo:blockHQR}}
 We now consider applying $\bb{X}_{k}:=\bb{I}-\bb{W}_k\bb{Y}_k^{\top}$ to some matrix, $\bb{B}$.
@@ -248,8 +248,8 @@ A normwise bound for employing a general matrix-matrix multiplication operation 
 \paragraph{Multiple WY updates: line 8-9 of \cref{algo:blockHQR}}
 All that remains is to consider the application of successive WY updates to form the QR factorization computed with BQR denoted as $\bb{Q}_{BQR}$ and $\bb{R}_{BQR}$. 
 We can apply \cref{lem:3.7} directly by setting $\bb{X}_{k}:= \bb{I}-\bb{W}_{k}\bb{Y}_{k}^{\top}$ and consider the backward errors for applying the sequence to a vector, $\bb{x}\in\R^{m}$, as we did for \cref{lem:19.3}. 
-Since $\bb{X}_{k}=\bb{P}_{(k-1)r+1}\cdots\bb{P}_{kr}$, is simply a sequence of Householder transformations, it is orthogonal, i.e. $\|\bb{X}_{k}\|_2=1$.
-We only need to replace with $\bb{x}$ with $\bb{A}[:,i]$'s to form the columnwise bounds for $\bb{R}_{BQR}$, and apply the transpose to $\hat{e}_i$'s to form the bounds for $\bb{Q}_{BQR}$. 
+Since $\bb{X}_{k}=\bb{P}_{(k-1)r+1}\cdots\bb{P}_{kr}$, is simply a sequence of HH transformations, it is orthogonal, i.e. $\|\bb{X}_{k}\|_2=1$.
+We only need to replace with $\bb{x}$ with $\bb{A}[:,i]$'s to form the columnwise bounds for $\bb{R}_{BQR}$, and apply the transpose to $\hat{\bb{e}}_i$'s to form the bounds for $\bb{Q}_{BQR}$. 
 %We define the backward error as $\Delta \bb{Q'}_{BQR}) \bb{b}$.
 %Then, this backward error is quantified via
 Then, 
