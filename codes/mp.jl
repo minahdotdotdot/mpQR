@@ -1,3 +1,4 @@
+l=Float16;h=Float32;d=Float64;
 function mpWYupdate(W::Matrix{l}, Y::Matrix{l}, B::Matrix{l};b=4)
     h = Float32
     temp = bFMA(W, bFMA(-Y', B,b=b); C=B,b=b);
