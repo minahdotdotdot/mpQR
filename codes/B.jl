@@ -46,6 +46,6 @@ for t = 1 : trials
         writedlm(io, [berr[:, t,2]'])
     end
     open("../txtfiles/"*mpname*"f.txt", "a") do io
-        writedlm(io, [ferr[:, t],2'])
+        writedlm(io, [ferr[:, t,2]'])
     end
 end
