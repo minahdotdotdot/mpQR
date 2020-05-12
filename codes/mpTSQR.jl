@@ -1,7 +1,6 @@
 using LinearAlgebra
 l=Float16; h=Float32; d=Float64;
 
-
 #######################
 ## Define structure. ##
 #######################
@@ -146,7 +145,7 @@ function par_TSQR_compute(levels::Array{Array{par_TSQR_components,1},1}, A::Matr
     return Q, UpperTriangular(levels[end][1].R)
 end
 
-function par_TSQR(A::Matrix{l}, L::Int; hhvec::String="n2")
+function mpTSQR(A::Matrix{l}, L::Int; hhvec::String="n2")
     Ah = Matrix{h}(A);
     if hhvec ∉ ["n1", "n2", "nn"]
         error("Must choose n1, n2 or nn as hhqr normalization type.")

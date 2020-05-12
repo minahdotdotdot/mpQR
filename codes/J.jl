@@ -1,28 +1,27 @@
-#mpBQR3, change columns
-include("blockHQR.jl")
-include("mpblockHQR.jl")
+#mpTSQR3, change condition number
+include("mpTSQR.jl")
 include("genmat.jl")
 using DelimitedFiles, Printf
 
-name = "B"
+name = "J"
 l = Float16; h=Float32; d=Float64;
-m = 2048; ns = 2 .^(7:11)
+m = 4000; n = 100;
 trials = 10;
-c = 10.
-berr = zeros(d, length(ns), trials);
-ferr = zeros(d, length(ns), trials);
-r = 128;
+cs = exp10.(range(0, stop=2, length=9));
+berr = zeros(d, length(cs), trials);
+ferr = zeros(d, length(cs), trials);
+L = 2;
 writedlm("../txtfiles/"*name*"b.txt", ["mpBQR: backward error"])
 writedlm("../txtfiles/"*name*"f.txt", ["mpBQR: forward error"])
 for t = 1 : trials
 	@printf("\n%d: ",t)
-	for (i,n) in enumerate(ns)
+	for (i,c) in enumerate(cs)
        @printf("%d\t",i)
         A = genmat(m,n,c,l);
         Ad = Matrix{d}(A);
 
         # Block mixed precision
-        Q, R = mpbhh_QR(A, r);
+        Q, R = par_TSQR(A, L);
         berr[i,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad,2)/norm(Ad)
         ferr[i,t] = norm(Matrix{d}(Q')*Matrix{d}(Q)-I,2)
     end
