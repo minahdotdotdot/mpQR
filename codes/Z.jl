@@ -9,8 +9,8 @@ l = Float16; h=Float32; d=Float64;
 m = 4096; n = 1024;
 trials = 10;
 cs = exp10.(range(0, stop=4, length=9));
-berr = zeros(d, length(cs), trials,6);
-oerr = zeros(d, length(cs), trials,6);
+berr = zeros(d, length(cs), trials,7);
+oerr = zeros(d, length(cs), trials,7);
 r = 256; L = 2;
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"fo.txt", ["Condition orthogonal"])
@@ -51,6 +51,11 @@ for t = 1 : trials
         Q, R = mpTSQR(A, L);
         berr[i,t,6] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
         oerr[i,t,6] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
+
+        # hhQr
+        Q, R = hh_QR(Ah);
+        berr[i,t,7] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
+        oerr[i,t,7] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
         
     end
     open("../txtfiles/"*name*"o.txt", "a") do io
