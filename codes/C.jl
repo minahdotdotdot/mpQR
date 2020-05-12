@@ -7,7 +7,7 @@ using DelimitedFiles, Printf
 name = "C2"
 mpname="mp"*name
 l = Float16; h=Float32; d=Float64;
-m = 4096; ns = 4096
+m = 4096; n = 4096
 trials = 10;
 c = 100.
 rs = 2 .^(6:10)
