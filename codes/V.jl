@@ -7,7 +7,7 @@ include("TSQR.jl")
 using DelimitedFiles
 name = "V"
 l = Float16; h=Float32; d=Float64;
-m = 4096; n=512;
+m = 4096; n=128;
 trials = 10;
 c=1000.;
 Ls = 1:5;
@@ -22,7 +22,6 @@ for t = 1 : trials
         A = genmat(m,n,c,l);
         Ah = Matrix{h}(A);
         Ad = Matrix{d}(A);
-
         # TSQR high precision
         Q, R = par_TSQR(Ah, L);
         berr[i,t,1] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)

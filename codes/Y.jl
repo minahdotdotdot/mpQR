@@ -39,6 +39,15 @@ for t = 1 : trials
         berr[i,t,3] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
         oerr[i,t,3] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
 
+        if m/n<4
+           if m/n<2
+              L=0;
+           else
+              L=1
+           end
+        else
+          L=2
+        end
         # TSQR high precision
         Q, R = par_TSQR(Ah, L);
         berr[i,t,4] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
