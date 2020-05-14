@@ -24,7 +24,7 @@ for t = 1 : trials
         Ah = Matrix{h}(A);
         Ad = Matrix{d}(A);
         # hhQR low precision
-        Q, R = hh_QR(A, r);
+        Q, R = hh_QR(A);
         berr[i,t] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
         oerr[i,t] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
         #=

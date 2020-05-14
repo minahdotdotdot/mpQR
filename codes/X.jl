@@ -9,9 +9,9 @@ name = "X"
 l = Float16; h=Float32; d=Float64;
 ms = 2 .^(10:12); n=256;
 trials = 10;
-c=1000;
-berr = zeros(d, length(cs), trials,8);
-oerr = zeros(d, length(cs), trials,8);
+c=1000.;
+berr = zeros(d, length(ms), trials,8);
+oerr = zeros(d, length(ms), trials,8);
 r = 256; 
 L = 2;
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])

@@ -9,10 +9,10 @@ name = "W"
 l = Float16; h=Float32; d=Float64;
 m=4096;n=4096;
 trials = 10;
-c=1000;
-berr = zeros(d, length(cs), trials,3);
-oerr = zeros(d, length(cs), trials,3);
+c=1000.;
 rs = 2 .^(8:11); 
+berr = zeros(d, length(rs), trials,3);
+oerr = zeros(d, length(rs), trials,3);
 L = 2;
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
