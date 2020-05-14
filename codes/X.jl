@@ -61,8 +61,8 @@ for t = 1 : trials
 
         # hhQr in low precision
         Q, R = hh_QR(A);
-        berr[i,t,7] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-        oerr[i,t,7] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
+        berr[i,t,8] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
+        oerr[i,t,8] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
         
     end
     open("../txtfiles/"*name*"b.txt", "a") do io

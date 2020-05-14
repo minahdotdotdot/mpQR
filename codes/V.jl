@@ -11,8 +11,8 @@ m = 4096; n=128;
 trials = 10;
 c=1000.;
 Ls = 1:5;
-berr = zeros(d, length(Ls), trials,3);
-oerr = zeros(d, length(Ls), trials,3);
+berr = zeros(d, length(Ls), trials,5);
+oerr = zeros(d, length(Ls), trials,5);
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
 for t = 1 : trials
@@ -37,17 +37,31 @@ for t = 1 : trials
         berr[i,t,3] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
         oerr[i,t,3] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
         
+        # hhQR in high precision
+        Q, R = hh_QR(Ah);
+        berr[i,t,4] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
+        oerr[i,t,4] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
+
+        # hhQr in low precision
+        Q, R = hh_QR(A);
+        berr[i,t,5] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
+        oerr[i,t,5] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)    
+        
     end
     open("../txtfiles/"*name*"b.txt", "a") do io
         writedlm(io, [berr[:,t,1]'])
         writedlm(io, [berr[:,t,2]'])
         writedlm(io, [berr[:,t,3]'])
+        writedlm(io, [berr[:,t,4]'])
+        writedlm(io, [berr[:,t,5]'])
         writedlm(io, ['\n'])
     end
     open("../txtfiles/"*name*"fo.txt", "a") do io
         writedlm(io, [oerr[:,t,1]'])
         writedlm(io, [oerr[:,t,2]'])
         writedlm(io, [oerr[:,t,3]'])
+        writedlm(io, [berr[:,t,4]'])
+        writedlm(io, [berr[:,t,5]'])
         writedlm(io, ['\n'])
     end
 end
