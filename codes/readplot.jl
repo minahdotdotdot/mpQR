@@ -20,23 +20,27 @@ ms = 2 .^(9:11)         # E, K
 ms2 = 2 .^(10:13)       # E2, K2
 L = 1 : 5               # F, F2, L, L2
 
-
-Zb, Zf = loadtxt("Z", false);
+Xb, Xf = loadtxt("X", false);
 cs = exp10.(range(0, stop=4, length=9));
 fig,ax = subplots()
 ax.set_yscale("log")
 ax.set_xscale("log")
-scatter(cs, sum(Zf[1:7:end,:], dims=1)'/5, marker="x", label="BQRh")
-scatter(cs, sum(Zf[2:7:end,:], dims=1)'/5, marker="D", label="mpBQR2")
-scatter(cs, sum(Zf[3:7:end,:], dims=1)'/5, label="mpBQR3")
-scatter(cs, sum(Zf[4:7:end,:], dims=1)'/5, marker="x", label="TSQRh")
-scatter(cs, sum(Zf[5:7:end,:], dims=1)'/5, marker="D", label="mpTSQR2")
-scatter(cs, sum(Zf[6:7:end,:], dims=1)'/5, label="mpTSQR3")
-scatter(cs, sum(Zf[7:7:end,:], dims=1)'/5, marker="x", label="hhQRh")
-legend()
-xlabel("Condition Numbers")
-ylabel("2-norm Q Orthogonal Error")
-title("m=4096, n=1024, r=256, L=2,")
+scatter(ms, sum(Xb[1:8:end,:], dims=1)'/5, marker="o", s=200, label="BQRh")
+#scatter(ms, sum(Xb[2:8:end,:], dims=1)'/5, marker="D", alpha=0.5, label="mpBQR2")
+scatter(ms, sum(Xb[3:8:end,:], dims=1)'/5, alpha=0.5, label="mpBQR3")
+scatter(ms, sum(Xb[4:8:end,:], dims=1)'/5, marker="x", s=200, label="TSQRh")
+#scatter(ms, sum(Xb[5:8:end,:], dims=1)'/5, marker="D", alpha=0.5, label="mpTSQR2")
+scatter(ms, sum(Xb[6:8:end,:], dims=1)'/5, alpha=0.5, label="mpTSQR3")
+scatter(ms, sum(Xb[7:8:end,:], dims=1)'/5, marker="x", s=200, label="hhQRh")
+
+scatter(ms, sum(Xb[1:8:end,:], dims=1)'/5, marker="x", s=200, label="BQRh")
+#scatter(ms, sum(Xb[7:8:end,:], dims=1)'/5, marker="D", alpha=0.5, label="hhQRl")
+legend(bbox_to_anchor=(.75, .5))
+xlim(minimum(ms)*.9, maximum(ms)/.9)
+xlabel("Number of Rows")
+ylabel("Frobenius norm Backward Error")
+title("n=256, r=256, L=2, c=1000")
+
 
 #=
 Ab, Af = loadtxt("A2")

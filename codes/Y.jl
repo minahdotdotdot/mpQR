@@ -93,7 +93,7 @@ for t = 1 : trials
         writedlm(io, [oerr[:,t,8]'])
         writedlm(io, ['\n'])
     end
-    open("../txtfiles/"*name*"fo.txt", "a") do io
+    open("../txtfiles/"*name*"f.txt", "a") do io
         writedlm(io, [oerr[:,t,1]'])
         writedlm(io, [oerr[:,t,2]'])
         writedlm(io, [oerr[:,t,3]'])

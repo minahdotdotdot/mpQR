@@ -13,7 +13,6 @@ c=1000.;
 rs = 2 .^(8:11); 
 berr = zeros(d, length(rs), trials,3);
 oerr = zeros(d, length(rs), trials,3);
-L = 2;
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
 for t = 1 : trials
@@ -46,7 +45,7 @@ for t = 1 : trials
         writedlm(io, [berr[:,t,3]'])
         writedlm(io, ['\n'])
     end
-    open("../txtfiles/"*name*"fo.txt", "a") do io
+    open("../txtfiles/"*name*"f.txt", "a") do io
         writedlm(io, [oerr[:,t,1]'])
         writedlm(io, [oerr[:,t,2]'])
         writedlm(io, [oerr[:,t,3]'])
