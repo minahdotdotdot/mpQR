@@ -16,30 +16,61 @@ ns2 = 2 .^(7:12)        # B2
 ns3 = 2 .^(6:10)        # H
 rs = 2 .^(6:10)         # C, C2, I2
 rs2 = 2 .^(5:9)         # I, 
+rs3 = 2 .^(8:11)        # W
 ms = 2 .^(9:11)         # E, K
 ms2 = 2 .^(10:13)       # E2, K2
+ms3 = 2 .^(10:12)        # X
+ms4 = 2 .^(8:13)        # X2
 L = 1 : 5               # F, F2, L, L2
+
+Wb, Wf = loadtxt("W", false);
+#=
+fig,ax = subplots()
+ax.set_yscale("log")
+ax.set_xscale("log")
+scatter(ms3, sum(Wb[7:8:end,:], dims=1)'/10, marker="x", s=200, label="hhQRh")
+scatter(ms3, sum(Wb[1:8:end,:], dims=1)'/10, marker="x", s=200, label="BQRh")
+scatter(ms3, sum(Wb[4:8:end,:], dims=1)'/10, marker="x", s=200, label="TSQRh")
+
+scatter(ms3, sum(Wb[8:8:end,:], dims=1)'/10, marker="D", alpha=0.5, label="hhQRl")
+scatter(ms3, sum(Wb[2:8:end,:], dims=1)'/10, marker="D", alpha=0.5, label="mpBQR2")
+scatter(ms3, sum(Wb[5:8:end,:], dims=1)'/10, marker="D", alpha=0.5, label="mpTSQR2")
+
+scatter(ms3, sum(Wb[3:8:end,:], dims=1)'/10, alpha=0.5, label="mpBQR3")
+scatter(ms3, sum(Wb[6:8:end,:], dims=1)'/10, alpha=0.5, label="mpTSQR3")
+
+
+legend(bbox_to_anchor=(.75, .5))
+xlim(minimum(ms3)*.9, maximum(ms3)/.9)
+xlabel("Number of Rows")
+ylabel("Frobenius norm Backward Error")
+title("n=256, r=256, L=2, c=1000")
+
+
 
 Xb, Xf = loadtxt("X", false);
 cs = exp10.(range(0, stop=4, length=9));
 fig,ax = subplots()
 ax.set_yscale("log")
 ax.set_xscale("log")
-scatter(ms, sum(Xb[1:8:end,:], dims=1)'/5, marker="o", s=200, label="BQRh")
-#scatter(ms, sum(Xb[2:8:end,:], dims=1)'/5, marker="D", alpha=0.5, label="mpBQR2")
-scatter(ms, sum(Xb[3:8:end,:], dims=1)'/5, alpha=0.5, label="mpBQR3")
-scatter(ms, sum(Xb[4:8:end,:], dims=1)'/5, marker="x", s=200, label="TSQRh")
-#scatter(ms, sum(Xb[5:8:end,:], dims=1)'/5, marker="D", alpha=0.5, label="mpTSQR2")
-scatter(ms, sum(Xb[6:8:end,:], dims=1)'/5, alpha=0.5, label="mpTSQR3")
-scatter(ms, sum(Xb[7:8:end,:], dims=1)'/5, marker="x", s=200, label="hhQRh")
+scatter(ms3, sum(Xb[7:8:end,:], dims=1)'/10, marker="x", s=200, label="hhQRh")
+scatter(ms3, sum(Xb[1:8:end,:], dims=1)'/10, marker="x", s=200, label="BQRh")
+scatter(ms3, sum(Xb[4:8:end,:], dims=1)'/10, marker="x", s=200, label="TSQRh")
 
-scatter(ms, sum(Xb[1:8:end,:], dims=1)'/5, marker="x", s=200, label="BQRh")
-#scatter(ms, sum(Xb[7:8:end,:], dims=1)'/5, marker="D", alpha=0.5, label="hhQRl")
+scatter(ms3, sum(Xb[8:8:end,:], dims=1)'/10, marker="D", alpha=0.5, label="hhQRl")
+scatter(ms3, sum(Xb[2:8:end,:], dims=1)'/10, marker="D", alpha=0.5, label="mpBQR2")
+scatter(ms3, sum(Xb[5:8:end,:], dims=1)'/10, marker="D", alpha=0.5, label="mpTSQR2")
+
+scatter(ms3, sum(Xb[3:8:end,:], dims=1)'/10, alpha=0.5, label="mpBQR3")
+scatter(ms3, sum(Xb[6:8:end,:], dims=1)'/10, alpha=0.5, label="mpTSQR3")
+
+
 legend(bbox_to_anchor=(.75, .5))
-xlim(minimum(ms)*.9, maximum(ms)/.9)
+xlim(minimum(ms3)*.9, maximum(ms3)/.9)
 xlabel("Number of Rows")
 ylabel("Frobenius norm Backward Error")
 title("n=256, r=256, L=2, c=1000")
+=#
 
 
 #=
