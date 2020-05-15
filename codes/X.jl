@@ -7,7 +7,8 @@ include("TSQR.jl")
 using DelimitedFiles
 name = "X"
 l = Float16; h=Float32; d=Float64;
-ms = 2 .^(10:12); n=256;
+#ms = 2 .^(10:12); n=256;
+ms = 2 .^(8:13); n=256;
 trials = 10;
 c=1000.;
 berr = zeros(d, length(ms), trials,8);
@@ -44,6 +45,15 @@ for t = 1 : trials
         berr[i,t,4] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
         oerr[i,t,4] = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
 
+        if m/n<4
+           if m/n<2
+              L=0;
+           else
+              L=1
+           end
+        else
+          L=2
+        end
         # mpTSQR2
         Q, R = par_TSQR(A, L);
         berr[i,t,5] = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
