@@ -7,12 +7,12 @@ include("TSQR.jl")
 using DelimitedFiles
 name = "Y"
 l = Float16; h=Float32; d=Float64;
-m = 4096; ns = 2 .^(8:12);
+m = 4096; ns = 2 .^(8:11);
 trials = 10;
 c=1000.;
 berr = zeros(d, length(ns), trials,8);
 oerr = zeros(d, length(ns), trials,8);
-r = 256; 
+r = 128; 
 L = 2;
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
