@@ -14,9 +14,8 @@ cs2 = exp10.(0:0.5:4)   # A2, D2, G2, J2, Z
 ns = 2 .^(7:11)         # B, H2
 ns2 = 2 .^(7:12)        # B2
 ns3 = 2 .^(6:10)        # H
-rs = 2 .^(6:10)         # C, C2, I2
-rs2 = 2 .^(5:9)         # I, 
-rs3 = 2 .^(8:11)        # W
+rs = 2 .^(6:10)         # C, C2, I2, W
+rs2 = 2 .^(5:9)         # I
 ms = 2 .^(9:11)         # E, K
 ms2 = 2 .^(10:13)       # E2, K2
 ms3 = 2 .^(10:12)        # X
@@ -24,6 +23,22 @@ ms4 = 2 .^(8:13)        # X2
 L = 1 : 5               # F, F2, L, L2
 
 Wb, Wf = loadtxt("W", false);
+fig,ax = subplots()
+ax.set_yscale("log")
+ax.set_xscale("log")
+t = size(Wb)[1]/3;
+m=4096;
+n=4096;
+scatter(rs, sum(Wb[1:3:end,:], dims=1)'/t, marker="x", s=200, label="BQRh")
+scatter(rs, sum(Wb[2:3:end,:], dims=1)'/t, marker="D", alpha=0.5, label="mpBQR2")
+#plot(rs, ((2 ./rs)*eps(Float16)/eps(Float32) .+m/4), label="mpBQR3 bound")
+scatter(rs, sum(Wb[3:3:end,:], dims=1)'/t, alpha=0.5, label="mpBQR3")
+legend(bbox_to_anchor=(.75, .5))
+#xlim(minimum(rs)*.9, maximum(rs)/.9)
+#ylim(minimum(Wb)*.5, 1)
+xlabel("Size of Column block partition")
+ylabel("Frobenius norm Backward Error")
+title("Varying block size while m=n=4096")
 #=
 fig,ax = subplots()
 ax.set_yscale("log")
