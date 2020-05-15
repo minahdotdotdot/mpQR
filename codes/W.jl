@@ -16,8 +16,6 @@ m=2^15
 n=m
 rs = 2 .^ (2:14)
 trials = 1;
-berr = zeros(d, length(rs), 3);
-oerr = zeros(d, length(rs), 3);
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
 for t = 1 : trials
@@ -27,9 +25,10 @@ for t = 1 : trials
         open("../txtfiles/"*name*"b.txt", "a") do io
             writedlm(io,['\n'])
         end
-        A = genmat(m,n,c,l);
-        Ah = Matrix{h}(A);
-        Ad = Matrix{d}(A);
+        Ad = randn(d, m, n); Ad=Ad/norm(Ad)
+        A = Matrix{l}(Ad);#genmat(m,n,c,l);
+        Ah = Matrix{h}(Ad);
+        #Ad = Matrix{d}(A);
 
         # Block high precision
         Q, R = bhh_QR(Ah, r);
@@ -42,7 +41,7 @@ for t = 1 : trials
             writedlm(io,[f1])
         end
 
-
+        #=
         # mpBQR2
         Q, R = bhh_QR(A, r);
         b2 = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
@@ -53,7 +52,7 @@ for t = 1 : trials
         open("../txtfiles/"*name*"f.txt", "a") do io
             writedlm(io,[f2])
         end
-
+        =#
         # mpBQR3
         Q, R = mpbhh_QR(A, r);
         b3 = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
