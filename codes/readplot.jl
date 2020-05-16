@@ -1,4 +1,6 @@
-using DelimitedFiles, PyPlot
+using DelimitedFiles, PyPlot,LaTeXStrings
+l=Float16; h=Float32; d=Float64;
+ul = .5*eps(l); uh = .5*eps(h); ud = .5*eps(d); 
 
 function loadtxt(name::String, ave::Bool=true)
 	b = readdlm("../txtfiles/"*name*"b.txt")[2:end,:];
@@ -14,6 +16,7 @@ cs2 = exp10.(0:0.5:4)   # A2, D2, G2, J2, Z
 ns = 2 .^(7:11)         # B, H2
 ns2 = 2 .^(7:12)        # B2
 ns3 = 2 .^(6:10)        # H
+ns4 = 2 .^(8:11)        # Y
 rs = 2 .^(6:10)         # C, C2, I2, W
 rs2 = 2 .^(5:9)         # I
 ms = 2 .^(9:11)         # E, K
@@ -22,6 +25,38 @@ ms3 = 2 .^(10:12)        # X
 ms4 = 2 .^(8:13)        # X2
 L = 1 : 5               # F, F2, L, L2
 
+Yb, Yf = loadtxt("Y", false);
+m=4096; r=128;
+boundh = m*uh*ns4;
+bound2 = ns4.^(1/2).*(ns4./r)*ul + ns4.^(3/2)*m/4*uh;
+bound3 = ns4.^(3/2).*(100*ul + m/4*uh);
+fig,ax = subplots()
+#ax.set_yscale("log")
+#ax.set_xscale("log")
+#scatter(ns4, sum(Yb[7:8:end,:], dims=1)'/10, marker="x", s=200, label="hhQRh")
+scatter(ns4, sum(Yb[1:8:end,:], dims=1)'/10, marker="x", s=200, label="BQRh", c=:blue)
+#scatter(ns4, sum(Yb[4:8:end,:], dims=1)'/10, marker="x", s=200, label="TSQRh")
+
+#scatter(ns4, sum(Yb[8:8:end,:], dims=1)'/10, marker="D", alpha=0.5, label="hhQRl")
+#scatter(ns4, sum(Yb[2:8:end,:], dims=1)'/10, marker="D", alpha=0.5, label="mpBQR2", c=:red)
+#scatter(ns4, sum(Yb[5:8:end,:], dims=1)'/10, marker="D", alpha=0.5, label="mpTSQR2")
+
+scatter(ns4, sum(Yb[3:8:end,:], dims=1)'/10, alpha=0.5, label="mpBQR3", c=:green)
+#scatter(ns4, sum(Yb[6:8:end,:], dims=1)'/10, alpha=0.5, label="mpTSQR3")
+plot(ns4, boundh,label="BQR bound", c=:blue)
+#plot(ns4, bound2,label="mpBQR2 bound", c=:red)
+plot(ns4, bound3,label="mpBQR3 bound", c=:green)
+
+
+axhline(.5*eps(l), label=L"u^{(l)}")
+legend(bbox_to_anchor=(.9, .9))
+xlim(minimum(ns4)*.9, maximum(ns4)/.9)
+#ylim(minimum(Yb)*.9, maximum(Yb)/.9)
+xlabel("Number of Columns")
+ylabel("Frobenius norm Backward Error")
+title("m=4096, c=1000, r=128")
+
+#=
 Wb, Wf = loadtxt("W", false);
 fig,ax = subplots()
 ax.set_yscale("log")
@@ -39,7 +74,7 @@ legend(bbox_to_anchor=(.75, .5))
 xlabel("Size of Column block partition")
 ylabel("Frobenius norm Backward Error")
 title("Varying block size while m=n=4096")
-#=
+
 fig,ax = subplots()
 ax.set_yscale("log")
 ax.set_xscale("log")
