@@ -7,5 +7,9 @@ function genmat(m::Int,n::Int,κ::T,dt::DataType) where T<:AbstractFloat
 	FR = qr(randn(h,n,n));
 	D = Diagonal(exp10.(-κ/(n-1)*(0:n-1)));
 	#A = Matrix(F.Q)*(α*ones(d,n,n)+Matrix{d}(I, n,n))
-	return FL.Q*(FR.Q*D')'
+	if dt == h
+            return FL.Q*Matrix((FR.Q*D')')
+        else
+            return Matrix{dt}(FL.Q*Matrix((FR.Q*D')'))
+        end
 end
