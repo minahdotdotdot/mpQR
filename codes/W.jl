@@ -19,17 +19,19 @@ trials = 1;
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
 for t = 1 : trials
-	#@printf("\n%d: ",t)
+	@printf("\n%d: ",t)
 	for (i,r) in enumerate(rs)
         @printf("%d\t",i)
-        open("../txtfiles/"*name*"b.txt", "a") do io
+        #= open("../txtfiles/"*name*"b.txt", "a") do io
             writedlm(io,['\n'])
-        end
+        end =#
         Ah = randn(h, m, n); Ah=Ah/norm(Ah)
         A = Matrix{l}(Ah);#genmat(m,n,c,l);
-        #Ah = Matrix{h}(Ad);
-        #Ad = Matrix{d}(A);
-
+        open("../txtfiles/"*name*"b.txt", "a") do io
+            writedlm(io,[string(cond(Ah))*"\n"])
+        end
+        
+        #=
         # Block high precision
         Q, R = bhh_QR(Ah, r);
         b1 = norm(Matrix{h}(Q)*Matrix{h}(R)-Ah)
@@ -40,19 +42,18 @@ for t = 1 : trials
         open("../txtfiles/"*name*"f.txt", "a") do io
             writedlm(io,[f1])
         end
-
-        #=
+        =#
         # mpBQR2
         Q, R = bhh_QR(A, r);
-        b2 = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-        f2 = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
+        b2 = norm(Matrix{h}(Q)*Matrix{h}(R)-Ah)
+        f2 = opnorm(Matrix{h}(Q')*Matrix{h}(Q)-I)
         open("../txtfiles/"*name*"b.txt", "a") do io
             writedlm(io,[b2])
         end
         open("../txtfiles/"*name*"f.txt", "a") do io
             writedlm(io,[f2])
         end
-        =#
+        #=
 print("mp3\t")
         # mpBQR3
         Q, R = mpbhh_QR(A, r);
@@ -64,6 +65,7 @@ print("mp3\t")
         open("../txtfiles/"*name*"f.txt", "a") do io
             writedlm(io,[f3])
         end
+        =#
     end
     #=open("../txtfiles/"*name*"b.txt", "a") do io
         writedlm(io, [berr[:,t,1]'])
