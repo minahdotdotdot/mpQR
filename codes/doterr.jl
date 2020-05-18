@@ -1,4 +1,4 @@
-using LinearAlgebra, DelimitedFiles, MAT
+using LinearAlgebra, DelimitedFiles, MAT, Statistics
 l=Float16;d=Float64;h=Float32
 function halfdot(x::Vector{l}, y::Vector{l})
     s = x[1]*y[1]
@@ -8,7 +8,7 @@ function halfdot(x::Vector{l}, y::Vector{l})
     return s
 end
   
-trials = 2*10^6;
+trials = 20000#2*10^6;
 m=1024;
 errs = Vector{d}(undef,0);
 for i = 1:trials

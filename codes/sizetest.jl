@@ -1,14 +1,22 @@
-using MAT
+using MAT, DelimitedFiles
+include("genmat.jl")
+include("blockHQR.jl")
+include("mpblockHQR.jl")
+include("mpTSQR.jl")
+include("TSQR.jl")
+
+
+l=Float16; h=Float32; d=Float64
 ms = exp10.(range(3, stop=log10(45000), length=14));
 ns = floor.(Int,ms/4);
 ms = ceil.(Int, ms);
 L = 2;
 κs = 1e3*ones(length(ms));
 dt = h;
-name="size"
+name="W3"
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
-function addtofile!(name::String, b::Float64, o::Float64)
+function addtofile!(name::String, b::AbstractFloat, o::AbstractFloat)
     open("../txtfiles/"*name*"b.txt", "a") do io
         writedlm(io,[b])
     end
@@ -23,55 +31,62 @@ for i = 1 : 9#length(ms)
 	A = Matrix{l}(read(file, varname))
 	close(file)
 	Ah = Matrix{h}(A)
-	Ad = Matrix{d}(A)
 
     Q, R = hh_QR(A);
-    b = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-    o= opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
+    Q = Matrix{h}(Q);
+    b = norm(Q*Matrix{h}(R)-Ah)
+    o= opnorm(Q'*Q-I)
     addtofile!(name, b, o);
     
     n = size(A)[2];
     r = ceil(Int, n/4)
     # Block high precision
     Q, R = bhh_QR(Ah, r);
-    b = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-    o = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
+    Q = Matrix{h}(Q);
+    b = norm(Q*Matrix{h}(R)-Ah)
+    o= opnorm(Q'*Q-I)
     addtofile!(name, b, o);
 
     # mpBQR2
     Q, R = bhh_QR(A, r);
-    b = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-    o = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
-	addtofile!(name, b, o);
+    Q = Matrix{h}(Q);
+    b = norm(Q*Matrix{h}(R)-Ah)
+    o= opnorm(Q'*Q-I)
+    addtofile!(name, b, o);
 
     # mpBQR3
     Q, R = mpbhh_QR(A, r);
-    b = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-    o = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
-	addtofile!(name, b, o);
+    Q = Matrix{h}(Q);
+    b = norm(Q*Matrix{h}(R)-Ah)
+    o= opnorm(Q'*Q-I)
+    addtofile!(name, b, o);
 
     # TSQR high precision
     Q, R = par_TSQR(Ah, L);
-    b = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-    o = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
+    Q = Matrix{h}(Q);
+    b = norm(Q*Matrix{h}(R)-Ah)
+    o= opnorm(Q'*Q-I)\
 	addtofile!(name, b, o);
 
     # mpTSQR2
     Q, R = par_TSQR(A, L);
-    b = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-    o = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
-	addtofile!(name, b, o);
+    Q = Matrix{h}(Q);
+    b = norm(Q*Matrix{h}(R)-Ah)
+    o= opnorm(Q'*Q-I)
+    addtofile!(name, b, o);
 
     # mpTSQR3
     Q, R = mpTSQR(A, L);
-    b = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-    o = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
-	addtofile!(name, b, o);
+    Q = Matrix{h}(Q);
+    b = norm(Q*Matrix{h}(R)-Ah)
+    o= opnorm(Q'*Q-I)
+    addtofile!(name, b, o);
 
     # hhQr
     Q, R = hh_QR(Ah);
-    b = norm(Matrix{d}(Q)*Matrix{d}(R)-Ad)
-    o = opnorm(Matrix{d}(Q')*Matrix{d}(Q)-I)
+    Q = Matrix{h}(Q);
+    b = norm(Q*Matrix{h}(R)-Ah)
+    o= opnorm(Q'*Q-I)
     addtofile!(name, b, o);
     
     addtofile!(name, -1., -1.);
