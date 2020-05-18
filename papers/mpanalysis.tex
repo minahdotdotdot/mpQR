@@ -69,6 +69,38 @@ Finally, in \cref{sec:mp-2}, we consider all 3 algorithms with the ad hoc mixed 
 We directly apply \cref{eqn:HQR-mp} to all instances of HQR to the error analyses for BQR and TSQR in \cref{sec:algo}.
 Therefore, a cast down operation should occur at every block/level and the insertion of low precision errors $u^{(l)}$ should be somewhat correlated to the number of blocks and levels. 
 
+TensorCore's block FMA computes 
+\begin{equation}
+\hat{\bb{D}} =\fl_{TC}(\bb{C} + \bb{A}\bb{B}),\qquad \bb{C},\bb{D}\in\F_{\text{fp16}}^{4\times 4}\text{ or }\F_{\text{fp32}}^{4\times 4},\text{ and } \bb{A},\bb{B}\in\F_{\text{fp16}}^{4\times 4},\label{eqn:bFMA}
+\end{equation}
+and employs \emph{full} precision products and fp32 summation accumulate.
+Here, the \emph{full} precision multiplication is exact due to the precisions and exponent ranges of fp16 and fp32. 
+As a quick proof, consider $x^{(\text{fp16})} = \pm\mu_x2^{\eta_x -11},y^{(\text{fp16})} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$, and note that the significand and exponent ranges for fp32 are $[0, 2^{24}-1]$ and $[-127,128]$.
+Then the product in full precision is
+\[x^{(\text{fp16})}y^{(\text{fp16})} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},\]
+where  $\mu_x\mu_y \in[0,(2^{11}-1)^2] \subseteq [0,2^{24}-1]$ and $\eta_x+\eta_y +2\in[-28,34]\subseteq[-127,128]$, which yields the product in exact arithmetic.
+In \cite{Blanchard2019}, the authors investigate all four possible matrix-matrix multiplication routines in TensorCore, which depend on whether $\bb{C}$ and $\bb{D}$ are computed in fp16 or fp32. 
+They also note that matrices larger than $4$-by-$4$ can still be computed using this block FMA by accumulating matrix sums with $\bb{C}\in\F_{\text{fp32}}^{4\times 4}$.
+Suppose that we aim to compute a fp16 matrix product of two fp16 matrices, $\bb{X}\in\F_{(fp16)}^{m\times p}$, $\bb{Y}\in\F_{(fp16)}^{p\times n}$, and $\bb{Z}=\bb{XY}\in\F_{\text{fp16}}^{m\times n}$.
+We pad $\bb{X},\bb{Y}$ with zeros so that all matrix dimensions are multiples of $4$ and the matrix product can be computed with the TensorCore block FMA.
+Let $\bb{Q}_{[i,j]}:= \bb{Q}[4(i-1)+1:4i,4(j-1)+1:4j]$ refer to the $(i,j)^{th}$ $4$-by-$4$ block for any $\bb{Q}\in\{\bb{X},\bb{Y},\bb{Z}\}$.
+Then, we compute $\bb{Z}_{[i,j]}$ via \[
+\bb{Z}_{[i,j]} = \sum_{k=1}^{\lceil p/4\rceil} \bb{X}{[i,k]} \bb{Y}{[k,j]},
+\]
+where we use \cref{eqn:bFMA} by initializing with $\bb{A}^{(1)}:= \bb{X}_{[i,1]}$, $\bb{B}^{(1)}:= \bb{Y}_{[1,j]}$, and $\bb{C}^{(1)}:= \bb{0}_{4\times 4}$ and setting $\bb{A}^{(k)}:= \bb{X}_{[i,k]}$, $\bb{B}^{(k)}:= \bb{Y}_{[k,j]}$, and $\bb{C}^{(k)}:= \bb{D}^{(k-1)}$ for $k=2:\lceil p/4\rceil$.
+By setting $\bb{C}^{(k)}, \bb{D}^{(k)}\in\F_{\text{fp32}}^{4\times 4}$ for $k>1$ and only casting down at the end via $\bb{Z}_{[i,j]} =$ fp16$(\bb{D}^{(\lceil p/4\rceil)})$, we mostly employ fp32 arithmetic for a mixed precision matrix product routine whose inputs and output are in fp16.
+For example, take $p=8$.
+Then,
+\begin{align*}
+\bb{D}^{(1)} &= \fl_{TC}(\bb{X}_{[i,1]} \bb{Y}_{[1,j]})\in\F_{\text{fp32}}^{4\times 4}\\
+\bb{D}^{(2)} &= \fl_{TC}(\bb{X}_{[i,2]} \bb{Y}_{[2,j]} + \bb{D}^{(1)})\in\F_{\text{fp32}}^{4\times 4}\\
+\bb{Z}_{[i,j]} &= \text{\tt castdown}(\bb{D}^{(2)})\in\F_{\text{fp16}}^{4\times 4}.
+\end{align*}
+Adapting the rounding error analysis in \cite{Blanchard2019} into this specific mixed precision matrix product setting yields the bound 
+\begin{equation}
+|\bb{Z}-\fl(\bb{Z})| \leq \left(u^{(\text{fp16})}+ \gamma_{p/4}^{(\text{fp32})}+u^{(\text{fp16})} \gamma_{p/4}^{(\text{fp32})}\right)|\bb{X}|\bb{Y}|.
+\end{equation}
+
 \subsubsection{Round down at block level: BQR}\label{sec:mp-3b}
 %Let us consider a setting in which only $M$ blocks of width $r$ can be loaded onto memory.
 %Then, lines 2-6 of \cref{algo:blockHQR} can be modified via \cref{algo:mpBQR}.

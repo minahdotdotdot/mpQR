@@ -24,7 +24,7 @@ and
 Training deep artificial neural networks by employing lower precision arithmetic to various tasks such as multiplication \cite{Courbariaux2014Mult} and storage \cite{Courbariaux2014Storage} can easily be implemented on GPUs and are already a common practice in data science applications.\par
 
 The low precision computing environments that we consider are \emph{mixed precision} settings, which are designed to imitate those of new GPUs that employ multiple precision types for certain tasks. 
-For example, Tesla V100's Tensor Cores perform matrix-multiply-and-accumulate of half precision input data with exact products and single precision (32 bits) summation accumulate \cite{nvdia}.
+For example, Tesla V100's TensorCores perform matrix products of half precision input data with exact products and single precision (32 bits) summation accumulate \cite{nvdia}.
 The existing rounding error analyses are built within what we call a \emph{uniform precision} setting, which is the assumption that all arithmetic operations and storage are performed via the same precision.
 In this work, we develop a framework for deterministic mixed precision rounding error analysis, and explore half-precision Householder QR factorization (HQR) algorithms for data and graph analysis applications. 
 QR factorization is known to provide a backward stable solution to the linear least squares problem and thus, is ideal for mixed precision. 
@@ -32,7 +32,7 @@ QR factorization is known to provide a backward stable solution to the linear le
 %TODO: algorithms with better stability should be looked at first in mixed precision. 
 
 However, additional analysis is needed as the additional round-off error will effect orthogonality, and thus the accuracy of the solution. 
-Here, we focus on analyzing specific algorithms in a specific set of types (IEEE754 half (fp16), single (fp32, and double(fp64)), but the framework we develop 
+Here, we focus on analyzing specific algorithms in a specific set of types (IEEE754 half (fp16), single (fp32), and double(fp64)), but the framework we develop 
 could be used on different algorithms or different floating point types (such as bfloat16 in \cite{tagliavini2018floating}).\par
 
 This work discusses several aspects of using mixed precision arithmetic: (i) error analysis that can more accurately describe mixed precision arithmetic than existing analyses, (ii) algorithmic design that is more resistant against lower numerical stability associated with lower precision types, and (iii) an example where mixed precision implementation performs as sufficiently as double-precision implementations. 
