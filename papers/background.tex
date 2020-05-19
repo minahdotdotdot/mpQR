@@ -95,7 +95,7 @@ when we assume $x+y+z\neq 0$.\par
 
 Although Lemma~\ref{lem:gamma} requires $ku<1$, we actually need $ku <\frac{1}{2}$ to maintain a meaningful relative error bound as this assumption implies $\gamma_k < 1$ and guarantees a relative error below 100\%. 
 Since higher precision types have smaller unit round-offs, they can tolerate more successive FLOPs than lower precision floating types before reaching $\gamma_m=1$.
-For example, the 3 IEEE standard fp types meet this requirement at $1/2=2^{10}u^{(\text{fp16})}=2^{23}u^{(\text{fp32})}=2^{52}u^{(\text{fp64})}$.
+For example, the IEEE types introduced in \cref{table:ieee} meet this requirement at $1/2=2^{10}u^{(\text{fp16})}=2^{23}u^{(\text{fp32})}=2^{52}u^{(\text{fp64})}$.
 %Table \ref{table:ieeen} shows the maximum number of successive floating point operations that still guarantees a relative error below $100$\% for various floating point types. 
 %\begin{table}[h]
 %	\centering
@@ -125,7 +125,7 @@ For example, let $\bb{x}=\bb{y}$.
 Then we have exactly $|\bb{x}^{\top}\bb{x}| = |\bb{x}|^{\top}|\bb{x}|=\|\bb{x}\|_2^2$, which leads to a forward error: $\left|\|\bb{x}\|_2^2 - \fl(\|\bb{x}\|_2^2)\right| \leq \gamma_m \|\bb{x}\|_2^2$.
 Since vectors of length $m$ accumulate rounding errors that are bounded by $\gamma_{m}$, the dot products of vectors computed in fp16 already face a 100\% relative error bound in the worst-case scenario ($\gamma_{512}^\text{(\text{fp16})}=1$). \par
 
-We present a simple numerical experiment that shows that the standard deterministic error bound is too pessimistic and cannot be practically used to approximate rounding error for half-precision arithmetic. 
+A simple numerical experiment shows that the standard deterministic error bound is too pessimistic and cannot be practically used to approximate rounding error for half-precision arithmetic. 
 In this experiment, we generated 2 million random fp16 vectors of length $1024$ from two random distributions: the standard normal distribution, $N(0,1)$, and the uniform distribution over $(0,1)$.
 Half precision arithmetic was simulated by calling \cref{algo:simulate}, which was proven to be a faithful simulation in \cite{HighamPranesh2019b}, for every FLOP (multiplication and addition for the dot product).
 %TODO: comment reviewer

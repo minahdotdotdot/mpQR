@@ -1,29 +1,58 @@
-Let us first consider rounding errors incurred from carrying out HQR in high precision, then cast down at the very end.
-This could be useful in applications that require economical storage but have enough memory to carry out HQR in higher precision, or in block algorithms as will be shown in \cref{sec:mp-3,sec:mp-2}.
-Consider two floating point types $\F_{l}$ and $\F_{h}$ where $\F_{l}\subseteq \F_{h}$, and for all $x,y\in\F_{l}$, the exact product $xy$ can be represented in $\F_{h}$.
-Some example pairs of $\{\F_{l}, \F_{h}\}$ include $\{\text{fp16}, \text{fp32}\}$, $\{\text{fp32}, \text{fp64}\}$, and $\{\text{fp16}, \text{fp64}\}$.
-Suppose that the matrix to be factorized is stored with low precision numbers, $\bb{A}\in\F_{l}^{m\times n}$.
-Casting up adds no rounding errors, so we can directly apply the analysis that culminated in \cref{thm:feHQR}, and we only consider the columnwise forward error in the $\bb{Q}$ factor.
-Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR} = \bb{Q} + \Delta \bb{Q}_{HQR}$ is bounded normwise via $\|\Delta \bb{Q}_{HQR}[:,j]\|_2 \leq n\tilde{\gamma}_{m}^{h},$ and incurs an extra rounding error when $\bb{Q}\in\F_{h}^{m\times n}$ is cast down to $F_{l}^{m\times n}$.\par
+In this section, we consider three different mixed precision settings for the QR factorization, all of which take in a matrix $\bb{A}$ stored in low precision and return $\bb{Q},\bb{R}$ both represented in low precision. 
+First, we consider a trivial mixed precision setting where HQR, BQR, and TSQR are computed in high precision after casting up the input matrix at the beginning, and casting down the resulting high precision factors to low precision. 
+Then in \cref{sec:mp-3}, we modify BQR and TSQR to utilize level-3 BLAS operations and TensorCore bFMAs for the matrix product subroutines. 
+Finally, we impose \cref{assump:mp} in \cref{sec:mp-2} to see how a mixed precision inner product impacts HQR, BQR, and TSQR when applied in level-2 BLAS operations.
 
-First, consider casting down a higher precision number $x\in\F_h$ to $\F_l$ without overflow. 
-We result in \[\text{\tt castdown}(x) = x(1+\dd^{(l)}),\;\; |\dd^{(l)}| < u^{(l)},\]
-and accrues a single rounding error in the lower precision.
-Extending this result, we represent the backward error of a casting down a vector in $\F_h^{(m)}$ with a linear transformation, $\bb{I}^{(l)}\in\R^{m\times m}$.
-This transformation is a diagonal perturbation of the identity, $\bb{I}_m$.
-For some vector $\bb{x}\in\F_h$, the cast down operation yields
+\paragraph{Backward error of casting down vectors} First, consider 
+%casting down a scalar $x\in\F_h$ to $\F_l$.
+%Without overflow or underflow, this results in \[\text{\tt castdown}_{l}(x) = x(1+\dd^{(l)}),\;\; |\dd^{(l)}| < u^{(l)},\]
+%and accrues a single rounding error in the lower precision.
+%Now, let us consider 
+casting down a vector  $\bb{x}\in\F_h^{(m)}$.
+The componentwise forward error is, \[\text{\tt castdown}_{l}(\bb{x}) = \bb{x} + \Delta {\bb{x}},\;\; |\Delta\bb{x}| < u^{(l)}|\bb{x}|.\]
+We use this to represent the backward error of a casting down a vector with a linear transformation, $\bb{I}^{(l)}:=\bb{I} +\bb{E}\in\R^{m\times m}$, a diagonal perturbation of the identity.
+%That is, 
+%For some vector $\bb{x}\in\F_h$, the cast down operation yields
+We write,
 \begin{equation}
-	\bb{x}^{(l)} := \text{\tt castdown}(\bb{x}^{(h)}) = \bb{I}_{l}\bb{x}^{(h)} = (\bb{I}+\bb{E})\bb{x}^{(h)} = \bb{x}^{(h)}+\Delta \bb{x},
+\bb{x}^{(l)} := \text{\tt castdown}(\bb{x}^{(h)}) = \bb{I}^{(l)}\bb{x}^{(h)} = (\bb{I}+\bb{E})\bb{x}^{(h)} = \bb{x}^{(h)}+\Delta \bb{x},
 \end{equation}
 where $|\Delta \bb{x}| \leq u^{(l)} |\bb{x}^{(h)}|$ and  $\|\Delta \bb{x}\|_2 \leq u^{(l)} \|\bb{x}^{(h)}\|_2$.
-Then, $\bb{E} = \Delta \bb{x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same argument as in \cref{eqn:outer} to form a backward matrix norm bound, 
+Thus, $\bb{E} = \Delta \bb{x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same argument as in \cref{eqn:outer} to form a backward matrix norm bound, 
 \begin{equation}
-	\|\bb{E}\|_F\leq u^{(l)}. \label{eqn:castdown}
+\|\bb{E}\|_F\leq u^{(l)}. \label{eqn:castdown}
 \end{equation}
+
+\paragraph{Casting down after HQR in high precision} Let us consider the trivial case of carrying out HQR in high precision and casting down at the very end.
+This is useful in for the analysis of mixed precision
+%applications that require economical storage but have enough memory to carry out HQR in higher precision, or in 
+block algorithms as will be shown in \cref{sec:mp-3,sec:mp-2}.
+If the two floating point types $\F_{l}$ and $\F_{h}$ satisfy $\F_{l}\subseteq \F_{h}$
+% and for all $x,y\in\F_{l}$, the exact product $xy$ can be represented in $\F_{h}$.
+%Some example pairs of $\{\F_{l}, \F_{h}\}$ include $\{\text{fp16}, \text{fp32}\}$, $\{\text{fp32}, \text{fp64}\}$, and $\{\text{fp16}, \text{fp64}\}$.
+%Suppose that 
+and the matrix to be factorized is stored with low precision numbers, $\bb{A}\in\F_{l}^{m\times n}$, then casting up adds no rounding errors.
+Therefore, we can directly apply the analysis that culminated in \cref{thm:feHQR}, and we only consider the columnwise forward error in the $\bb{Q}$ factor.
+Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR} = \bb{Q} + \Delta \bb{Q}_{HQR}$ is bounded normwise via $\|\Delta \bb{Q}_{HQR}[:,j]\|_2 \leq n\tilde{\gamma}_{m}^{h},$ and incurs an extra rounding error when $\hat{\bb{Q}}_{HQR}\in\F_{h}^{m\times n}$ is cast down to $\F_{l}^{m\times n}$.\par
+
+%Casting down $x\in\F_h$ to $\F_l$ without overflow or underflow results in \[\text{\tt castdown}(x) = x(1+\dd^{(l)}),\;\; |\dd^{(l)}| < u^{(l)},\]
+%and accrues a single rounding error in the lower precision.
+%Extending this result, we represent the backward error of a casting down a vector in $\F_h^{(m)}$ with a linear transformation, $\bb{I}^{(l)}\in\R^{m\times m}$.
+%This transformation is a diagonal perturbation of the identity, $\bb{I}_m$.
+%For some vector $\bb{x}\in\F_h$, the cast down operation yields
+%\begin{equation}
+%	\bb{x}^{(l)} := \text{\tt castdown}(\bb{x}^{(h)}) = \bb{I}_{l}\bb{x}^{(h)} = (\bb{I}+\bb{E})\bb{x}^{(h)} = \bb{x}^{(h)}+\Delta \bb{x},
+%\end{equation}
+%where $|\Delta \bb{x}| \leq u^{(l)} |\bb{x}^{(h)}|$ and  $\|\Delta \bb{x}\|_2 \leq u^{(l)} \|\bb{x}^{(h)}\|_2$.
+%Then, $\bb{E} = \Delta \bb{x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same argument as in \cref{eqn:outer} to form a backward matrix norm bound, 
+%\begin{equation}
+%	\|\bb{E}\|_F\leq u^{(l)}. \label{eqn:castdown}
+%\end{equation}
 Using this in \cref{lem:3.7} to analyze the forward norm error for the $j^{th}$ column of the $\bb{Q}$ factor computed with \cref{algo:hhQR} yields
 \begin{equation}
-	\|\text{\tt castdown}(\hat{\bb{Q}}_{HQR}[:,j]) - \bb{Q}[:,j]\|_2 = \|\bb{I}_l\hat{\bb{P}}_{1}\cdots\hat{\bb{P}}_{n}\hat{\bb{e}}_j\|_2 \leq u^{(l)}+n\tilde{\gamma}_m^{(h)} + nu^{(l)}\tilde{\gamma}_m^{(h)}.\label{eqn:HQR-mp}
+	\|(\text{\tt castdown}(\hat{\bb{Q}}_{HQR})- \bb{Q})[:,j]\|_2 = \|(\bb{I}^{(l)}\hat{\bb{P}}_{1}\cdots\hat{\bb{P}}_{n}-\bb{P}_{1}\cdots\bb{P}_{n})\hat{\bb{e}}_j\|_2 \leq u^{(l)}+n\tilde{\gamma}_m^{(h)} + nu^{(l)}\tilde{\gamma}_m^{(h)}.\label{eqn:HQR-mp}
 \end{equation}
+The final castdown operation increases the upper bound by $u^{(l)}$ and the size of $\bb{A}$ has no impact on this extra rounding error. 
 %To convert this bound to the lower precision, we define function $d$,
 %\begin{equation}
 %d(m,u^{(h)}, q,u^{(l)}) := \lceil (qu^{(l)}+mu^{(h)})/u^{(l)}\rceil = \cO(q+mu^{(h)}/u^{(l)}),\label{eqn:d}
@@ -45,60 +74,62 @@ Using this in \cref{lem:3.7} to analyze the forward norm error for the $j^{th}$ 
 %Since $\hat{\bb{Q}}_{HQR}$ should be almost orthogonal with respect to the higher precision, we can expect all components to be within the dynamic range of $\F_{l}$.
 %In \ref{sec:mp-f}, we look at the rounding errors incurred from carrying out a QR factorization in a high precision, then cast down at the very end.
 %Since this requires only one cast down operation, this is very similar to the results from the standard uniform precision analysis.
-Similarly, we can apply the operator $\bb{I}^{(l)}$ to cast down any quantity stored in the higher precision. 
-If BQR and TSQR were computed entirely in the higher precision then cast down at the end, then the corresponding forward matrix norm errors on the $\bb{Q}$ factor are
-\begin{align*}
-	\|\hat{\bb{Q}}_{BQR}\|_F&\leq u^{(l)}+n\tilde{\gamma}_m^{(h)} +u^{(l)}n\tilde{\gamma}_m^{(h)},\\
-	%\leq \tilde{\gamma}_{d(nm,u^{(h)},u^{(l)})}^{(l)},\\
-	\|\hat{\bb{Q}}_{TSQR}\|_F&\leq u^{(l)}+n(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}) +u^{(l)}n(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}).
-	%\leq \tilde{\gamma}_{d(n(L2n+m2^{-L}),u^{(h)},1,u^{(l)})}^{(l)}.
-\end{align*}
-
-We will modify BQR and TSQR so that matrix-matrix multiply and accumulate operations can be performed on TensorCore block FMAs which work on $4$-by-$4$ matrices, $\bb{A},\bb{B},\bb{C},$, and $\bb{D}$ that compute \[
-\bb{D} = \fl( \bb{C} +\bb{A}\bb{B}),\]
-where $\bb{A},\bb{B}\in \F_{\text{fp16}}^{4\times 4}$ and  $\bb{C},\bb{D}\in \F_{\text{fp16}}^{4\times 4}$ or $\bb{C},\bb{D}\in \F_{\text{fp32}}^{4\times 4}$.
-The inner product step in forming $\bb{A}\bb{B}$ is similar to \cref{assump:mp} in that full precision (exact) products are accumulated in the higher precision, fp32.
-One difference is that the cast down operation at the end of the inner product is optional.
-Matrices larger than $4$-by-$4$'s can be multiplied and added using this optional cast down feature and by using block matrix multiplication with $4$-by-$4$ blocks.
-In \cref{sec:mp-3}, we consider performing BQR and TSQR with high precision FLOPs within a block/level, but cast down to low precision in between blocks and at the very end.
-Finally, in \cref{sec:mp-2}, we consider all 3 algorithms with the ad hoc mixed precision setting described in \cref{assump:mp} where inner products are performed in high precision before being cast down, and all other operations are computed in low precision.
+%Similarly, we can apply the operator $\bb{I}^{(l)}$ to cast down any quantity stored in the higher precision. 
+%We consider this trivial case for HQR since BQR and TSQR use it as a subroutine. 
+%If we consider the same trivial mixed precision setting for BQR and TSQR, then the corresponding forward matrix norm errors on the $\bb{Q}$ factor are
+%\begin{align*}
+%	\|\hat{\bb{Q}}_{BQR}\|_F&\leq u^{(l)}+n\tilde{\gamma}_m^{(h)} +u^{(l)}n\tilde{\gamma}_m^{(h)},\\
+%	%\leq \tilde{\gamma}_{d(nm,u^{(h)},u^{(l)})}^{(l)},\\
+%	\|\hat{\bb{Q}}_{TSQR}\|_F&\leq u^{(l)}+n(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}) +u^{(l)}n(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}).
+%	%\leq \tilde{\gamma}_{d(n(L2n+m2^{-L}),u^{(h)},1,u^{(l)})}^{(l)}.
+%\end{align*}
+Applying this trivial mixed precision setting to BQR and TSQR would simply increases the error bound by approximately $u^{(l)}$ all the while taking an even longer time than the high precision implementation due the extra cast down and cast up operations.
+Therefore, we do not analyze the rounding error analysis of this mixed precision variant of BQR and TSQR.
+However, we will use this mixed precision HQR as a subroutine of the mixed precision BQR and TSQR in the following section. 
+%We will modify BQR and TSQR so that matrix-matrix multiply and accumulate operations can be performed on TensorCore block FMAs which work on $4$-by-$4$ matrices, $\bb{A},\bb{B},\bb{C},$, and $\bb{D}$ that compute \[
+%\bb{D} = \fl( \bb{C} +\bb{A}\bb{B}),\]
+%where $\bb{A},\bb{B}\in \F_{\text{fp16}}^{4\times 4}$ and  $\bb{C},\bb{D}\in \F_{\text{fp16}}^{4\times 4}$ or $\bb{C},\bb{D}\in \F_{\text{fp32}}^{4\times 4}$.
+%The inner product step in forming $\bb{A}\bb{B}$ is similar to \cref{assump:mp} in that full precision (exact) products are accumulated in the higher precision, fp32.
+%One difference is that the cast down operation at the end of the inner product is optional.
+%Matrices larger than $4$-by-$4$'s can be multiplied and added using this optional cast down feature and by using block matrix multiplication with $4$-by-$4$ blocks.
+%In \cref{sec:mp-3}, we consider performing BQR and TSQR with high precision FLOPs within a block/level, but cast down to low precision in between blocks and at the very end.
+%Finally, in \cref{sec:mp-2}, we consider all 3 algorithms with the ad hoc mixed precision setting described in \cref{assump:mp} where inner products are performed in high precision before being cast down, and all other operations are computed in low precision.
 %\subsection{Round down at the end of the factorization}\label{sec:mp-f}
 %Results in this section are quite straight forward, but 
 %\subsubsection{HQR}
 \subsection{Round down at block-level (BLAS-3)}\label{sec:mp-3}
-We directly apply \cref{eqn:HQR-mp} to all instances of HQR to the error analyses for BQR and TSQR in \cref{sec:algo}.
-Therefore, a cast down operation should occur at every block/level and the insertion of low precision errors $u^{(l)}$ should be somewhat correlated to the number of blocks and levels. 
-
-TensorCore's block FMA computes 
+The mixed precision setting in this section is designed to meet the below requirements.
+\begin{enumerate}
+	\item Modify \Cref{algo:blockHQR,algo:par_tsqr} to maximize level-3 BLAS operations and use TensorCore bFMAs. 
+	\item Apply \cref{eqn:HQR-mp} to all instances of HQR to the error analyses for BQR and TSQR in \cref{sec:algo}.
+	\item Cast down quantities at every block/level and the insertion of low precision errors $u^{(l)}$ should be somewhat correlated to the number of blocks and levels. 
+	\item Both input and output of the various QR factorization algorithms are given in the low precision. 
+\end{enumerate}
+TensorCore's bFMA computes 
 \begin{equation}
 \hat{\bb{D}} =\fl_{TC}(\bb{C} + \bb{A}\bb{B}),\qquad \bb{C},\bb{D}\in\F_{\text{fp16}}^{4\times 4}\text{ or }\F_{\text{fp32}}^{4\times 4},\text{ and } \bb{A},\bb{B}\in\F_{\text{fp16}}^{4\times 4},\label{eqn:bFMA}
 \end{equation}
 and employs \emph{full} precision products and fp32 summation accumulate.
-Here, the \emph{full} precision multiplication is exact due to the precisions and exponent ranges of fp16 and fp32. 
-As a quick proof, consider $x^{(\text{fp16})} = \pm\mu_x2^{\eta_x -11},y^{(\text{fp16})} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$, and note that the significand and exponent ranges for fp32 are $[0, 2^{24}-1]$ and $[-127,128]$.
-Then the product in full precision is
-\[x^{(\text{fp16})}y^{(\text{fp16})} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},\]
-where  $\mu_x\mu_y \in[0,(2^{11}-1)^2] \subseteq [0,2^{24}-1]$ and $\eta_x+\eta_y +2\in[-28,34]\subseteq[-127,128]$, which yields the product in exact arithmetic.
+Here, the \emph{full} precision multiplication is exact as explained in \cref{sec:background}.
 In \cite{Blanchard2019}, the authors investigate all four possible matrix-matrix multiplication routines in TensorCore, which depend on whether $\bb{C}$ and $\bb{D}$ are computed in fp16 or fp32. 
 They also note that matrices larger than $4$-by-$4$ can still be computed using this block FMA by accumulating matrix sums with $\bb{C}\in\F_{\text{fp32}}^{4\times 4}$.
 Suppose that we aim to compute a fp16 matrix product of two fp16 matrices, $\bb{X}\in\F_{(fp16)}^{m\times p}$, $\bb{Y}\in\F_{(fp16)}^{p\times n}$, and $\bb{Z}=\bb{XY}\in\F_{\text{fp16}}^{m\times n}$.
 We pad $\bb{X},\bb{Y}$ with zeros so that all matrix dimensions are multiples of $4$ and the matrix product can be computed with the TensorCore block FMA.
 Let $\bb{Q}_{[i,j]}:= \bb{Q}[4(i-1)+1:4i,4(j-1)+1:4j]$ refer to the $(i,j)^{th}$ $4$-by-$4$ block for any $\bb{Q}\in\{\bb{X},\bb{Y},\bb{Z}\}$.
 Then, we compute $\bb{Z}_{[i,j]}$ via \[
-\bb{Z}_{[i,j]} = \sum_{k=1}^{\lceil p/4\rceil} \bb{X}{[i,k]} \bb{Y}{[k,j]},
+\bb{Z}_{[i,j]} = \sum_{k=1}^{\lceil p/4\rceil} \bb{X}_{[i,k]} \bb{Y}_{[k,j]},
 \]
 where we use \cref{eqn:bFMA} by initializing with $\bb{A}^{(1)}:= \bb{X}_{[i,1]}$, $\bb{B}^{(1)}:= \bb{Y}_{[1,j]}$, and $\bb{C}^{(1)}:= \bb{0}_{4\times 4}$ and setting $\bb{A}^{(k)}:= \bb{X}_{[i,k]}$, $\bb{B}^{(k)}:= \bb{Y}_{[k,j]}$, and $\bb{C}^{(k)}:= \bb{D}^{(k-1)}$ for $k=2:\lceil p/4\rceil$.
 By setting $\bb{C}^{(k)}, \bb{D}^{(k)}\in\F_{\text{fp32}}^{4\times 4}$ for $k>1$ and only casting down at the end via $\bb{Z}_{[i,j]} =$ fp16$(\bb{D}^{(\lceil p/4\rceil)})$, we mostly employ fp32 arithmetic for a mixed precision matrix product routine whose inputs and output are in fp16.
 For example, take $p=8$.
 Then,
 \begin{align*}
-\bb{D}^{(1)} &= \fl_{TC}(\bb{X}_{[i,1]} \bb{Y}_{[1,j]})\in\F_{\text{fp32}}^{4\times 4}\\
-\bb{D}^{(2)} &= \fl_{TC}(\bb{X}_{[i,2]} \bb{Y}_{[2,j]} + \bb{D}^{(1)})\in\F_{\text{fp32}}^{4\times 4}\\
+\bb{D}^{(1)} &= \fl_{TC}(\bb{X}_{[i,1]} \bb{Y}_{[1,j]}),\quad\bb{D}^{(2)} = \fl_{TC}(\bb{X}_{[i,2]} \bb{Y}_{[2,j]} + \bb{D}^{(1)})\in\F_{\text{fp32}}^{4\times 4}\\
 \bb{Z}_{[i,j]} &= \text{\tt castdown}(\bb{D}^{(2)})\in\F_{\text{fp16}}^{4\times 4}.
 \end{align*}
-Adapting the rounding error analysis in \cite{Blanchard2019} into this specific mixed precision matrix product setting yields the bound 
+Adapting the rounding error analysis in \cite{Blanchard2019} into this specific mixed precision matrix product setting yields the componentwise forward bound 
 \begin{equation}
-|\bb{Z}-\fl(\bb{Z})| \leq \left(u^{(\text{fp16})}+ \gamma_{p/4}^{(\text{fp32})}+u^{(\text{fp16})} \gamma_{p/4}^{(\text{fp32})}\right)|\bb{X}|\bb{Y}|.
+|\bb{Z}-\fl(\bb{Z})| \leq \left(u^{(\text{fp16})}+ \gamma_{p/4}^{(\text{fp32})}+u^{(\text{fp16})} \gamma_{p/4}^{(\text{fp32})}\right)|\bb{X}||\bb{Y}|.\label{eqn:bFMAerr}
 \end{equation}
 
 \subsubsection{Round down at block level: BQR}\label{sec:mp-3b}
@@ -120,35 +151,40 @@ Adapting the rounding error analysis in \cite{Blanchard2019} into this specific 
 %\end{algorithm2e}
 %We now impose a mixed-precision setting where the inner for-loop in \cref{algo:mpBQR} is performed in high precision, but the WY updates for the outer loop is stored in low precision and only $M$ blocks is updated at a time due to the memory constraint.
 %These low precision WY updates would be used to build the $\bb{Q}$ factor serially in groups of $M$.
-Consider the input matrix, $\bb{A}\in\F_l^{m\times n}$, partitioned into $N$ blocks of $r$ columns, $\bb{A}=[\bb{C}_1 \cdots \bb{C}_N]$ as was in the analysis in \cref{sec:BQR}.
-We assume that the returned factors should also be represented in the lower precision, $\F_l$, and modify \cref{algo:blockHQR} so that matrix-matrix multiply and accumulate operations are performed with TensorCore block FMAs.
-Since approximately $\cO(1/N)$ (small) fraction of FLOPs are performed in level-1 and level-2 BLAS operations, we assume that we can afford to compute these in high precision.
-Let us store the $\bb{R}$ factor from each call to HQR in low precision, and keep the HH constants and vectors ($\bm{\beta}_k^{(j)}$,$\bb{v}_k^{(j)}$)in high precision to build the WY representation.
-Since the WY representations ($\bb{W}_k$, $\bb{V}_k$) should be stored in low precision, we enforce a cast down at the end of \cref{algo:buildWY}.
-Finally, all but the last WY update for each block are stored in the higher precision, and the last WY update returned in low precision. 
-This mixed precision BQR variant is rich in level-3 BLAS operations can be implemented with TensorCore block FMAs easily, and is formally introduced in \cref{algo:mpBQR}.
+Consider the input matrix, $\bb{A}\in\F_l^{m\times n}$, partitioned into $N$ blocks of $r$ columns, $\bb{A}=[\bb{C}_1 \cdots \bb{C}_N]$ as in \cref{sec:BQR}.
+%Since \cref{algo:blockHQR} uses level-3 BLAS operations on $1-\cO(1/N)$ fraction of all the FLOPs, we modify it so that those operations are performed with TensorCore bFMAs. 
+%%We assume that the returned factors should also be represented in the lower precision, $\F_l$, and modify \cref{algo:blockHQR} so that matrix-matrix multiply and accumulate operations are performed with TensorCore block FMAs.
+%The remaining FLOPs are a relatively small($\cO(1/N)$) fraction in comparison, and we assume that we can afford to compute these level-1 and 2 BLAS operations using high precision.
+\Cref{algo:mpBQR} shows a mixed precision variant of BQR that maximizes the use of bFMAs but uses high precision arithmetic for level-1 and 2 BLAS operations which are only a $\cO(1/N)$ fraction of the total number of FLOPs. 
+Each block is casted up to compute a high precision HQR and to form the WY representation. 
+The WY representation is then casted down to low precision since the bFMAs require low precision inputs for matrix products, and the $\bb{R}$ factor from the high precision HQR can be casted down to return a low precision $\bb{R}$ factor at the very end. 
+Since the cast down operations for the $\bb{R}$ factor and the WY representations occur at every block, we can expect columnwise error bound for 
+\cref{algo:mpBQR} to increase by approximately $Nu^{(l)}$ from the error bound for \cref{algo:blockHQR}.
+%The $\bb{R}$ factor from each call to HQR is stored in low precision, but the HH constants and vectors ($\bm{\beta}_k^{(j)}$,$\bb{v}_k^{(j)}$) are kept in high precision to build the WY representation.
+%We enforce a cast down at the end of \cref{algo:buildWY} since the bFMAs require low precision inputs.
+%Since the WY representations ($\bb{W}_k$, $\bb{V}_k$) should be stored in low precision, we enforce a cast down at the end of \cref{algo:buildWY}.
+%Finally, all but the last WY update for each block are stored in the higher precision, and the last WY update returned in low precision. 
+%This mixed precision BQR variant is rich in level-3 BLAS operations can be implemented with TensorCore block FMAs easily, and is formally introduced in \cref{algo:mpBQR}.
 \begin{algorithm2e}
 	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
-	\KwIn{$\bb{A}\in\F_l^{m \times n}$, $r\in\R$ where $n=Nr$.}
-	\KwOut{$\bb{Q}\in\F_l^{m \times n},\bb{R}\in\F_l^{n \times n}$}
-	$N=\frac{n}{r}$\\
-	\tcp{Let $\bb{A} = [\bb{C}_{1} \cdots  \bb{C}_{N}]$ where all blocks except $\bb{C}_{N}$ are $m$-by-$r$ sized.}
+	\KwIn{$\bb{A}$, $r$. \hfill\textbf{Output: }$\hat{\bb{Q}}_{mpBQR3}$,$\hat{\bb{R}}_{mpBQR3}$}
+	$N=\frac{n}{r}$\tcc*{Let $\bb{A} = [\bb{C}_{1} \cdots  \bb{C}_{N}]$.}
 	%\tcp{Let $n_i=ri$ for $i=1:N-1$ and $n_N=n$.} 
 	\For{$k=1:N-1$}{
-		\If{$k == 1$}{
-			$\bb{V}_{1},\bm{\beta}_1,\bb{C}_{1}\gets$ {\tt hhQR}({\tt castup}($\bb{C}_{k}$))\tcc*{\Cref{algo:hhQR} in high precision.}
-		}
-		\Else{
-		$\bb{V}_{k},\bm{\beta}_k,\bb{C}_{k}\gets$ {\tt hhQR}($\bb{C}_{k}$)\tcc*{\Cref{algo:hhQR} in high precision.}	
-	}
+%		\If{$k == 1$}{
+			$\bb{V}_{k},\bm{\beta}_k,\bb{C}_{k}\gets$ {\tt hhQR}({\tt castup}($\bb{C}_{k}$))\tcc*{\Cref{algo:hhQR} in high precision.}
+%		}
+%		\Else{
+%		$\bb{V}_{k},\bm{\beta}_k,\bb{C}_{k}\gets$ {\tt hhQR}($\bb{C}_{k}$)\tcc*{\Cref{algo:hhQR} in high precision.}	
+%	}
 		$\bb{C}_{k}\gets ${\tt castdown }($\bb{C}_{k}$)\tcc*{Builds $\bb{R}$ factor in low precision.}
 		%$\bb{V}_i,\bm{\beta}_i,\bb{A}_{n_{i-1}+1:m,n_{i-1}+1:n_i}\gets$ {\tt hhQR}$(\bb{A}_{n_{i-1}:m,n_{i-1}+1:n_i})$\tcc*{\Cref{algo:hhQR}}
 		$\bb{W}_{k}\gets $ {\tt buildWY}$(\bb{V}_{k},\bm{\beta}_k)$ \tcc*{\Cref{algo:buildWY} in high precision}
 		$[\bb{V}_{k},\bb{W}_{k}]\gets ${\tt castdown}($[\bb{V}_{k},\bb{W}_{k}]$)\;
 		$[\bb{C}_{k+1}\cdots\bb{C}_{N}]$ -= $\bb{V}_{k} \left(\bb{W}_{k}^{\top}[\bb{C}_{k+1}\cdots\bb{C}_{N}]\right) $ \tcc*{returned in low precision}
 	}
-	\tcp{Now build $\bb{Q}$ using level-3 BLAS operations.} 
-	$\bb{Q}\gets \bb{I}$\tcc*{$\bb{I}_m$ if full QR, and $\bb{I}_{m\times n}$ if thin QR.}
+	%\tcp{Now build $\bb{Q}$ using level-3 BLAS operations.} 
+	$\bb{Q}\gets \bb{I}$\tcc*{Build $\bb{Q}$: $\bb{I}_m$ if full QR, and $\bb{I}_{m\times n}$ if thin QR.}
 	\For{$k=N:-1:1$}{
 		\tcp{All updates are returned in low precision.}
 		$\bb{Q}[(k-1)r+1:m,(k-1)r+1:n]$-= $\bb{W}_k \left(\bb{V}_k^{\top}\bb{Q}[(k-1)r+1:m,(k-1)r+1:n]\right)$
@@ -156,39 +192,64 @@ This mixed precision BQR variant is rich in level-3 BLAS operations can be imple
 	%\tcp{The last update is returned in low precision.}
 	%$\bb{Q}$-= $\bb{W}_1 \left(\bb{V}_1^{\top}\bb{Q}\right)$\;
 	\Return $\bb{Q},\bb{A}$
-	\caption{\label{algo:mpBQR} $\hat{\bb{Q}}_{mpBQR},\hat{\bb{R}}_{mpBQR}\gets {\tt mpBQR}(\bb{A}, r)$: Perform HH QR factorization of matrix $\bb{A}$ with column partitions of size $r$. All inputs and outputs are stored in low precision. Matrix-matrix multiplication and accumulate operations in lines 10, 13, and 14 require low precision inputs but can return in either of the two precisions.}
+	\caption{\label{algo:mpBQR} $\hat{\bb{Q}}_{mpBQR3},\hat{\bb{R}}_{mpBQR3}\gets {\tt mpBQR3}(\bb{A}, r)$: Perform a mixed precision variant of BQR of $\bb{A}$ with column partitions of size $r$. $\hat{\bb{Q}}_{mpBQR3}$,$\hat{\bb{R}}_{mpBQR3}$, and $\hat{\bb{A}}$ are represented in low precision. Matrix-matrix multiplication and accumulate operations in lines 10, 13, and 14 require low precision inputs but can return in either of the two precisions.}
 \end{algorithm2e}
 
-
-Since $\hat{\bb{W}}_{k},\hat{\bb{Y}}_k$'s are computed with \cref{algo:buildWY} then cast down, the low precision WY update is $\hat{\bb{X}}_{k}^{(l)} = \bb{I}-\bb{I}^{(l)}\hat{\bb{W}}_k\bb{I}^{(l)}\hat{\bb{V}}_k^{(\top)}$.
-Consider applying $\hat{\bb{X}}_k^{(l)}$ to some matrix stored in low precision, $\bb{B}$ using the TensorCore block FMAs.
+\paragraph{Rounding Error Analysis} Since $\hat{\bb{W}}_{k},\hat{\bb{Y}}_k$'s are computed with \cref{algo:buildWY} in high precision then cast down, the new low precision WY update is $\hat{\bb{X}}_{k}^{(l)} = \bb{I}-\bb{I}^{(l)}\hat{\bb{W}}_k\bb{I}^{(l)}\hat{\bb{V}}_k^{(\top)}$.
+Consider applying $\hat{\bb{X}}_k^{(l)}$ to some matrix stored in low precision, $\bb{B}$ using the TensorCore bFMAs.
 We analyze a single column $\bb{b}_j:=\bb{B}[:,j] \in \F_l^{m-(k-1)r}$ even though this operation is done on $\bb{B}$ as a whole.
-Let $\bb{I}^{(l)}\hat{\bb{W}}_k = \hat{\bb{W}}_k + \bb{E}_W\hat{\bb{W}}_k$ and $\bb{I}^{(l)}\hat{\bb{W}}_k = \hat{\bb{Y}}_k + \bb{E}_Y\hat{\bb{Y}}_k$, where $|\bb{E}_W|,|\bb{E}_Y| \leq u^{(l)}$ componentwise.  
-Since \[\hat{\bb{X}}_{k}^{(l)}- \bb{X}_k = \hat{\bb{X}}_{k}^{(l)} -\hat{\bb{X}}_{k}+ \hat{\bb{X}}_{k}- \bb{X}_k= \hat{\bb{X}}_{k}^{(l)} -\hat{\bb{X}}_{k}+ \Delta \bb{X}_{k},\]
-we only need to add the errors introduced from casting down to the errors derived in \cref{eqn:deltX},
+Let \[\bb{I}^{(l)}\hat{\bb{W}}_k = (\bb{I}+\bb{E}_W)\hat{\bb{W}}_k,\quad \bb{I}^{(l)}\hat{\bb{Y}}_k = (\bb{I}+\bb{E}_Y)\hat{\bb{Y}}_k,\] where $\bb{E}_W,\bb{E}_Y$ are diagonal and bounded componentwise by $u^{(l)}$.  
+%Since \[\hat{\bb{X}}_{k}^{(l)}- \bb{X}_k = \hat{\bb{X}}_{k}^{(l)} -\hat{\bb{X}}_{k}+ \hat{\bb{X}}_{k}- \bb{X}_k= \hat{\bb{X}}_{k}^{(l)} -\hat{\bb{X}}_{k}+ \Delta \bb{X}_{k},\]
+%the errors derived in \cref{eqn:deltX} since the bFMAs perform block $4$-by-$4$ matrix products using \cref{eqn:bFMAerr}, then.
+The rounding errors for forming $\bb{W}_k$ and $\bb{Y}_k$ remain the same since these are computed in high precision. 
+Therefore, we first include errors introduced from casting down the WY representation and compute the matrix norm error of forming $\hat{\bb{X}}_{k}^{(l)}$,
+%to $\bb{b}_j$ with exact arithmetic.
 \begin{align*}
-	\|(\hat{\bb{X}}_{k}^{(l)}- \hat{\bb{X}}_{k}+ \Delta \bb{X}_{k})\bb{b}_j \|_2 %&=\| (\bb{b}_j-(\hat{\bb{W}}_k + \bb{E}_W\hat{\bb{W}}_k)((\hat{\bb{Y}}_k + \bb{E}_Y\hat{\bb{Y}}_k)^{\top}\bb{b}_j)) - (\bb{b}_j-\hat{\bb{W}}_k(\hat{\bb{Y}}_k^{(\top)}\bb{b}_j) + \Delta \bb{X}_{k} \bb{b}_j\|_2\\
-	&= \| \left(-\left(\bb{E}_W+\bb{E}_Y+ \bb{E}_W\bb{E}_Y\right)\hat{\bb{W}}_k\hat{\bb{Y}}_k^{\top} + \Delta \bb{X}_{k} \right)\bb{b}_j\|_2,\\
-	&= (\gamma_2^{(l)}(1+r\tilde{\gamma}_{m-(k-1)r}^{(h)}) + r\tilde{\gamma}_{m-(k-1)r}^{(h)}) \|\bb{b}_j\|_2.
-%	\text{\tt castdown}(\hat{\bb{P}}_{k'}^{(1)}\cdots\hat{\bb{P}}_{k'}^{(r)}) \\
-%	\|\hat{\bb{X}}_{k'} - \bb{X}_{k'}\|_F &= \|\bb{I}^{(l)}\hat{\bb{P}}_{k'}^{(1)}\cdots\hat{\bb{P}}_{k'}^{(r)} -\bb{P}_{k'}^{(1)}\cdots\bb{P}_{k'}^{(r)} \|_F \leq (1+u^{(l)})(1+r\tilde{\gamma}_{m-(k'-1)r})-1,
+	\|\hat{\bb{X}}_{k}^{(l)}- \bb{X}_{k}\|_F  &= \|-\left(\bb{I}+\bb{E}_W+\bb{E}_Y+ \bb{E}_W\bb{E}_Y\right)\hat{\bb{W}}_k\hat{\bb{Y}}_k^{\top} + \bb{W}_k\bb{Y}_k^{\top}\|_F,\\
+	&\leq \left((1+\gamma_2^{(l)}+(u^{(l)})^2)r\tilde{\gamma}_{m-(k-1)r}^{(h)}+\gamma_2^{(l)}+(u^{(l)})^2\right)\|\bb{X}_k\|_F\\
+	&\leq \tilde{\gamma}_2^{(l)} +r\tilde{\gamma}_{m-(k-1)r}^{(h)} + r\tilde{\gamma}_2^{(l)}\tilde{\gamma}_{m-(k-1)r}^{(h)}.
 \end{align*}
-Therefore, we have $\|(\hat{\bb{X}}_k^{(l)}-\bb{X}_k)\bb{b}_j\|_2 \leq (\gamma_2^{(l)} +r\tilde{\gamma}_{m-(k-1)r}^{(h)} + r\gamma_2^{(l)}\tilde{\gamma}_{m-(k-1)r}^{(h)}) \|\bb{b}_j\|_2 $ and the error bound on the corresponding backward matrix norm is
-
+Now, we consider the backward error of applying $\hat{\bb{X}}_{k}^{(l)}$ to $\bb{b}_j$ with the bFMA matrix product error bound from \cref{eqn:bFMAerr}.
+The multiplication by $(\bb{I}^{(l)}\hat{\bb{Y}}_k)^{\top}$ yields backward error bounded by
+\begin{equation*}
+	\fl_{TC}((\bb{I}^{(l)}\hat{\bb{Y}}_k)^{\top}\bb{b}_j) = (\hat{\bb{Y}}_k+\Delta_{TC}\hat{\bb{Y}}_k)\bb{b}_j,\;\;|\Delta_{TC}\hat{\bb{Y}}_k| \leq u^{(l)}+\gamma_{\frac{m-(k-1)}{4}}^{(h)}+u^{(l)}\gamma_{\frac{m-(k-1)}{4}}^{(h)}|\hat{\bb{Y}}_k||\bb{b}_j|,
+%	\fl_{TC}(\bb{b}_j-\bb{W}_k\fl_{TC}((\bb{I}^{(l)}\hat{\bb{Y}}_k)^{\top}\bb{b}_j)) &= (\hat{\bb{X}}_k+\Delta_{TC}\hat{\bb{X}}_k)\bb{b}_j,
+\end{equation*}
+and the subsequent multiplication by $(\bb{I}^{(l)}\hat{\bb{W}}_k)$ and subtraction from $\bb{b}_j$ result in,
+% $\cO(u^{(l)}+\gamma_{1+r/4}^{(h)}+u^{(l)}\gamma_{1+r/4}^{(h)})$ to the error bound.
+%Finally, this is summarized by
+\begin{align*}
+	\fl_{TC}(\hat{\bb{X}}_{k}^{(l)}\bb{b}_j) &= (\hat{\bb{X}}_{k}^{(l)}+\Delta^{(l)}\bb{X}_k)\bb{b}_j,\\
+	|\Delta^{(l)}\bb{X}_k| &\leq \left(\gamma_2^{(l)}+\gamma_{1+\frac{m-(k-2)r}{4}}^{(h)}+\gamma_2^{(l)}\gamma_{1+\frac{m-(k-2)r}{4}}^{(h)}\right)\left(|\bb{b}_j|+|\bb{I}^{(l)}\hat{\bb{W}}_k||\bb{I}^{(l)}\hat{\bb{Y}}_k|^{\top}|\bb{b}_j|\right).
+\end{align*}
+Converting to a normwise error bound using the same logic from \cref{eqn:applyP,eqn:19.2c}, we result in  
+%Recall that applying $\bb{X}_k$ in high precision  
+%\begin{align*}
+%	\|(\hat{\bb{X}}_{k}^{(l)}- \hat{\bb{X}}_{k}+ \Delta \bb{X}_{k})\bb{b}_j \|_2 %&=\| (\bb{b}_j-(\hat{\bb{W}}_k + \bb{E}_W\hat{\bb{W}}_k)((\hat{\bb{Y}}_k + \bb{E}_Y\hat{\bb{Y}}_k)^{\top}\bb{b}_j)) - (\bb{b}_j-\hat{\bb{W}}_k(\hat{\bb{Y}}_k^{(\top)}\bb{b}_j) + \Delta \bb{X}_{k} \bb{b}_j\|_2\\
+%	&= \| \left(-\left(\bb{E}_W+\bb{E}_Y+ \bb{E}_W\bb{E}_Y\right)\hat{\bb{W}}_k\hat{\bb{Y}}_k^{\top} + \Delta \bb{X}_{k} \right)\bb{b}_j\|_2,\\
+%	&= (\gamma_2^{(l)}(1+r\tilde{\gamma}_{m-(k-1)r}^{(h)}) + r\tilde{\gamma}_{m-(k-1)r}^{(h)}) \|\bb{b}_j\|_2.
+%%	\text{\tt castdown}(\hat{\bb{P}}_{k'}^{(1)}\cdots\hat{\bb{P}}_{k'}^{(r)}) \\
+%%	\|\hat{\bb{X}}_{k'} - \bb{X}_{k'}\|_F &= \|\bb{I}^{(l)}\hat{\bb{P}}_{k'}^{(1)}\cdots\hat{\bb{P}}_{k'}^{(r)} -\bb{P}_{k'}^{(1)}\cdots\bb{P}_{k'}^{(r)} \|_F \leq (1+u^{(l)})(1+r\tilde{\gamma}_{m-(k'-1)r})-1,
+%\end{align*}
 \begin{equation}
-	\|\Delta^{(l)}\bb{X}_k\|_F \leq \gamma_2^{(l)} +r\tilde{\gamma}_{m-(k-1)r}^{(h)} + r\gamma_2^{(l)}\tilde{\gamma}_{m-(k-1)r}^{(h)},\label{eqn:mpdeltX}
+\|\fl_{TC}(\hat{\bb{X}}_{k}^{(l)}\bb{b}_j)-\bb{X}_k\bb{b}_j\|_2 \leq (\tilde{\gamma}_2^{(l)} +r\tilde{\gamma}_{m-(k-1)r}^{(h)} + r\gamma_2^{(l)}\tilde{\gamma}_{m-(k-1)r}^{(h)}) \|\bb{b}_j\|_2, 
 \end{equation}
-where $\Delta^{(l)}\bb{X}_k = \hat{\bb{X}}_k^{(l)}-\bb{X}_k$.
+since the rounding errors from the bFMAs are small in comparison to the errors from casting down the WY representation built in high precision.
+The corresponding matrix error bound is
+\begin{equation}
+	\|\fl_{TC}(\hat{\bb{X}}_{k}^{(l)})-\bb{X}_k\|_F \leq \tilde{\gamma}_2^{(l)} +r\tilde{\gamma}_{m-(k-1)r}^{(h)} + r\tilde{\gamma}_2^{(l)}\tilde{\gamma}_{m-(k-1)r}^{(h)}.\label{eqn:mpdeltX}
+\end{equation}
+%where $\Delta^{(l)}\bb{X}_k = \fl_{TC}(\hat{\bb{X}}_{k}^{(l)})-\bb{X}_k$.
 
-We can finally compute the forward errors on the QR factorization computed via \cref{algo:mpBQR}.
-Consider the $j^{th}$ column of the $\bb{Q}$ factor, which we denote with $\bb{q}_j:=\hat{\bb{Q}}_{mpBQR}[:,j]$, and let $k = \lfloor j/r\rfloor$.
+We can finally compute the forward errors from implementing \cref{algo:mpBQR}.
+Consider the $j^{th}$ column of the $\bb{Q}$ factor, which we denote with $\bb{q}_j:=\hat{\bb{Q}}_{mpBQR3}[:,j]$, and let $k = \lfloor j/r\rfloor$.
 for $k'=1:N$, and \cref{eqn:mpdeltX} was used to invoke \cref{lem:3.7}.
 Then the columnwise error is 
 \begin{align}
-	\|\Delta \bb{q}_j \|_2 &\leq -1 + \prod_{k'=1}^k (1+\gamma_2^{(l)})(1+r\tilde{\gamma}_{m-(k'-1)r}^{(h)})\\ 
-	&\leq k\gamma_{2}^{(l)} + kr\tilde{\gamma}_m^{(h)} + k^2r\gamma_{2}^{(l)}\tilde{\gamma}_m^{(h)}, \label{eqn:mpBQRcol}
+	\|\Delta \bb{q}_j \|_2 &\leq -1 + \prod_{k'=1}^k (1+\tilde{\gamma}_2^{(l)})(1+r\tilde{\gamma}_{m-(k'-1)r}^{(h)})\\ 
+	&\leq k\tilde{\gamma}_{2}^{(l)} + kr\tilde{\gamma}_m^{(h)} + k^2r\tilde{\gamma}_{2}^{(l)}\tilde{\gamma}_m^{(h)}, \label{eqn:mpBQRcol}
 \end{align} 
-where $\Delta \bb{q}_j = (\hat{\bb{X}}_1^{(l)}\cdots\hat{\bb{X}}_k^{(l)} - \bb{X}_1\cdots\bb{X}_k )\hat{\bb{e}}_j.$
+where $\Delta \bb{q}_j = (\fl_{TC}(\hat{\bb{X}}_1^{(l)})\cdots\fl_{TC}(\hat{\bb{X}}_k^{(l)}) - \bb{X}_1\cdots\bb{X}_k )\hat{\bb{e}}_j.$
 Summing over the columns to find a matrix norm error bound yields
 \begin{equation}
 	\|\hat{\bb{Q}}_{mpBQR}-\bb{Q}\|_F \leq n^{1/2}\tilde{\gamma}_{N}^{(l)} + n^{(3/2)}\tilde{\gamma}_m^{(h)},
