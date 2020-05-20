@@ -267,15 +267,16 @@ We gather these results into \cref{thm:feHQR}.
 	\hat{\bb{R}} &= \bb{R} + \Delta \bb{R} = \fl(\hat{\bb{P}}_n\cdots\hat{\bb{P}}_1 \bb{A}),\;\; \|\Delta \bb{R}[:,j]\|_2\leq n\tilde{\gamma}_{m} \|\bb{A}[:,j]\|_2,\;\; \|\Delta \bb{R}\|_F\leq n\tilde{\gamma}_{m} \|\bb{A}\|_F\\
 	\hat{\bb{Q}} &= \bb{Q} + \Delta \bb{Q} = \fl(\hat{\bb{P}}_1\cdots\hat{\bb{P}}_n \bb{I}),\;\; \|\Delta \bb{Q}[:,j]\|_2\leq n\tilde{\gamma}_{m},\;\; \|\Delta \bb{Q}\|_F \leq n^{3/2} \tilde{\gamma}_{m}.
 	\end{align*}
-	Let $\bb{A}+\Delta \bb{A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
-	Then the backward error is
-	\begin{equation*}
-	\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F \leq n^{3/2}\tilde{\gamma}_{m}\|\bb{A}\|_F.
-	\end{equation*}
+%	Let $\bb{A}+\Delta \bb{A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
+%	Then the backward error is
+%	\begin{equation*}
+%	\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F \leq n^{3/2}\tilde{\gamma}_{m}\|\bb{A}\|_F.
+%	\end{equation*}
 \end{theorem}
-Note that the last backward error result follows from the columnwise forward errors for $\hat{\bb{R}}$ and $\hat{\bb{Q}}$.
-Out of all of these different ways of measuring the error from computing a QR factorization (forward/backward errors for column/matrix norms), we will focus on $\|\hat{\bb{Q}}-\bb{Q}\|_F$ , a measure of orthogonality of the $\bb{Q}$ factor for the remainder of \cref{sec:algo} and for \cref{sec:mpanalysis}. 
-The numerical experiments in \cref{sec:NE} measure backward and forward errors with $\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F$ and $\|\hat{\bb{Q}}^{\top}\hat{\bb{Q}}-\bb{I}\|_2$.
+%Note that the last backward error result follows from the columnwise forward errors for $\hat{\bb{R}}$ and $\hat{\bb{Q}}$.
+%Out of all of these different ways of measuring the error from computing a QR factorization (forward/backward errors for column/matrix norms), we will focus on $\|\hat{\bb{Q}}-\bb{Q}\|_F$ , a measure of orthogonality of the $\bb{Q}$ factor for the remainder of \cref{sec:algo} and for \cref{sec:mpanalysis}. 
+In future sections, we show the forward error columnwise bounds for each factor which can be easily converted to matrix norm bounds.
+The numerical experiments in \cref{sec:NE} measure backward errors with $\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F$ and the orthogonality of the $\bb{Q}$ factor with $\|\hat{\bb{Q}}^{\top}\hat{\bb{Q}}-\bb{I}\|_2$.
 % since it can actually be computed.
 % we compare various QR factorizations with respect to $\|\hat{\bb{Q}}-\bb{Q}\|_F$, a comprehensive measure of orthogonality of the $\bb{Q}$ factor.
 

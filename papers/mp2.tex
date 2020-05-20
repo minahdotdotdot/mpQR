@@ -46,12 +46,12 @@ The analogous mixed precision QR factorization error bounds are shown in \cref{t
 	Let $\hat{\bb{Q}}_{mpHQR2}\in\R^{m\times n}$ and $\hat{\bb{R}}\in\R^{n\times n}_{mpHQR2}$ be the thin QR factors of $\bb{A}$ obtained via \cref{algo:hhQR} with mixed precision FLOPs where inner products are computed in precision $h$ then cast down.
 	All other operations are carried out in precision $l$.
 	Then,
-	\begin{align*}
+	\begin{align}
 %	\hat{\bb{R}} &= \bb{R} + \Delta \bb{R}__{mpHQR} = \fl(\hat{\bb{P}}_n\cdots\hat{\bb{P}}_1 \bb{A}),\\
 %	\hat{\bb{Q}} &= \bb{Q} + \Delta \bb{Q} = \fl(\hat{\bb{P}}_1\cdots\hat{\bb{P}}_n \bb{I}),\\
-	\|\Delta \bb{R}_{mpHQR2}[:,j]\|_2&\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}) \|\bb{A}[:,j]\|_2,\;\; \|\Delta \bb{R}_{mpHQR2}\|_F\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}) \|\bb{A}\|_F\\
-	\|\Delta \bb{Q}[:,j]_{mpHQR2}\|_2&\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}),\;\; \|\Delta \bb{Q}_{mpHQR2}\|_F \leq n^{1/2} (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}).
-	\end{align*}
+	\|\Delta \bb{R}_{mpHQR2}[:,j]\|_2&\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}) \|\bb{A}[:,j]\|_2,\;\; \|\Delta \bb{R}_{mpHQR2}\|_F\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}) \|\bb{A}\|_F \label{eqn:mpHQR2R}\\
+	\|\Delta \bb{Q}[:,j]_{mpHQR2}\|_2&\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}),\;\; \|\Delta \bb{Q}_{mpHQR2}\|_F \leq n^{1/2} (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)})\label{eqn:mpHQR2Q}.
+	\end{align}
 %	Let $\bb{A}+\Delta \bb{A} = \hat{\bb{Q}}\hat{\bb{R}}$, where $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ are obtained via Algorithm~\ref{algo:hhQR}.
 %	Then the backward e|rror is
 %	\begin{equation}

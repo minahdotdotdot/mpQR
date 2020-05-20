@@ -1,0 +1,377 @@
+@INPROCEEDINGS{tagliavini2018floating,
+	author={G. {Tagliavini} and S. {Mach} and D. {Rossi} and A. {Marongiu} and L. {Benin}},
+	booktitle={2018 Design, Automation Test in Europe Conference Exhibition (DATE)},
+	title={A transprecision floating-point platform for ultra-low power computing},
+	year={2018},
+	volume={},
+	number={},
+	pages={1051-1056},
+	keywords={embedded systems;floating point arithmetic;IEEE standards;low-power electronics;microprocessor chips;power aware computing;software libraries;transprecision floating-point platform;ultra-low power computing;low-power embedded platforms;floating-point operations;energy consumption;compute-intensive applications;dynamic range;experimental evidence;data memory;FP computations;FP formats;arithmetic circuitry;memory bandwidth;registers;enabling vectorization;multiple FP types;transprecision computing;final results;extended FP type system;complete hardware support;low-power embedded processors;standard formats;binary8 alt;binary16alt;precision tuning;experimental results;transprecision FP unit;FP-intensive benchmarks;FP operations;memory accesses;Libraries;Dynamic range;Standards;Tools;Hardware;Energy consumption;Tuning},
+	doi={10.23919/DATE.2018.8342167},
+	ISSN={},
+	month={March},}
+
+@INPROCEEDINGS{GraphChallenge, 
+	author={E. {Kao} and V. {Gadepally} and M. {Hurley} and M. {Jones} and J. {Kepner} and S. {Mohindra} and P. {Monticciolo} and A. {Reuther} and S. {Samsi} and W. {Song} and D. {Staheli} and S. {Smith}}, 
+	booktitle={2017 IEEE High Performance Extreme Computing Conference (HPEC)}, 
+	title={Streaming graph challenge: Stochastic block partition}, 
+	year={2017}, 
+	volume={}, 
+	number={}, 
+	pages={1-12}, 
+	keywords={Bayes methods;computational complexity;graph theory;inference mechanisms;graph partition problem;combinatorial problem;graph partition challenge;baseline partition algorithm;real-world graphs;data sets;streaming graph generator;parallelism;streaming fashion;stochastic block partition;relaxation methods;approximate solutions;community collaboration;parallel computation strategies;Bayesian inferential methods;Partitioning algorithms;Stochastic processes;Bayes methods;Inference algorithms;Measurement;Algorithm design and analysis;Clustering algorithms}, 
+	doi={10.1109/HPEC.2017.8091040}, 
+	ISSN={}, 
+	month={Sep.},}
+
+@online{nvdia,
+	author = {Jeremy Appleyard and Scott Yokim},
+	title = {Programming {Tensor Cores} in {CUDA} 9},
+	year = 2017,
+	url = {https://devblogs.nvidia.com/programming-tensor-cores-cuda-9/},
+	urldate = {2018-07-30}
+}
+
+@unpublished{Yang2019,
+	abstract = {Although mixed precision arithmetic has recently garnered interest for training dense neural networks, many other applications could benefit from the  speed-ups and lower storage if applied appropriately. 
+	The growing interest in employing mixed precision computations motivates the need for rounding error analysis that properly handles behavior from mixed precision arithmetic.
+	We present a framework for mixed precision analysis that builds on the foundations of rounding error analysis presented in \cite{Higham2002} and demonstrate its practicality by applying the analysis to various Householder QR Algorithms. 
+	In addition, we present successful results from using mixed precision QR factorization for some small-scale benchmark problems in graph clustering. },
+	author = {Yang, L. Minah and Fox, Alyson and Sanders, Geoffrey},
+	journal = {SIAM Journal on Scientific Computing},
+	title = {Mixed-Precision Analysis of Householder QR Algorithms},
+	note={Submitted to journal October 2019}
+}
+@book{Bai2000,
+	author = {Bai, Z. and Demmel, J. and Dongarra, J. and Ruhe, A. and van der Vorstm H.},
+	title = {Templates for the Solution of Algebraic Eigenvalue Problems: A Practical Guide},
+	year = {2000},
+	isbn = {0898714710},
+	edition = {1st},
+	publisher = {Society for Industrial and Applied Mathematics},
+	address = {Philadelphia, PA, USA},
+} 
+
+@article{Householder1958,
+	title={Unitary triangularization of a nonsymmetric matrix},
+	author={Householder, Alston S},
+	journal={Journal of the ACM (JACM)},
+	volume={5},
+	number={4},
+	pages={339--342},
+	year={1958},
+	publisher={ACM}
+}
+
+@Article{vonLuxburg2007,
+author="von Luxburg, Ulrike",
+title="A tutorial on spectral clustering",
+journal="Statistics and Computing",
+year="2007",
+month="Dec",
+day="01",
+volume="17",
+number="4",
+pages="395--416",
+abstract="In recent years, spectral clustering has become one of the most popular modern clustering algorithms. It is simple to implement, can be solved efficiently by standard linear algebra software, and very often outperforms traditional clustering algorithms such as the k-means algorithm. On the first glance spectral clustering appears slightly mysterious, and it is not obvious to see why it works at all and what it really does. The goal of this tutorial is to give some intuition on those questions. We describe different graph Laplacians and their basic properties, present the most common spectral clustering algorithms, and derive those algorithms from scratch by several different approaches. Advantages and disadvantages of the different spectral clustering algorithms are discussed.",
+issn="1573-1375",
+doi="10.1007/s11222-007-9033-z",
+url="https://doi.org/10.1007/s11222-007-9033-z"
+}
+
+@inproceedings{
+micikevicius2018mixed,
+title={Mixed Precision Training},
+author={Paulius Micikevicius and Sharan Narang and Jonah Alben and Gregory Diamos and Erich Elsen and David Garcia and Boris Ginsburg and Michael Houston and Oleksii Kuchaiev and Ganesh Venkatesh and Hao Wu},
+booktitle={International Conference on Learning Representations},
+year={2018},
+url={https://openreview.net/forum?id=r1gs9JgRZ},
+}
+
+%_____________________________%_____________________________%_____________________________%_____________________________%_____________________________
+
+@article{Mori2012,
+author="Mori, Daisuke
+and Yamamoto, Yusaku
+and Zhang, Shao-Liang",
+title="Backward error analysis of the AllReduce algorithm for {Householder QR} decomposition",
+journal="Japan Journal of Industrial and Applied Mathematics",
+year="2012",
+month="Feb",
+day="01",
+volume="29",
+number="1",
+pages="111--130",
+abstract="The AllReduce algorithm is a promising new algorithm for parallelizing the Householder QR decomposition A = QR of a tall and skinny matrix. It divides the input matrix A vertically in a recursive manner, computes the QR decompositions of each submatrix independently, and merges the results to obtain the QR decomposition of A. While this algorithm has been shown to achieve excellent speedup in various parallel environments, its rounding error properties have not been elucidated yet. In this paper, we present theoretical error analysis of the AllReduce algorithm. Specifically, we derive bounds for the backward error of A and deviation from orthogonality of the computed Q factor. Our analysis shows that both of these bounds are smaller than their counterparts for the conventional Householder QR algorithm. Moreover, the bounds decrease as the number of submatrices increases. These results are supported by numerical experiments. Thus we can conclude that the AllReduce algorithm can be used as a reliable method of orthogonalization in parallel environments.",
+issn="1868-937X",
+doi="10.1007/s13160-011-0053-x",
+url="https://doi.org/10.1007/s13160-011-0053-x"
+}
+
+@book{Higham2002,
+	author = {Higham, Nicholas J.},
+	title = {Accuracy and Stability of Numerical Algorithms},
+	year = {2002},
+	isbn = {0898715210},
+	edition = {2nd},
+	publisher = {Society for Industrial and Applied Mathematics},
+	address = {Philadelphia, PA, USA},
+} 
+
+@article{Demmel2012,
+	author = {Demmel, J. and Grigori, L. and Hoemmen, M. and Langou, J.},
+	title = {Communication-optimal Parallel and Sequential {QR} and {LU} Factorizations},
+	journal = {SIAM Journal on Scientific Computing},
+	volume = {34},
+	number = {1},
+	pages = {A206-A239},
+	year = {2012},
+	doi = {10.1137/080731992},
+	
+	URL = { 
+	https://doi.org/10.1137/080731992
+	
+	},
+	eprint = { 
+	https://doi.org/10.1137/080731992
+	
+	}
+	
+}
+
+@Book{Wilkinson1963,
+	author = { Wilkinson, James Hardy. and National Physical Laboratory (Great Britain) },
+	title = { Rounding errors in algebraic processes / by J.H. Wilkinson },
+	publisher = { H.M.S.O London },
+	year = { 1963 },
+	type = { Book },
+	language = { English },
+	subjects = { Roundoff errors.; Electronic data processing -- Numerical analysis.; Electronic digital computers -- Mathematics. },
+	life-dates = { 1963 -  },
+	catalogue-url = { https://nla.gov.au/nla.cat-vn4400031 },
+}
+
+@inproceedings{BDGJNS2014,
+	author = {Ballard, Grey and W. Demmel, James and Grigori, Laura and Jacquelin, Mathias and Diep Nguyen, Hong and Solomonik, Edgar},
+	year = {2014},
+	month = {05},
+	pages = {1159-1170},
+	title = {Reconstructing {Householder} Vectors from Tall-Skinny {QR}},
+	volume = {85},
+	isbn = {978-1-4799-3800-1},
+	journal = {Journal of Parallel and Distributed Computing},
+	doi = {10.1109/IPDPS.2014.120}
+}
+
+@INPROCEEDINGS{GraphChallenge, 
+	author={E. {Kao} and V. {Gadepally} and M. {Hurley} and M. {Jones} and J. {Kepner} and S. {Mohindra} and P. {Monticciolo} and A. {Reuther} and S. {Samsi} and W. {Song} and D. {Staheli} and S. {Smith}}, 
+	booktitle={2017 IEEE High Performance Extreme Computing Conference (HPEC)}, 
+	title={Streaming graph challenge: Stochastic block partition}, 
+	year={2017}, 
+	volume={}, 
+	number={}, 
+	pages={1-12}, 
+	keywords={Bayes methods;computational complexity;graph theory;inference mechanisms;graph partition problem;combinatorial problem;graph partition challenge;baseline partition algorithm;real-world graphs;data sets;streaming graph generator;parallelism;streaming fashion;stochastic block partition;relaxation methods;approximate solutions;community collaboration;parallel computation strategies;Bayesian inferential methods;Partitioning algorithms;Stochastic processes;Bayes methods;Inference algorithms;Measurement;Algorithm design and analysis;Clustering algorithms}, 
+	doi={10.1109/HPEC.2017.8091040}, 
+	ISSN={}, 
+	month={Sep.},}
+
+@inproceedings{EKSX1996,
+	title={A density-based algorithm for discovering clusters in large spatial databases with noise.},
+	author={Ester, Martin and Kriegel, Hans-Peter and Sander, J{\"o}rg and Xu, Xiaowei and others},
+	booktitle={Kdd},
+	volume={96},
+	number={34},
+	pages={226--231},
+	year={1996}
+}
+
+@article{Householder1958,
+	title={Unitary triangularization of a nonsymmetric matrix},
+	author={Householder, Alston S},
+	journal={Journal of the ACM (JACM)},
+	volume={5},
+	number={4},
+	pages={339--342},
+	year={1958},
+	publisher={ACM}
+}
+
+@article{Clark2010,
+	title = "Solving lattice QCD systems of equations using mixed precision solvers on GPUs",
+	journal = "Computer Physics Communications",
+	volume = "181",
+	number = "9",
+	pages = "1517 - 1528",
+	year = "2010",
+	issn = "0010-4655",
+	doi = "https://doi.org/10.1016/j.cpc.2010.05.002",
+	url = "http://www.sciencedirect.com/science/article/pii/S0010465510001426",
+	author = "M.A. Clark and R. Babich and K. Barros and R.C. Brower and C. Rebbi",
+	keywords = "CUDA, GPGPU, GPU, Lattice QCD, Mixed precision",
+	abstract = "Modern graphics hardware is designed for highly parallel numerical tasks and promises significant cost and performance benefits for many scientific applications. One such application is lattice quantum chromodynamics (lattice QCD), where the main computational challenge is to efficiently solve the discretized Dirac equation in the presence of an SU(3) gauge field. Using NVIDIA's CUDA platform we have implemented a Wilson–Dirac sparse matrix–vector product that performs at up to 40, 135 and 212 Gflops for double, single and half precision respectively on NVIDIA's GeForce GTX 280 GPU. We have developed a new mixed precision approach for Krylov solvers using reliable updates which allows for full double precision accuracy while using only single or half precision arithmetic for the bulk of the computation. The resulting BiCGstab and CG solvers run in excess of 100 Gflops and, in terms of iterations until convergence, perform better than the usual defect-correction approach for mixed precision."
+}
+
+@article{Courbariaux2014Storage,
+	title={Low precision storage for deep learning},
+	author={Courbariaux, Matthieu and David, Jean-Pierre and Bengio, Yoshua},
+	journal={arXiv preprint arXiv:1412.7024},
+	year={2014}
+}
+
+@article{Courbariaux2014Mult,
+	title={Training deep neural networks with low precision multiplications},
+	author={Courbariaux, Matthieu and Bengio, Yoshua and David, Jean-Pierre},
+	journal={arXiv preprint, arXiv:1412.7024},
+	year={2014}
+}
+
+@article{higham2019squeezing,
+	title={Squeezing a Matrix into Half Precision, with an Application to Solving Linear Systems},
+	author={Higham, Nicholas J and Pranesh, Srikara and Zounon, Mawussi},
+	journal={SIAM Journal on Scientific Computing},
+	volume={41},
+	number={4},
+	pages={A2536--A2551},
+	year={2019},
+	publisher={SIAM}
+}
+
+@article{carson2018accelerating,
+	title={Accelerating the solution of linear systems by iterative refinement in three precisions},
+	author={Carson, Erin and Higham, Nicholas J},
+	journal={SIAM Journal on Scientific Computing},
+	volume={40},
+	number={2},
+	pages={A817--A847},
+	year={2018},
+	publisher={SIAM}
+}
+
+@article{higham2019new,
+	title={A new preconditioner that exploits low-rank approximations to factorization error},
+	author={Higham, Nicholas J and Mary, Theo},
+	journal={SIAM Journal on Scientific Computing},
+	volume={41},
+	number={1},
+	pages={A59--A82},
+	year={2019},
+	publisher={SIAM}
+}
+
+@article{higham2018new,
+	title={A new approach to probabilistic rounding error analysis},
+	author={Higham, Nicholas J and Mary, Theo},
+	year={2018}
+}
+
+@article{buttari2007mixed,
+	title={Mixed precision iterative refinement techniques for the solution of dense linear systems},
+	author={Buttari, Alfredo and Dongarra, Jack and Langou, Julie and Langou, Julien and Luszczek, Piotr and Kurzak, Jakub},
+	journal={The International Journal of High Performance Computing Applications},
+	volume={21},
+	number={4},
+	pages={457--466},
+	year={2007},
+	publisher={Sage Publications Sage UK: London, England}
+}
+
+@article{baboulin2009accelerating,
+	title={Accelerating scientific computations with mixed precision algorithms},
+	author={Baboulin, Marc and Buttari, Alfredo and Dongarra, Jack and Kurzak, Jakub and Langou, Julie and Langou, Julien and Luszczek, Piotr and Tomov, Stanimire},
+	journal={Computer Physics Communications},
+	volume={180},
+	number={12},
+	pages={2526--2533},
+	year={2009},
+	publisher={Elsevier}
+}
+
+@INPROCEEDINGS{abdelfattah2019batched,
+author={A. {Abdelfattah} and S. {Tomov} and J. {Dongarra}},
+booktitle={2019 IEEE International Parallel and Distributed Processing Symposium (IPDPS)},
+title={Fast Batched Matrix Multiplication for Small Sizes Using Half-Precision Arithmetic on {GPU}s},
+year={2019},
+volume={},
+number={},
+pages={111-122},
+keywords={Matrix multiplication;batched linear algebra;FP16 arithmetic;GPU computing},
+doi={10.1109/IPDPS.2019.00022},
+ISSN={},
+month={May},}
+
+@inproceedings{haidar2019tensorcore,
+ author = {Haidar, Azzam and Tomov, Stanimire and Dongarra, Jack and Higham, Nicholas J.},
+ title = {Harnessing {GPU} Tensor Cores for Fast FP16 Arithmetic to Speed Up Mixed-precision Iterative Refinement Solvers},
+ booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage, and Analysis},
+ series = {SC '18},
+ year = {2018},
+ location = {Dallas, Texas},
+ pages = {47:1--47:11},
+ articleno = {47},
+ numpages = {11},
+ url = {https://doi.org/10.1109/SC.2018.00050},
+ doi = {10.1109/SC.2018.00050},
+ acmid = {3291719},
+ publisher = {IEEE Press},
+ address = {Piscataway, NJ, USA},
+ keywords = {FP16 arithmetic, GPU computing, half precision, iterative refinement computation, linear algebra, mixed precision solvers},
+}
+
+@inbook{haidar2018iterative,
+author = {Haidar, Azzam and Abdelfattah, Ahmad and Zounon, Mawussi and Wu, Panruo and Pranesh, Srikara and Tomov, Stanimire and Dongarra, Jack},
+year = {2018},
+month = {June},
+pages = {586-600},
+title = {The Design of Fast and Energy-Efficient Linear Solvers: On the Potential of Half-Precision Arithmetic and Iterative Refinement Techniques},
+isbn = {978-3-319-93697-0},
+doi = {10.1007/978-3-319-93698-7_45}
+}
+
+@INPROCEEDINGS{tagliavini2018floating,
+author={G. {Tagliavini} and S. {Mach} and D. {Rossi} and A. {Marongiu} and L. {Benin}},
+booktitle={2018 Design, Automation Test in Europe Conference Exhibition (DATE)},
+title={A transprecision floating-point platform for ultra-low power computing},
+year={2018},
+volume={},
+number={},
+pages={1051-1056},
+keywords={embedded systems;floating point arithmetic;IEEE standards;low-power electronics;microprocessor chips;power aware computing;software libraries;transprecision floating-point platform;ultra-low power computing;low-power embedded platforms;floating-point operations;energy consumption;compute-intensive applications;dynamic range;experimental evidence;data memory;FP computations;FP formats;arithmetic circuitry;memory bandwidth;registers;enabling vectorization;multiple FP types;transprecision computing;final results;extended FP type system;complete hardware support;low-power embedded processors;standard formats;binary8 alt;binary16alt;precision tuning;experimental results;transprecision FP unit;FP-intensive benchmarks;FP operations;memory accesses;Libraries;Dynamic range;Standards;Tools;Hardware;Energy consumption;Tuning},
+doi={10.23919/DATE.2018.8342167},
+ISSN={},
+month={March},}
+
+
+@INPROCEEDINGS{fagan2016powerwall,
+author={M. {Fagan} and J. {Schlachter} and K. {Yoshii} and S. {Leyffer} and K. {Palem} and M. {Snir} and S. M. {Wild} and C. {Enz}},
+booktitle={2016 29th IEEE International System-on-Chip Conference (SOCC)},
+title={Overcoming the power wall by exploiting inexactness and emerging {COTS} architectural features: Trading precision for improving application quality},
+year={2016},
+volume={},
+number={},
+pages={241-246},
+keywords={computer architecture;microprocessor chips;power aware computing;power consumption;IEEE compliant precision values;commercial off-the-shelf processors;quality preservation;precision reduction;page rank;weather prediction;inexactness;energy savings;computing system scaling;power consumption;energy consumption;COTS architectural features;Energy measurement;Program processors;Hardware;Context;Arrays;Microprocessors},
+doi={10.1109/SOCC.2016.7905477},
+ISSN={},
+month={Sep.},}
+
+@online{nvdia,
+	author = {Jeremy Appleyard and Scott Yokim},
+	title = {Programming {Tensor Cores} in {CUDA} 9},
+	year = 2017,
+	url = {https://devblogs.nvidia.com/programming-tensor-cores-cuda-9/},
+	urldate = {2018-07-30}
+}
+
+@book{LAPACK,
+	author = {Anderson, E. and Bai, Z. and Bischof, C. and Blackford, L. S. and Demmel, J. and Dongarra, Jack J. and Du Croz, J. and Hammarling, S. and Greenbaum, A. and McKenney, A. and Sorensen, D.},
+	title = {LAPACK Users' Guide (Third Ed.)},
+	year = {1999; also available online from http://www.netlib.org.},
+	isbn = {0-89871-447-8},
+	publisher = {Society for Industrial and Applied Mathematics},
+	address = {Philadelphia, PA, USA},
+} 
+
+
+
+
