@@ -1,0 +1,58 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{golub2013matrix}
+\citation{golub2013matrix}
+\providecommand \oddpage@label [2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}BLAS-3 Implementation of HQR for TensorCore Technology Assumptions}{1}{section.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Algorithms}{1}{subsection.2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.1.1}The WY Representation}{1}{subsubsection.3}}
+\@writefile{thm}{\contentsline {lemma}{{Lemma}{1.1}{}}{1}{theorem.4}}
+\newlabel{lem:WY}{{1.1}{1}{The WY Representation}{theorem.4}{}}
+\newlabel{lem:WY@cref}{{[lemma][1][1]1.1}{[1][1][]1}}
+\@writefile{thm}{\contentsline {proof}{{Proof}{1}{}}{1}{proof.5}}
+\global\def\markiproofiii{\proofbox }
+\@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces $\mathbf  {W},\mathbf  {Y}\gets {\tt  buidlWY}(V, \bm  {\beta })$: Given a set of householder vectors $\{\mathbf  {V}[:,i]\}_{i=1}^r$ and their corresponding constants $\{\bm  {\beta }_i\}_{i=1}^r$, form the final $\mathbf  {W}$ and $\mathbf  {Y}$ factors of the WY representation of $\mathbf  {P}_1\cdots  \mathbf  {P}_r$, where $\mathbf  {P}_i := \mathbf  {I}_m - \bm  {\beta }_i\mathbf  {v}_i\mathbf  {v}_i^{\top }$}}{2}{algocf.14}}
+\newlabel{algo:buildWY}{{1}{2}{The WY Representation}{algocf.14}{}}
+\newlabel{algo:buildWY@cref}{{[algocf][1][]1}{[1][1][]2}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces $\mathbf  {Q},\mathbf  {R}\gets {\tt  blockHQR}(\mathbf  {A}, r)$: Perform Householder QR factorization of matrix $\mathbf  {A}$ with column partitions of size $r$.}}{2}{algocf.29}}
+\newlabel{algo:blockHQR}{{2}{2}{The WY Representation}{algocf.29}{}}
+\newlabel{algo:blockHQR@cref}{{[algocf][2][]2}{[1][1][]2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Analysis}{2}{subsection.30}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.1}Round to lower precision at the end of factorization}{3}{subsubsection.31}}
+\citation{golub2013matrix}
+\bibdata{../../../../library.bib,../../../../sans_library.bib}
+\bibstyle{siamplain}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.2}Round to lower precision at the end of each block.}{5}{subsubsection.32}}
+\@writefile{toc}{\contentsline {section}{References}{5}{subsubsection.32}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Algorithms I may need to reference in above sections:}{5}{algocf.87}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces $\mathbf  {z}_{\text  {half}} = {\tt  simHalf}(f, \mathbf  {x}_{\text  {half}}, \mathbf  {y}_{\text  {half}})$ Simulate function $f\in $ OP$\cup \{{\tt  dot\_product} \}$ in half precision arithmetic given input variables $\mathbf  {x},\mathbf  {y}$. Function {\tt  castup} converts half precision floats to single precision floats, and {\tt  castdown} converts single precision floats to half precision floats by rounding to the nearest half precision float.}}{6}{algocf.40}}
+\newlabel{algo:simulate}{{3}{6}{Algorithms I may need to reference in above sections:}{algocf.40}{}}
+\newlabel{algo:simulate@cref}{{[algocf][3][]3}{[1][5][]6}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {4}{\ignorespaces $\beta $, $\mathbf  {v}$, $\sigma = {\tt  hh\_vec}(\mathbf  {x})$. Given a vector $\mathbf  {x}\in \mathbb  {R}^n$, return the Householder vector, $\mathbf  {v}$; a Householder constant, $\beta $; and $\sigma $ such that $(I-\beta \mathbf  {v}\mathbf  {v}^{\top })\mathbf  {x} =\sigma (\mathaccentV {hat}05E{e_1})$ and $\mathbf  {v}_1=1$, (see {LAPACK, Higham2002}).}}{6}{algocf.49}}
+\newlabel{algo:hh_v2}{{4}{6}{Algorithms I may need to reference in above sections:}{algocf.49}{}}
+\newlabel{algo:hh_v2@cref}{{[algocf][4][]4}{[1][5][]6}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {5}{\ignorespaces $\mathbf  {V}$, $\bm  {\beta }$, $\mathbf  {R}$ = ${\tt  qr}(A)$. Given a matrix $A\in \mathbb  {R}^{m\times n}$ where $m\geq n$, return matrix $\mathbf  {V}\in \mathbb  {R}^{m\times n}$, vector $\bm  {\beta }\in \mathbb  {R}^{n}$, and upper triangular matrix $\mathbf  {R}$. An orthogonal matrix $\mathbf  {Q}$ can be generated from $\mathbf  {V}$ and $\bm  {\beta }$, and $\mathbf  {QR}=\mathbf  {A}$.}}{6}{algocf.59}}
+\newlabel{algo:hhQR}{{5}{6}{Algorithms I may need to reference in above sections:}{algocf.59}{}}
+\newlabel{algo:hhQR@cref}{{[algocf][5][]5}{[1][5][]6}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {6}{\ignorespaces $\mathbf  {Q}\mathbf  {B}\gets {\tt  hh\_mult}(V, \mathbf  {B})$: Given a set of householder vectors $\{\mathbf  {v}_i\}_{i=1}^n$ and their corresponding constants $\{\bm  {\beta }_i\}_{i=1}^n$, compute $\mathbf  {P}_1\cdots  \mathbf  {P}_n\mathbf  {B}$, where $\mathbf  {P}_i := \mathbf  {I} - \bm  {\beta }_i\mathbf  {v}_i\mathbf  {v}_i^{\top }$}}{7}{algocf.65}}
+\newlabel{algo:hh_mult}{{6}{7}{Algorithms I may need to reference in above sections:}{algocf.65}{}}
+\newlabel{algo:hh_mult@cref}{{[algocf][6][]6}{[1][5][]7}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {7}{\ignorespaces $\mathbf  {Q},\mathbf  {R}={\tt  tsqr}(\mathbf  {A}, L)$. Finds a QR factorization of a tall, skinny matrix, $\mathbf  {A}$. }}{8}{algocf.87}}
+\newlabel{algo:par_tsqr}{{7}{8}{Algorithms I may need to reference in above sections:}{algocf.87}{}}
+\newlabel{algo:par_tsqr@cref}{{[algocf][7][]7}{[1][5][]8}}

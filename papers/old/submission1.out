@@ -1,0 +1,35 @@
+\BOOKMARK [1][-]{section.2}{Introduction}{}% 1
+\BOOKMARK [2][-]{subsection.3}{Preliminaries}{section.2}% 2
+\BOOKMARK [1][-]{section.6}{Floating Point Numbers and Error Analysis Tools}{}% 3
+\BOOKMARK [2][-]{subsection.7}{Representation of Real Numbers}{section.6}% 4
+\BOOKMARK [2][-]{subsection.38}{Inner product Mixed-Precision error}{section.6}% 5
+\BOOKMARK [1][-]{section.43}{Mixed-Precision HQR Factorization}{}% 6
+\BOOKMARK [2][-]{subsection.46}{HQR Factorization Algorithm}{section.43}% 7
+\BOOKMARK [3][-]{subsubsection.51}{HQR Factorization Implementation}{subsection.46}% 8
+\BOOKMARK [3][-]{subsubsection.76}{Normalization of Householder Vectors}{subsection.46}% 9
+\BOOKMARK [2][-]{subsection.77}{Rounding Error Analysis}{section.43}% 10
+\BOOKMARK [3][-]{subsubsection.79}{Error analysis for forming Householder Vector and Constant}{subsection.77}% 11
+\BOOKMARK [3][-]{subsubsection.86}{Applying a Single Householder Transformation}{subsection.77}% 12
+\BOOKMARK [3][-]{subsubsection.92}{HQR Factorization Forward Error Analysis}{subsection.77}% 13
+\BOOKMARK [3][-]{subsubsection.99}{HQR Comparison to Uniform Precision Analysis}{subsection.77}% 14
+\BOOKMARK [1][-]{section.102}{Tall-and-Skinny QR}{}% 15
+\BOOKMARK [2][-]{subsection.103}{TSQR/AllReduce Algorithm}{section.102}% 16
+\BOOKMARK [3][-]{subsubsection.104}{TSQR Notation}{subsection.103}% 17
+\BOOKMARK [3][-]{subsubsection.105}{Single-level Example}{subsection.103}% 18
+\BOOKMARK [2][-]{subsection.128}{TSQR Rounding Error Analysis}{section.102}% 19
+\BOOKMARK [3][-]{subsubsection.139}{HQR and TSQR error bound comparison}{subsection.128}% 20
+\BOOKMARK [2][-]{subsection.144}{Numerical Experiment}{section.102}% 21
+\BOOKMARK [1][-]{section.150}{Applications}{}% 22
+\BOOKMARK [2][-]{subsection.154}{Spectral Graph Clustering}{section.150}% 23
+\BOOKMARK [3][-]{subsubsection.155}{Subspace Iteration}{subsection.154}% 24
+\BOOKMARK [3][-]{subsubsection.166}{Density-based Spatial clustering of Applications with Noise \(DBSCAN\)}{subsection.154}% 25
+\BOOKMARK [2][-]{subsection.167}{Experiment Details and Results}{section.150}% 26
+\BOOKMARK [1][-]{section.177}{Conclusion}{}% 27
+\BOOKMARK [1][-]{appendix.178}{Appendix A. Proofs}{}% 28
+\BOOKMARK [1][-]{appendix.179}{Appendix B. Proofs}{}% 29
+\BOOKMARK [2][-]{proof.181}{Lemma 2.3 \(Equation 2.16\)}{appendix.179}% 30
+\BOOKMARK [2][-]{subsection.182}{Inner Products}{appendix.179}% 31
+\BOOKMARK [3][-]{subsubsection.183}{Lemma 2.4}{subsection.182}% 32
+\BOOKMARK [3][-]{subsubsection.186}{Corollary 2.5}{subsection.182}% 33
+\BOOKMARK [2][-]{subsection.189}{Proof for Mixed-Precision HQR result}{appendix.179}% 34
+\BOOKMARK [3][-]{subsubsection.204}{Proof for Theorem 3.5}{subsection.189}% 35

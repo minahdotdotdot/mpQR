@@ -1,0 +1,532 @@
+\documentclass{article}
+%Packages
+\usepackage[utf8]{inputenc}
+\usepackage{geometry, graphicx}
+\usepackage{enumerate}
+\usepackage{amsmath,amssymb,amsfonts,amsthm, bm}
+\usepackage{xcolor, ulem} %just for visible comments and edits.
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage[sort&compress, numbers]{natbib}
+%\usepackage[toc,page]{appendix}
+
+% New theorems and commands
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newcommand\mycommfont[1]{\ttfamily\textcolor{blue}{#1}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\dd}{\delta}
+\newcommand{\tth}{\theta}
+\newcommand{\bb}[1]{\mathbf{#1}}
+\newcommand{\fl}{\mathrm{fl}}
+\SetCommentSty{mycommfont}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+% Document
+\title{Notes and random things}
+\author{L. Minah Yang, Alyson Fox, and Geoffrey Sanders}
+\date{\today}
+\begin{document}
+\titlepage
+
+
+\section{Introduction}
+
+%Given a matrix $\bb{A} \in \mathbb{R}^{m \times n}$, we consider performing the so-called {\it QR factorization}, 
+%where
+%$$
+%\bb{A} = \bb{QR},
+%\qquad
+%\bb{Q} \in \mathbb{R}^{m \times n},
+%\qquad
+%\bb{R} \in \mathbb{R}^{n \times n},
+%$$
+%and $\bb{Q}$ is orthogonal, $\bb{Q}^\top \bb{Q} = I$, and  is upper-triangular, $\bb{R}_{ij} = 0$ for $i>j$.
+
+
+\subsection{Mixed Precision and Modern Hardware}
+
+\subsection{Notation}
+%\begin{table}[h]
+%\centering
+%\begin{tabular}{|c|c|c|}
+%\hline
+%Symbol(s) & Definition(s) & Suggestion \\
+%\hline
+%$\fl$ &floating point operations & \\
+%${\bb x}$/${\bb A}$ & vectors/matrices &\\ 
+%$m/n$ & num rows/columns in $\bb{A}$&  \\
+%$\mu$ & mantissa & \\
+%$k$ & num flops & \\
+%
+%$\bb{x}_i$ & $i^{th}$ index of vector $\bb{x}$ & \\
+%$s, p, w$ & sum, product, and storage (write) & \\ 
+%$\eta$ & exponent bits &  \\
+%$\hat{e}_i$ & cardinal vectors& \\
+%$i/j$ & row/column index of a matrix or vector & \\
+%$u_q$ & unit round-off for precision $\bb{Q}$ & \\
+%$\dd_{q}$ &defined only by $|\dd_{q}| < u_q$ & \\
+%$\gamma_{q}^{(k)}$ & $\frac{ku_q}{1-ku_q}$ & \\
+%$\tth_{q}^{(k)}$ & defined only by $|\tth_{q}^{(k)}|\leq\gamma_q^{(k)}$ &\\
+%$\gamma_{p,q}^{(k_p,k_q)}$ & $(1+\gamma_p^{(k_p)})(1+\gamma_q^{(k_q)})-1$ & \\
+%$|x|$; $\|{\bf x}\|_2$ & matrix 2-norm & double bars throughout \\
+% $I_{m\times n}$ &  $\begin{bmatrix}
+%I_{n\times n}\\
+%0_{m-n \times n}\end{bmatrix}$ & \\
+%$\bb{A}[a:b, c:d]$ &rows $\bb{A}$ to $b$ and columns $c$ to $d$ of matrix $\bb{A}$ & \\
+%$\bb{A}[:,c:d]$ & columns $c$ to $d$ of matrix $\bb{A}$ & \\
+%\hline
+%\end{tabular}
+%\caption{Notation discrepancies and suggestions.   TODO: resolve each row, comment out, and replace for an eventual notation summary table.}
+%\end{table}
+%%TODO: add to notation summary table? A, Q, R
+
+
+\section{Floating Point Numbers and Error Analysis Tools}
+%
+%% DONE: replace m and e with $\mu$ and $\eta$ ?
+%
+%We will be using floating-point operation error analysis tools developed in \cite{Higham2002}.
+%Let $\F \subset \R$ denote the space of some floating point number system with base $\beta$, precision $t$, significand/mantissa $\mu$, and exponent range $\eta_{\text{ran}}:=\{\eta_{\text{min}}, \eta_{\text{min}}+1, \cdots, \eta_{\text{max}} \}$.
+%Then every element $y$ in $\F$ can be written as 
+%\begin{equation}
+%y = \pm \mu\times \beta^{\eta-t},
+%\label{eqn:FPbasic}
+%\end{equation} 
+%where $\mu$ is any integer in $[0,\beta^{t}-1]$, and $\eta\in \eta_{\text{ran}}$.
+%While operations we use on $\R$ cannot be replicated exactly due to the finite cardinality of $\F$, we can still approximate the accuracy of analogous floating point operations using these error analysis tools in \cite{Higham2002}. \par
+%
+%\begin{table}[h]
+%	\centering
+%	\begin{tabular}{||l|c|c|c|c|c|c||} 
+%		\hline 
+%		Name & $\beta$ & $t$ & \# of exponent bits & $\eta_{\text{min}}$ & $\eta_{\text{max}}$ & u \\ \hline 
+%		IEEE754 half & 2 & 11 & 5 & -15 & 16  & {\tt 4.883e-04} \\ \hline 
+%		IEEE754 single & 2 & 24 & 8 & -127 & 128  & {\tt 5.960e-08} \\ \hline 
+%		IEEE754 double& 2 & 53 & 11 & -1023 & 1024 & {\tt 1.110e-16} \\ \hline 
+%	\end{tabular}
+%	\caption{IEEE754 formats with $j$ exponent bits range from $1-2^{j-1}$ to $2^{j-1}$.}
+%	\label{table:ieee}
+%\end{table}
+%
+%% GEOFF: reordered to introduce $u$
+%A short analysis of floating point operations (cf. Theorem 2.2 \citep{Higham2002}) shows that the relative error is 
+%controlled by the unit round-off, $u:=\frac{1}{2}\beta^{1-t}$. 
+%Table \ref{table:ieee} shows IEEE precision types described by the same parameters as in Equation \ref{eqn:FPbasic}.
+%The true value $(x\text{ op }y)$ lies in $\R$ and it is rounded to the nearest floating point number, $\fl(x\text{ op }y)$, admitting a rounding error. 
+%Suppose that a single basic floating-point operation yields a relative error, $\dd$, bounded in the following sense,
+%\begin{equation}
+%\fl(x\text{ op }y) = (1 + \dd)(x\text{ op }y),\quad |\dd|\leq u, \quad \text{op}\in\{+, -, \times, \div\} \label{eqn: singlefpe}
+%\end{equation}
+%%The true value $(x\text{ op }y)$ lies in $\R$ and it is rounded to the nearest floating point number, $\fl(x\text{ op }y)$, admitting a rounding error. 
+%%A short analysis (cf. Theorem 2.2 \citep{Higham2002}) shows that the relative error $|\dd|$ is bounded by the unit round-off, $u:=\frac{1}{2}\beta^{1-t}$. \par
+%
+%
+%% DONE: replace n with $k$, as $n$ is the matrix dimension?
+%We use Equation \ref{eqn: singlefpe} as a building block in accumulating errors from $k$ successive floating point operations in product form.
+%Lemma \ref{lem:gamma} introduces new notations that simplify round-off error analyses. 
+%\begin{lemma}[Lemma 3.1 \cite{Higham2002}]
+%	\label{lem:gamma}
+%	Let $|\dd_i|<u$ and $\rho_i \in\{-1, +1\}$ for $i = 1 , \cdots, k$, and $ku < 1$. Then, 
+%	\begin{equation}
+%	\prod_{i=1}^k (1+\dd_i)^{\rho_i} = 1 + \tth^{(k)}
+%	\end{equation}
+%	where
+%	\begin{equation}
+%	|\tth^{(k)}|\leq \frac{ku}{1-ku}=:\gamma^{(k)}.
+%	\end{equation}
+%\end{lemma}
+%In other words, $\tth^{(k)}$ represents the accumulation of $k$ successive round-off errors($\dd$'s), and it is bounded by $\gamma^{(k)}$. 
+%This notation often provides upper bounds for relative error, and requiring $\gamma^{(k)}<1$ ensures that the error bound is meaningful. 
+%While the assumption $ku<\frac{1}{2}$ (which implies $\gamma^{(k)} < 1$) is satisfied by fairly large $k$ in
+%single and double precision types, it is a problem for small $k$ in lower precision types.
+%Table \ref{table:ieeen} shows the maximum value of $k$ that still guarantees a relative error below $100\%$ ($\gamma^{(k)} < 1$). 
+%\begin{table}[h]
+%	\centering
+%	\begin{tabular}{||c|c|c||} 
+%		\hline
+%		precision & $u$ &$\tilde{k} = \mathrm{argmax}_k(\gamma^{(k)} \leq 1)$ \\ \hline
+%		half & {\tt 4.883e-04} &$512$\\
+%		single & {\tt 5.960e-08} &$4194304\approx 4.19\times 10^6$ \\
+%		double &  {\tt 1.110e-16} &$2251799813685248 \approx 2.25\times 10^{15}$ \\ \hline
+%	\end{tabular}
+%	\caption{Upper limits of validity in the $\gamma^{(k)}$ notation.}
+%	\label{table:ieeen}
+%\end{table}
+%% TODO: u is in the other table as well. 
+%
+%This reflects on two sources of difficulty: 1) Successive operations in lower precision types grow unstable more quickly, and 2) the upper bound given by $\gamma^{(k)}$ becomes suboptimal faster in low precision.
+%However, error analysis within the framework given by Lemma \ref{lem:gamma} best allows us to keep the analysis simple.
+%We will use it to study variable-precision block QR factorization methods. \par 
+%
+%
+%% DONE: replace $st$ with $w$that does not contain $s$ or $p$?
+%In Lemma \ref{lem:mp}, we present modified versions of relations in Lemma 3.3 in \citep{Higham2002}.
+%These relations allow us to easily deal with accumulated errors, and aid in writing clear and simpler error analyses.
+%The modifications support multiple precision types, whereas \citep{Higham2002} assumes that the same precision is used in all operations. 
+%% TODO: should we call this type uniform precision? I called it that later on.
+%
+%We distinguish between the different precision types using subscripts--- these types include products ($p$), sums ($s$), and storage formats ($w$).
+%
+%% DONE: should it be \theta_q^{(k)} ? yes!
+%\begin{lemma}[Mixed precision version of Lemma 3.3 from \citep{Higham2002}]
+%	\label{lem:mp}
+%	For any nonnegative integer $k$ and some precision $q$, let $\tth_{q}^{(k)}$ denote a quantity bounded according to $|\tth_q^{(k)}|\leq \frac{k u^{(q)} }{1-ku^{(q)}} =:\gamma_{q}^{(k)}$.
+%	The following relations hold for two precisions $s$ and $p$, positive integers, $j_s$,$j_p$, non-negative integers $k_s$ and $k_p$, and $c>0$.
+%	%Most of these result from commutativity. 
+%	\begin{align}
+%	(1+\tth_{p}^{(k_p)})(1+\tth_{p}^{(j_p)})(1+\tth_{s}^{(k_s)})(1+\tth_{s}^{(j_s)})&=(1+\tth_{p}^{(k_p+j_p)})(1+\tth_{s}^{(k_s+j_s)}) \\
+%	\frac{(1+\tth_{p}^{(k_p)})(1+\tth_{s}^{(k_s)})}{(1+\tth_{p}^{(j_p)})(1+\tth_{s}^{(j_s)})} &=\left\{\begin{alignedat}{2}
+%	(1+\tth_{s}^{(k_s+j_s)})(1+\tth_{p}^{(k_p+j_p)})&,\quad& j_s \leq k_s, j_p \leq k_p\\
+%	(1+\tth_{s}^{(k_s+2j_s)})(1+\tth_{p}^{(k_p+j_p)})&,\quad& j_s \leq k_s, j_p > k_p\\
+%	(1+\tth_{s}^{(k_s+j_s)})(1+\tth_{p}^{(k_p+2j_p)})&,\quad& j_s > k_s, j_p \leq k_p \\
+%	(1+\tth_{s}^{(k_s+2j_s)})(1+\tth_{p}^{(k_p+2j_p)})&,\quad& j_s > k_s, j_p > k_p
+%	\end{alignedat}\right.
+%	\end{align}
+%	Without loss of generality, let $1 \gg u_p \gg u_s>0$.
+%	Let $d$, a nonnegative integer, and $r\in[0, \lfloor\frac{u_p}{u_s}\rfloor]$ be numbers that satisfy $k_su_s = d u_p + r u_s$. Alternatively, $d$ can be defined by $d := \lfloor\frac{k_su_s}{u_p}\rfloor$.
+%	\begin{align}
+%	\gamma_{s}^{(k_s)}\gamma_{p}^{(k_p)} &\leq \gamma_{p}^{(k_p)}, \quad\text{for } k_p u_p \leq \frac{1}{2}  \\
+%	\gamma_{s}^{(k_s)}+u_p &\leq \gamma_{p}^{(d+2)} \\
+%	\gamma_{p}^{(k_p)} + u_{s} &\leq \gamma_{p}^{(k_p+1)} \quad{\color{blue}\text{(A loose bound)}}\\ 
+%	\gamma_{p}^{(k_p)}+\gamma_{s}^{(k_s)}+\gamma_{p}^{(k_p)}\gamma_{s}^{(k_s)} & < \gamma_{p}^{(k_p+ d+ 1)}\label{lem:mp1}
+%	\end{align}
+%\end{lemma}
+%
+%% TODO GEOFF and MINAH.   Meet and work out exact wording to fully formalize.   Should the wording be: there exists a \theta bounded by a \gamma (which is a specific value)?
+%
+%A proof for Equation \ref{lem:mp1} is shown in Appendix \ref{appendix:A}.
+
+\section{Householder QR Backward Error Analysis}
+We present an error analysis for the Householder QR factorization where all inner products are done with precision $p$ for products, and precision $s$ for the inner product, and stored in $w$ precision.
+
+\subsection{Householder QR Factorization Algorithm}
+%\label{sec: HQRf}
+%% DONE define cardinal vector (in the notation section above, perhaps)
+%
+%The Householder QR factorization uses Householder transformations to zero out elements below the diagonal of a matrix. 
+%First, we consider the simpler task of zeroing out all but the first element of a vector, $\bb{x}\in\R^m$.
+%\begin{lemma}
+%	Given vector $\bb{x}\in\R^{m}$, there exist Householder vector $\bb{v}$ and Householder transformation matrix $\bb{P}_{\bb{v}}$ such that $\bb{P}_{\bb{v}}$ zeroes out $\bb{x}$ below the first element. 
+%	\begin{equation}
+%	\begin{alignedat}{3} 
+%	\sigma =& -\rm{sign}(x_1)\|\bb{x}\|_2, &&\quad  \bb{v} = \bb{x} -\sigma \hat{e_1},\\
+%	\beta = & \frac{2}{\bb{v}^{\top}\bb{v}}=-\frac{1}{\sigma\bb{v}_1}, && \quad \bb{P}_{\bb{v}}=  I - \beta \bb{v}\bb{v}^{\top}
+%	\end{alignedat}
+%	\end{equation}
+%	The resulting vector has the same 2-norm as $\bb{x}$ since Householder transformations are orthogonal.
+%	\begin{equation}
+%		  \bb{P}_{\bb{v}}\bb{x} = \sigma\hat{e_1}
+%	\end{equation}
+%	In addition, $\bb{P}_{\bb{v}}$ is symmetric and orthogonal ($\bb{P}_{\bb{v}}=\bb{P}_{\bb{v}}^{\top}=\bb{P}_{\bb{v}}^{-1}$), and therefore involutary ($\bb{P}_{\bb{v}}^2=\bb{I}$).
+%	\label{lem:hhvec}
+%\end{lemma}
+%% DONE: change above Lemma to a definition?   Or, add the fact that \bb{P}_v x is zeroed out below the first element 
+%% DONE: \bb{P}_v is of the form I-P, which is confusing.
+%
+%
+%% DONE: define $\bb{v}_i$.   I suggest definining it first and having the formal lemma(or definition) describe the general case.
+% 
+%Given $\bb{A}\in\mathbb{R}^{m\times n}$ and Lemma \ref{lem:hhvec}, a Householder QR factorization is done by repeating the following processes.
+%For $i = 1, 2, \cdots, n,$
+%\begin{enumerate}[Step 1)]
+%	\item Find and store the Householder constant ($\bm{\beta}_i$) and vector $\bb{v}_i$ that zeros out the $i^{\text{th}}$ column beneath the $i^{\text{th}}$ element,
+%	\item Apply the corresponding Householder transformation to the appropriate bottom right partition of the matrix,
+%	\item Move to the next column,
+%\end{enumerate}
+%until only an upper triangular matrix remains. 
+%
+%Consider the following $4$-by-$3$ matrix example adapted from \cite{Higham2002}. 
+%Let $\bb{P}_i$ represent the $i^{th}$ Householder transformation of this algorithm. 
+%\[A = \left[ \begin{array}{ccc}
+%\times & \times & \times \\
+%\times & \times & \times \\
+%\times & \times & \times \\
+%\times & \times & \times
+%\end{array}
+%\right]\xrightarrow{\bb{P}_1}\left[ \begin{array}{c|cc}
+%\times & \times & \times \\ \hline
+%0 & \times & \times \\
+%0 & \times & \times \\
+%0 & \times & \times
+%\end{array}
+%\right]
+%\xrightarrow{\bb{P}_2} \left[
+%\begin{array}{cc|c}
+%\times & \times & \times \\
+%0 & \times & \times \\ \hline
+%0 & 0 & \times \\
+%0 & 0 & \times 
+%\end{array} \right]
+%\xrightarrow{\bb{P}_3} \left[ \begin{array}{ccc}
+%\times & \times & \times \\
+%0 & \times & \times \\
+%0 & 0 & \times \\
+%0 & 0 & 0 
+%\end{array}\right] \] 
+%
+%Since the final matrix $ \bb{P}_3\bb{P}_2\bb{P}_1\bb{A}$ is upper-triangular, this is the $\bb{R}$ factor of the QR decomposition.
+%Set $\bb{Q}^{\top}:=\bb{P}_3\bb{P}_2\bb{P}_1$. 
+%Then we can formulate  $\bb{Q}$ via: 
+%$$
+%\bb{Q} = (\bb{P}_3\bb{P}_2\bb{P}_1)^{\top} = \bb{P}_1^{\top}\bb{P}_2^{\top}\bb{P}_3^{\top} = \bb{P}_1\bb{P}_2\bb{P}_3,
+%$$
+%where the last equality results from the symmetric property of $\bb{P}_i$'s. 
+%In addition, this is orthogonal because $\bb{Q}^{\top}=\bb{P}_3\bb{P}_2\bb{P}_1 =  \bb{P}_3^{\top}\bb{P}_2^{\top}\bb{P}_1^{\top} =  \bb{P}_3^{-1}\bb{P}_2^{-1}\bb{P}_1^{-1}=(\bb{P}_1\bb{P}_2\bb{P}_3)^{-1}=\bb{Q}^{-1}$, where the third equality results from the orthogonal property of $\bb{P}_i$'s.
+%
+%Returning to the general case, we have: 
+%
+%\begin{equation}
+%\bb{Q} = \bb{P}_1 \cdots \bb{P}_n,\quad \text{and} \quad \bb{R} = \bb{Q}^{\top}\bb{A} = \bb{P}_n\cdots \bb{P}_1\bb{A}.
+%\end{equation}
+%% TODO: should \bb{P}_i be \bb{P_i} so its not confused as the element of a vector notation?
+\subsection{Inner product error}
+%As seen from the previous section, the inner product is a building block of the Householder QR method.
+%More generally, it is used widely in most linear algebra tools.
+%Thus, we will generalize classic round-off error analysis of inner products to multiple precision. \par
+%Specifically, we consider performing an inner product with different floating point precision assigned to operations multiplication and addition.
+%This is designed to provide a more accurate rounding error analysis of mixed precision floating point operations in recent GPU technologies such as NVIDIA's TensorCore. 
+%Currently, TensorCore computes the inner product of vectors stored in half-precision by employing full precision multiplications and a single-precision accumulator. 
+%%TODO: citation?
+%As the majority of rounding errors from computing inner products occur during summation, this immensely reduces the error in comparison to using only half-precision operations.
+%This increase in accuracy combined with speedy performance motivates us to: 1) study how to best utilize mixed-precision arithmetic in algorithms, and 2) to develop error analysis for mixed-precision algorithms to better understand them.
+%%TODO: is this a big/vague/unsupported claim?
+%
+%\begin{lemma}
+%	\label{lem:ip_a}
+%	Let $w$, $p$, and $s$ each represent floating-point precisions for storage, product, and summation, where the varying precisions are defined by their unit round-off values denoted by $u_w$, $u_p$, and $u_s$.
+%	Let $\bb{x},\bb{y}\in \mathbb{F}_w^{m}$ be two arbitrary $m$-length vectors stored in $w$ precision.
+%	If an inner product performs multiplications in precision $p$, and addition of the products using precision $s$, then,
+%	\begin{equation}
+%	\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\bb{\Delta x}) \bb{y} = \bb{x}(\bb{y}+\bb{\Delta y}),
+%	\end{equation}
+%	where $|\bb{\Delta x}|\leq \gamma_{p,s}^{(1,m-1)}|\bb{x}|$, $|\bb{\Delta y}|\leq \gamma_{p,s}^{(1,m-1)}|\bb{y}|$ componentwise, and $$\gamma_{p,s}^{(1,m-1)} := (1+u_p)(1+\gamma_s^{(m-1)})-1.$$
+%	If we further assume that this result is then stored in precision $w$, and $u_w=u_p$, then $|\bb{\Delta x}|\leq \gamma_w^{(d+2)}|\bb{x}|$ and $|\bb{\Delta y}|\leq \gamma_w^{(d+2)}|\bb{y}|$ where $d:=\lfloor\frac{(m-1)u_s}{u_w}\rfloor$.
+%\end{lemma}
+%
+%% DONE fix boldface for vectors,  use a single letter for st
+%% TODO $\|\|_2$ for norms, What if x and or why have some zeros, or very small values?
+%% TODO is it really component-wise or in the infinity norm?   
+%
+%
+%\begin{lemma}
+%	\label{lem:ip_b}
+%	Let $w$ and $s$ each represent floating-point precisions for storage and summation, where the unit round-off values for each precision are denoted by $u_w$ and $u_s$. 
+%	Futhermore, assume $1\gg u_w \gg u_s>0$, and that for any two arbitary numbers $x$ and $y$ in $\mathbb{F}_w$, their product  $xy$ is in $\mathbb{F}_s$.
+%	Let $\bb{x},\bb{y}\in \mathbb{F}_w^{n}$ be two arbitrary $n$-length vectors stored in $w$ precision.
+%	If an inner product performs multiplications in full precision, and addition of the products using precision $s$, then,
+%	\begin{equation}
+%	\fl(\bb{x}^{\top}\bb{y}) = (\bb{x}+\bb{\Delta x}) \bb{y} = \bb{x}(\bb{y}+\bb{\Delta y}),
+%	\end{equation}
+%	where $|\Delta x|\leq \gamma_w^{(d+1)}|x|$, $|\Delta y|\leq \gamma_w^{(d+1)}|y|$ componentwise, and $d:=\lfloor\frac{(n-1)u_s}{u_w}\rfloor$.
+%\end{lemma}
+%
+%Proofs for Lemmas \ref{lem:ip_a} and \ref{lem:ip_b} are shown in Appendix \ref{appendix:A}.
+%The analyses for these two lemmas differ only in the type of mixed-precision arithmetic performed within the inner product subroutine.
+%For the rest of this paper, we will refer to the forward error bound for the inner product as $\gamma_w^{d+z}$ for $z=1,2$ to generalize the analysis for varying assumptions.
+%%TODO: Is this unclear? We have d+1 for the first lemma, and d+2 for the second lemma, so I just want to generalize that to z. d is also a small integer. 
+%This simplification allows us to use the same analysis for the remaining steps of the Householder QR algorithm since inner products are the only computation that use mixed-precision arithmetic. % TODO: subject verb?!
+
+\subsection{Calculation and normalization of Householder Vector}
+%An efficient algorithm for calculating $\bb{v}$ is shown in Algorithm \ref{algo:hh_v1}.
+%\begin{algorithm}
+%	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+%	\KwIn{$\bb{x}\in\R^m$}
+%	\KwOut{$\bb{v}\in\R^m$, and $\sigma, \beta\in\R$ such that $(I-\beta \bb{v} \bb{v}^{\top})\bb{x} = \pm \|\bb{x}\|_2 \hat{e_1} = \sigma\hat{e_1}$ }
+%	\tcc{We choose the sign of sigma to avoid cancellation of $\bb{x}_1$ (As is the standard in LAPACK, LINPACK packages \cite{Higham2002}). This makes $\beta>0$.}
+%	$\bb{v}\gets \bb{x}$\\
+%	$\sigma \gets -\rm{sign}(\bb{x}_1)\|\bb{x}\|_2$\\
+%	$\bb{v}_1 \gets \bb{v}_1-\sigma$\\
+%	$\beta \gets -\frac{1}{\sigma \bb{v}_1}$\\
+%	\Return $\beta$, $\bb{v}$
+%	\caption{Given a vector $\bb{x}\in\R^n$, return a Householder vector $\bb{v}$ and a Householder constant $\beta$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} \in \mathrm{span}(\hat{e_1})$.}
+%	\label{algo:hh_v1}
+%\end{algorithm}
+%
+%The above algorithm leaves $\bb{v}$ unnormalized, but it is often normalized via the various methods and reasons listed below:
+%\begin{itemize}
+%	\item Set $\bb{v}_1$ to $1$ for efficient storage of many Householder vectors.
+%	\item Set the 2-norm of $\bb{v}$ to $\sqrt{2}$ to always have $\beta=1$.
+%	\item Set the 2-norm of $\bb{v}$ to $1$ to prevent extremely large values, and to always have $\beta=2$.
+%\end{itemize}
+%
+%%TODO: Should the itemize be in a table instead?
+%The first normalizing method adds an extra rounding error to $\beta$ and $\bb{v}$ each, whereas the remaining methods incur no rounding error in forming $\beta$ since $1$ and $2$ can be represented exactly.
+%The LINPACK implementation of the Householder QR factorization uses {\color{blue}CHECK!} the first method of normalizing via setting $\bb{v}_1$ to $1$. 
+%Algorithm \ref{algo:hh_v2} shows how this convention could be carried out. 
+%The error analysis in the subsequent section assumes that there may exist errors in both $\beta$ and $\bb{v}$ to get the worse-case scenario and to be consistent with the LINPACK implementation. 
+%
+%%TODO: add short sentence describing LINPACK and citation
+%\begin{algorithm}
+%	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+%	\KwIn{$\bb{x}\in\R^m$}
+%	\KwOut{$\bb{v}\in\R^m$, and $\sigma, \beta\in\R$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} = \pm \|\bb{x}\|_2 \hat{e_1} = \sigma\hat{e_1}$ }
+%	\tcc{We choose the sign of sigma to avoid cancellation of $\bb{x}_1$ (As is the standard in LAPACK, LINPACK packages \cite{Higham2002}). This makes $\beta>0$.}
+%	$\bb{v}\gets \bb{x}$\\
+%	$\sigma \gets -\rm{sign}(\bb{x}_1)\|\bb{x}\|_2$\\
+%	$\bb{v}_1 \gets \bb{x}_1-\sigma$ \tcp*{This is referred to as $\bb{\tilde{v}}_1$ later on.} 
+%	$\beta \gets -\frac{\bb{v}_1}{\sigma}$\\
+%	$\bb{v} \gets \frac{1}{\bb{v}_1}\bb{v}$\\
+%	\Return $\beta$, $\bb{v}$, $\sigma$
+%	\caption{$\beta$, $\bb{v}$, $\sigma = \mathrm{hh\_vec}(\bb{x})$. Given a vector $\bb{x}\in\R^n$, return the Householder vector $\bb{v}$, a Householder constant $\beta$, and $\sigma$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} =\sigma(\hat{e_1})$, and $\bb{v}_1=1$.}
+%	\label{algo:hh_v2}
+%\end{algorithm}
+%
+%\subsubsection{Error analysis for $\bb{v}$}
+%In this section, we show how to bound the error when employing the mixed precision dot product procedure for Algorithm \ref{algo:hh_v2}.
+%To do so, we start with the 2-norm error and build from there.
+%\par
+%
+%\begin{lemma}[2-norm error]
+%	\label{lem:2norm_a}
+%	Let $p$, and $s$ each represent floating-point precisions for storage, product, and summation, where the varying precisions are defined by their unit round-off values denoted by $u_w$, $u_p$, and $u_s$, and we can assume $1\gg u_w \gg u_p,u_s$. 
+%	Let $\bb{x}\in \mathbb{F}_w^{m}$ be an arbitrary $n$-length vector stored in $w$ precision.
+%	If an inner product performs multiplications in precision $p$, and addition of the products using precision $s$, then,
+%	\begin{equation}
+%	\fl(\|\bb{x}\|_2)= (1+\tth_w^{(d+z+1)})\|\bb{x}\|_2,
+%	\end{equation}
+%	where $|\tth_w^{(d+z+1)}|\leq \gamma_w^{(d+z+1)}|\bb{x}|$ for $z\in\{1,2\}$ and $d:=\lfloor\frac{(m-1)u_s}{u_w}\rfloor$.
+%\end{lemma} 
+%There is no error incurred in evaluating the sign of a number or flipping the sign. 
+%Therefore, the error bound for computing $\sigma = -\rm{sign}(\bb{x}_1)\|\bb{x}\|_2$ is exactly the same as that for the 2-norm.
+%\begin{equation}
+%\label{eqn:sigma}
+%\fl(\sigma) = \hat{\sigma} = \rm{fl}(-\rm{sign}(\bb{x}_1)\|\bb{x}\|_2) = \sigma + \Delta \sigma,\quad |\Delta\sigma| \leq \gamma_w^{(d+z+1)}|\sigma|\quad
+%\end{equation}
+%
+%We can now show the error for $\bb{\tilde{v}}_1$ and $\bb{v}_i$ where $i=2 , \cdots, n$. 
+%Here $\bb{\tilde{v}}_1$ is still the penultimate value $\bb{v}_1$ held ($\bb{\tilde{v}}_1 = \bb{x}_1-\sigma$).
+%Then the round-off errors for $\bb{\tilde{v}}_1$ and $\bb{v}_i$'s are
+%\begin{align*}
+%\fl(\bb{v}_1)&=\hat{\bb{v}_1} = \bb{\tilde{v}}_1 + \bb{\Delta \tilde{v}}_1 \\
+%&= \fl(\bb{x}_1-\hat{\sigma})= (1+\dd_w) (\sigma + \Delta\sigma) = (1+\tth_w^{(d+z+2)})\bb{\tilde{v}}_1\\
+%\fl(\bb{v}_i)&=\hat{\bb{v}_i} = \fl(\frac{\bb{x}_i}{\hat{\bb{v}_1}}) = (1+\dd_w)\frac{\bb{x}_i}{\bb{\tilde{v}}_1 + \bb{\Delta \tilde{v}}_1}=(1+\theta_w^{(1+2(d+z+2))})\bb{\tilde{v}}_i.
+%\end{align*}
+%
+%The above equalities are permitted since $\tth$ values are allowed to be flexible within the corresponding $\gamma$ bounds.
+%
+%\subsubsection{Error analysis for $\beta$}
+%Now we show the derivation of round-off error for the Householder constant, $\beta$.
+%\begin{align*}
+%\hat{\beta} = \fl(-\frac{\hat{\bb{v}_1}}{\fl(\hat{\sigma})}) &=-(1+\dd_w)\frac{\bb{\tilde{v}}_1+\bb{\Delta \tilde{v}}_1}{(\sigma + \Delta\sigma)} \\
+%&\leq -(1+\tth_w^{(1)})\frac{ (1+\tth_w^{(d+z+2)})\bb{v}_1}{(1+\tth_w^{(d+z+1)})\sigma}\\
+%&\leq (1+\tth_w^{(d+z+3+2(d+z+1))})\beta\\
+%&= (1+\tth_w^{(3d+3z+5)})\beta,
+%\end{align*}
+%where $z=1$ or $z=2$ depending on which mixed-precision inner product procedure was used. 
+%
+%\subsubsection{Comparison to uniform precision analysis}
+%In this paper, uniform precision refers to using the same precision for all floating point operations. 
+%We compare the errors for $\hat{\beta}$ and $\hat{\bb{v}}$ computed via the mixed-precision inner products to the errors computed while everything was done in half-precision. 
+%Without mixed-precision, the errors would be bounded by
+%\begin{equation}
+%\tilde{\gamma}^{(k)} := \frac{cku}{1-cku},
+%\end{equation}
+%and $c$ is a small integer (c.f. Section 19.3 \citet{Higham2002}).
+%Let us further assume that the storage precision ($u_{w}$) in the mixed-precision analysis is half-precision. 
+%In other words, we can let $u\equiv u_w$, and directly compare $\tilde{\gamma_w}^{(m)}$ and $\gamma_w^{(3d+3z+5)}$.
+%The integer $d$ depends on the length of the vector, $m$ and the precisions ($u_w$ and $u_s$), and likely is a small integer.
+%For example, if storage is done in half-precision, and summation within the inner product is done in single-precision, $d :=\lfloor\frac{m-1}{8192}\rfloor$.
+%Since both $d$ and $z$ are usually small integers, the errors for $\hat{\beta}$ and $\hat{\bb{v}}$ with mixed-precision arithmetic can be approximated by $\gamma_w^{(3d+3z+5)} \approx \tilde{\gamma_w}^{(d+z+1)}$.
+%This is an improvement from $\tilde{\gamma_w}^{(m)}$ as$$m \gg \lfloor\frac{m-1}{8192}\rfloor + z + 1.$$
+
+\subsection{Applying a single Householder Transformation}
+%Applying a Householder transformation is implemented by a series of inner and outer products, since Householder matrices are rank-1 updates of the identity. 
+%This is much less costly than forming $\bb{P}_{\bb{v}}$, then performing matrix-vector or matrix-matrix multiplications.
+%For some $\bb{P}_{\bb{v}}=I-\beta \bb{v}\bb{v}^{\top}$, we result in the following computation.
+%\begin{equation}
+%\bb{P}_{\bb{v}} \bb{x} = (I-\beta \bb{v}\bb{v}^{\top})\bb{x} = \bb{x} - (\beta \bb{v}^{\top}\bb{x})\bb{v}
+%\end{equation}
+%\subsubsection{Applying $\bb{P}_{\bb{v}}$ to zero out the target column of a matrix}
+%Let $\bb{x}\in\R^{m}$ be the target column we wish to zero out beneath the first element.
+%Recall that we chose a specific $\bb{v}$ such that $\bb{P}_{\bb{v}}\bb{x} = \sigma \hat{e}_1$. 
+%As a result, the only error lies in the first element, $\sigma$, and that is shown in Equation \ref{eqn:sigma}.
+%Note that the normalization choice of $\bb{v}$ does not impact the Householder transformation matrix ($\bb{P}_{\bb{v}}$) nor its action on $\bb{x}$, $\bb{P}_{\bb{v}}\bb{x}$.
+%
+%\subsubsection{Applying $\bb{P}_{\bb{v}}$ to the remaining columns of the matrix}
+%Now, let $\bb{x}$ and $\bb{v}$ have no special relationship, as $\bb{v}$ was constructed given some preceding column.
+%
+%Set $\bb{w}:= \beta \bb{v}^{\top}\bb{x}\bb{v}$.
+%Note that $\bb{x}$ is exact, whereas $\bb{v}$ and $\beta$ were still computed. 
+%\begin{align*}
+%\fl(\bb{\hat{v}}^{\top}\bb{x}) &= (1+\tth_w^{(d+z)})(\bb{v}+\Delta\bb{v})^{\top}\bb{x} \\
+%&= (1+\tth_w^{(d+z)})(1+\tth_w^{(1+2(d+z+2))})\bb{v}^{\top}\bb{x}\\
+%&= (1+\tth_w^{(3d+3z+5)})\bb{v}^{\top}\bb{x}\\
+%\bb{\hat{w}} &=(1+\tth_w^{(2)})(\beta+\Delta\beta)(1+\tth_w^{(3d+3z+5)})\bb{v}^{\top}\bb{x}\bb{w} \\
+%&= (1+\tth_w^{(2)})(1+\tth_w^{(3d+3z+5)})\beta(1+\tth_w^{(3d+3z+5)})\bb{v}^{\top}\bb{x}\bb{w}\\
+%&= (1+\tth_w^{(6d+6z+12)})\bb{w}\\
+%\fl(\bb{x}-\bb{\hat{w}}) &= (1+\dd_w)(1+\tth_w^{6d+6z+12)})\bb{w} \\
+%&= (1+\tth_w^{(6d+6z+13)})\bb{P}_{\bb{v}}\bb{x}
+%\end{align*}
+%
+%Constructing $\bb{Q}$ and  both rely on applying Householder transformations in the above two ways: 1) to zero out below the diagonal of a target column, and 2) to update the bottom right submatrix. 
+%We now have the tools to formulate the forward error bound on $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ calculated from the Householder QR factorization.
+
+\section{Householder QR}
+%The pseudo-algorithm in Section \ref{sec: HQRf} shows each succeeding Householder transformation is applied to a smaller lower right submatrix each time. 
+%Consider a thin QR factorization. 
+%Then, for $\bb{A}\in\R^{m\times n}$ for $m\geq n$, we have $\bb{A}\in\R^{m\times n}$ and $\bb{R}\in\R^{n\times n}$.
+%Everything beneath the diagonal on  is set to zero.
+%\begin{align*}
+%\hat{\bb{R}}_{ij} & =(1+\tth_w^{(r_{ij})})\bb{R}_{ij} \\
+%\hat{\bb{Q}}_{ij} & =(1+\tth_w^{(q_{ij})})\bb{Q}_{ij} \\  
+%\end{align*}
+%\begin{align*}
+%r_{ij} = &\left\{\begin{alignedat}{3}
+%&\lfloor\frac{((m-(i-1))u_s}{u_w}\rfloor+z+1)+&&\sum_{k=0}^{i-1}\left(6(\lfloor\frac{(m-k)u_s}{u_w}\rfloor+z)+13 \right) ,\quad &&i= j\\
+%& &&\sum_{k=0}^{i-1}\left(6(\lfloor\frac{(m-k)u_s}{u_w}\rfloor+z)+13\right),\quad &&i<j
+%\end{alignedat}\right. \\
+%q_{ij}=&\left\{\begin{alignedat}{3}
+%&&\sum_{k=1}^i\left(6(\lfloor\frac{(m-(k-1))u_s}{u_w}\rfloor+z)+13\right)&,\quad j&&\leq i < n\\
+%&&\sum_{k=1}^j\left(6(\lfloor\frac{(m-(k-1))u_s}{u_w}\rfloor+z)+13\right)&,\quad i&&< j < n \\
+%13+5(\lfloor\frac{(m-(n-1))u_s}{u_w}\rfloor+z)+&&\sum_{k=1}^{n-1}\left(6(\lfloor\frac{(m-(k-1))u_s}{u_w}\rfloor+z)+13\right)&,\quad j&&\leq i =n \\
+%\end{alignedat}\right.
+%\end{align*}
+%
+%For values of $m$, $n$, $u_s$, and $u_w$ such that $d:=\lfloor\frac{mu_s}{u_w}\rfloor=\lfloor\frac{(m-(n-1))u_s}{u_w}\rfloor$, this simplifies. 
+%Even when $\lfloor\frac{mu_s}{u_w}\rfloor>\lfloor\frac{(m-(n-1))u_s}{u_w}\rfloor$, the same analysis can be used as an upper bound.
+%\begin{align*}
+%r_{ij} = &\left\{\begin{alignedat}{2}
+%&(6i+1)d+(6i+1)z+ 13i+1,\quad &&i= j\\
+%&i\left(6d+6z+13\right),\quad &&i<j
+%\end{alignedat}\right. \\
+%q_{ij}=&\left\{\begin{alignedat}{2}
+%i\left(6d+6z+13\right)&,\quad j&&\leq i < n\\
+%j\left(6d+6z+13\right)&,\quad i&&< j < n \\
+%(6i+5)d+(6i+5)z+ 13i+13&,\quad j&&\leq i =n \\
+%\end{alignedat}\right.
+%\end{align*}
+%
+%We can further approximate to get:
+%\begin{align*}
+%\hat{\bb{R}} &= \bb{R} +\bb{\Delta R} = (1+\tth_w^{((6n+1)d+(6n+1)z+ 13n+1)}) \bb{R}\\
+%\hat{\bb{Q}} &= \bb{Q} +\bb{\Delta Q} = (1+\tth_w^{((6n+5)d+(6n+5)z+ 13n+13)}) \bb{Q}\\
+%\end{align*}
+%%TODO: Should this be $||$ for componentwise?
+%%TODO: should matrices also be boldface??
+%
+%A backward error for $\bb{A}$ can be given from this.
+%We use the mixed-precision inner product as a subroutine for this matrix-matrix multiplication.
+%\begin{align*}
+%\hat{\bb{A}} &= \fl(\hat{\bb{Q}}\hat{\bb{R}}) = \bb{A} + \bb{\Delta A}\\
+%&= (1+\tth_w^{((12n+6)d+(12n+6)z+ 26n+14)})(1+\tth_w^{(d+z)}) \bb{A} \\
+%&= (1+\tth_w^{((12n+7)d+(12n+7)z+ 26n+14)})\bb{A}\\
+%\left|\tth_w^{((12n+7)d+(12n+7)z+ 26n+14)}\right|&\leq \tilde{\gamma_w}^{(10n(d+z+1))}
+%\end{align*}
+%
+%This is an improvement from $\tilde{\gamma_w}^{(mn)}$, since $m \gg 10(d+z+1)$ in a TSQR setting.
+
+\appendix
+\section{Appendix: Proofs of Basic Lemmas}
+\label{appendix:A}
+\input{appendixMPD}
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{report.bib}
+	
+
+
+\end{document}

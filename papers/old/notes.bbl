@@ -1,0 +1,15 @@
+\begin{thebibliography}{1}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Higham(2002)]{Higham2002}
+Nicholas~J. Higham.
+\newblock \emph{Accuracy and Stability of Numerical Algorithms}.
+\newblock Society for Industrial and Applied Mathematics, Philadelphia, PA,
+  USA, 2nd edition, 2002.
+\newblock ISBN 0898715210.
+
+\end{thebibliography}

@@ -1,0 +1,8 @@
+\BOOKMARK [1][-]{section.1}{BLAS-3 Implementation of HQR for TensorCore Technology Assumptions}{}% 1
+\BOOKMARK [2][-]{subsection.2}{Algorithms}{section.1}% 2
+\BOOKMARK [3][-]{subsubsection.3}{The WY Representation}{subsection.2}% 3
+\BOOKMARK [2][-]{subsection.30}{Analysis}{section.1}% 4
+\BOOKMARK [3][-]{subsubsection.31}{Round to lower precision at the end of factorization}{subsection.30}% 5
+\BOOKMARK [3][-]{subsubsection.32}{Round to lower precision at the end of each block.}{subsection.30}% 6
+\BOOKMARK [1][-]{subsubsection.32}{References}{}% 7
+\BOOKMARK [1][-]{algocf.87}{Algorithms I may need to reference in above sections:}{}% 8

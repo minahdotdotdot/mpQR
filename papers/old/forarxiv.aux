@@ -1,0 +1,197 @@
+\relax 
+\citation{Higham2002}
+\citation{vonLuxburg2007}
+\citation{micikevicius2018mixed}
+\citation{fagan2016powerwall}
+\citation{haidar2018iterative}
+\citation{haidar2019tensorcore}
+\citation{abdelfattah2019batched}
+\citation{Courbariaux2014Mult}
+\citation{Courbariaux2014Storage}
+\providecommand \oddpage@label [2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}}
+\newlabel{sec:intro}{{1}{1}}
+\citation{nvdia}
+\citation{tagliavini2018floating}
+\citation{Demmel2012}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Preliminaries}{2}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Basic definitions}}{3}}
+\newlabel{table:notation}{{1}{3}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Floating Point Numbers and Error Analysis Tools}{3}}
+\newlabel{sec:FPREA}{{2}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Representation of Real Numbers}{3}}
+\newlabel{eqn:FPbasic}{{1}{3}}
+\citation{Higham2002}
+\citation{Higham2002}
+\citation{Higham2002}
+\newlabel{eqn:singlefpe}{{2}{4}}
+\newlabel{eqn:FPbasic3}{{3}{4}}
+\newlabel{lem:gamma}{{2.1}{4}}
+\newlabel{eqn:FPbasic4}{{5}{4}}
+\newlabel{eqn:FBbasic5}{{6}{4}}
+\citation{Higham2002}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Upper limits of meaningful relative error bounds in the $\gamma ^{(k)}$ notation.}}{5}}
+\newlabel{table:ieeen}{{2}{5}}
+\newlabel{eqn:DDerr}{{8}{5}}
+\citation{Higham2002}
+\citation{Higham2002}
+\@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces $\mathbf  {z}_{\text  {half}} = {\tt  simHalf}(f, \mathbf  {x}_{\text  {half}}, \mathbf  {y}_{\text  {half}})$ Simulate function $f\in $ OP$\cup \{{\tt  dot\_product} \}$ in half precision arithmetic given input variables $\mathbf  {x},\mathbf  {y}$. Function {\tt  castup} converts half precision floats to single precision floats, and {\tt  castdown} converts single precision floats to half precision floats by rounding to the nearest half precision float.}}{6}}
+\newlabel{algo:simulate}{{1}{6}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Statistics from dot product backward relative error in for 512-length vectors stored in half-precision and computed in simulated half-precision from 2 million realizations.}}{6}}
+\newlabel{table:HPdoterr}{{3}{6}}
+\newlabel{lem:up}{{2.2}{6}}
+\citation{Householder1958}
+\citation{Higham2002}
+\newlabel{lem:mp}{{2.3}{7}}
+\newlabel{lem:mp1}{{16}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Inner product Mixed-Precision error}{8}}
+\newlabel{ssec:IP}{{2.2}{8}}
+\newlabel{lem:ip_a}{{2.4}{8}}
+\newlabel{lem:ip_b}{{2.5}{8}}
+\citation{Higham2002}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Mixed-Precision HQR Factorization}{9}}
+\newlabel{sec:HQRf}{{3}{9}}
+\newlabel{eqn:HH}{{19}{9}}
+\newlabel{lem:hhvec}{{3.1}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}HQR Factorization Algorithm}{9}}
+\newlabel{sec:HQRfA}{{3.1}{9}}
+\citation{Higham2002}
+\citation{LAPACK}
+\citation{Higham2002}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}HQR Factorization Implementation}{10}}
+\newlabel{sssec:HQRfI}{{3.1.1}{10}}
+\newlabel{eqn:hqrIO}{{22}{10}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces $\beta $, $\mathbf  {v}$, $\sigma = {\tt  hh\_vec}(\mathbf  {x})$. Given a vector $\mathbf  {x}\in \mathbb  {R}^n$, return the Householder vector, $\mathbf  {v}$; a Householder constant, $\beta $; and $\sigma $ such that $(I-\beta \mathbf  {v}\mathbf  {v}^{\top })\mathbf  {x} =\sigma (\mathaccentV {hat}05E{e_1})$ and $\mathbf  {v}_1=1$, (see \cite  {LAPACK, Higham2002}).}}{10}}
+\newlabel{algo:hh_v2}{{2}{10}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.2}Normalization of Householder Vectors}{10}}
+\newlabel{sssec:NormalizeHV}{{3.1.2}{10}}
+\citation{LAPACK}
+\newlabel{algo:hhQR}{{7}{11}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces $\mathbf  {Q}\mathbf  {B}\gets {\tt  hh\_mult}(V, \mathbf  {B})$: Given a set of householder vectors $\{\mathbf  {v}_i\}_{i=1}^n$ and their corresponding constants $\{\bm  {\beta }_i\}_{i=1}^n$, compute $\mathbf  {P}_1\cdots  \mathbf  {P}_n\mathbf  {B}$, where $\mathbf  {P}_i := \mathbf  {I} - \bm  {\beta }_i\mathbf  {v}_i\mathbf  {v}_i^{\top }$}}{11}}
+\newlabel{algo:hh_mult}{{3}{11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Rounding Error Analysis}{11}}
+\newlabel{sec:HQRre}{{3.2}{11}}
+\newlabel{assump:mp}{{3.2}{12}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Error analysis for forming Householder Vector and Constant}{12}}
+\@writefile{toc}{\contentsline {paragraph}{Error analysis for $\mathbf  {v}$}{12}}
+\newlabel{lem:2norm_a}{{3.3}{12}}
+\newlabel{eqn:sigma}{{24}{12}}
+\@writefile{toc}{\contentsline {paragraph}{Error analysis for $\beta $}{12}}
+\newlabel{lem:HQRv}{{3.4}{13}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Applying a Single Householder Transformation}{13}}
+\@writefile{toc}{\contentsline {paragraph}{Applying $\mathbf  {P}_{\mathbf  {v}}$ to zero out the target column of a matrix}{13}}
+\@writefile{toc}{\contentsline {paragraph}{Applying $\mathbf  {P}_{\mathbf  {v}}$ to the remaining columns of the matrix}{13}}
+\newlabel{eqn:applyP}{{27}{13}}
+\citation{Higham2002}
+\citation{Higham2002}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}HQR Factorization Forward Error Analysis}{14}}
+\newlabel{thm:feHQR}{{3.5}{14}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.4}HQR Comparison to Uniform Precision Analysis}{14}}
+\newlabel{sec:mpupHQRcomparison}{{3.2.4}{14}}
+\newlabel{eqn:applyPgen}{{33}{14}}
+\citation{Higham2002}
+\citation{Mori2012}
+\citation{Demmel2012}
+\citation{Mori2012}
+\newlabel{eqn:applyPup}{{34}{15}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Tall-and-Skinny QR}{15}}
+\newlabel{sec:TSQR}{{4}{15}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}TSQR/AllReduce Algorithm}{15}}
+\citation{BDGJNS2014}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}TSQR Notation}{16}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Single-level Example}{16}}
+\newlabel{Qdetails}{{4.1.2}{16}}
+\citation{Mori2012}
+\citation{Mori2012}
+\citation{Mori2012}
+\@writefile{loa}{\contentsline {algocf}{\numberline {4}{\ignorespaces $\mathbf  {Q},\mathbf  {R}={\tt  tsqr}(\mathbf  {A}, L)$. Finds a QR factorization of a tall, skinny matrix, $\mathbf  {A}$. }}{17}}
+\newlabel{algo:par_tsqr}{{4}{17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}TSQR Rounding Error Analysis}{17}}
+\newlabel{sec:TSQRre}{{4.2}{17}}
+\newlabel{thm:moriTSQR}{{4.1}{18}}
+\newlabel{eqn:tsqrRA}{{35}{18}}
+\newlabel{eqn:tsqrQ}{{36}{18}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}HQR and TSQR error bound comparison}{19}}
+\newlabel{sec:HTSQR}{{4.2.1}{19}}
+\@writefile{toc}{\contentsline {paragraph}{Uniform precision comparison}{19}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  Non-white space indicates allowable matrix sizes for each scheme, and color map represents error bounds for $\delimiter "026B30D \mathbf  {\Delta Q}\delimiter "026B30D _F$ for uniform precision error analysis when using double precision arithmetic.}}{19}}
+\newlabel{fig:paramspace}{{1}{19}}
+\@writefile{toc}{\contentsline {paragraph}{Mixed precision comparison}{19}}
+\citation{Mori2012}
+\citation{Mori2012}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Numerical Experiment}{20}}
+\newlabel{sec:NE}{{4.3}{20}}
+\newlabel{eqn:genRM}{{44}{20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  HQR errors for matrices with varying condition numbers.}}{21}}
+\newlabel{fig:unblocked}{{2}{21}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  Left plot shows the relative error of QR factorization for matrices with condition numbers ranging from 5.3 to 101, and the right plot shows the errors for matrices with condition numbers ranging from 1.1 to 5.3. }}{21}}
+\newlabel{fig:allTSQR}{{3}{21}}
+\citation{GraphChallenge}
+\citation{Bai2000}
+\citation{EKSX1996}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Applications}{22}}
+\newlabel{sec:Apps}{{5}{22}}
+\@writefile{toc}{\contentsline {paragraph}{Graph partitioning}{22}}
+\newlabel{def:P&R}{{5.1}{22}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Spectral Graph Clustering}{22}}
+\newlabel{sec:cluster}{{5.1}{22}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.1}Subspace Iteration}{22}}
+\citation{GraphChallenge}
+\@writefile{loa}{\contentsline {algocf}{\numberline {5}{\ignorespaces $\mathbf  {Q}=$ {\tt  subIter}$(\mathbf  {A}, \text  {\tt  max\_iter}, \tau , k)$. Find orthogonal basis (given by columns of output matrix $Q$) of an invariant subspace of the input adjacency matrix, $A$.}}{23}}
+\newlabel{algo:subIter}{{5}{23}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.2}Density-based Spatial clustering of Applications with Noise (DBSCAN)}{23}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Experiment Details and Results}{23}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Eigenspace Error for subspace iteration with using double-, single-, and half- precision traditional Householder QR factorizations.}}{24}}
+\newlabel{fig:subIter}{{4}{24}}
+\@writefile{toc}{\contentsline {paragraph}{Subspace Iteration Results}{24}}
+\@writefile{toc}{\contentsline {paragraph}{Clustering Results}{24}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces  Minimum (worst-case) precision and recall for $10$ trials on graph with $5000$ nodes and $19$ true clusters.}}{24}}
+\newlabel{table:PR}{{4}{24}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{24}}
+\citation{Higham2002}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Proofs}{25}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Lemma 2.3\hbox {} (Equation 16\hbox {})}{25}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Inner Products}{25}}
+\newlabel{appendix:IP}{{A.2}{25}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {A.2.1}Lemma 2.4\hbox {}}{25}}
+\newlabel{eqn:dperr_1}{{46}{26}}
+\newlabel{eqn:ipforward}{{47}{26}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {A.2.2}Corollary 2.5\hbox {}}{26}}
+\newlabel{eqn:dperr_2}{{48}{26}}
+\newlabel{eqn:ipforward2}{{49}{26}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Proof for Mixed-Precision HQR result}{27}}
+\newlabel{Appendix:HQR}{{A.3}{27}}
+\newlabel{lem:19.2}{{A.1}{27}}
+\newlabel{eqn:19.2a}{{51}{27}}
+\newlabel{eqn:19.2b}{{52}{27}}
+\newlabel{eqn:19.2c}{{53}{27}}
+\newlabel{lem:19.3}{{A.2}{27}}
+\newlabel{eqn:19.3}{{54}{27}}
+\citation{Higham2002}
+\newlabel{eqn:19.3c}{{55}{28}}
+\@writefile{toc}{\contentsline {paragraph}{Error bound for $\delimiter "026B30D \mathbf  {\Delta y}\delimiter "026B30D _2$}{28}}
+\newlabel{eqn:algebra}{{56}{28}}
+\@writefile{toc}{\contentsline {paragraph}{Bound for $\delimiter "026B30D \mathbf  {\Delta x}\delimiter "026B30D _2$}{29}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {A.3.1}Proof for Theorem 3.5\hbox {}}{29}}
+\bibdata{report}
+\bibcite{Higham2002}{1}
+\bibcite{vonLuxburg2007}{2}
+\bibcite{micikevicius2018mixed}{3}
+\bibcite{fagan2016powerwall}{4}
+\bibcite{haidar2018iterative}{5}
+\bibcite{haidar2019tensorcore}{6}
+\newlabel{appendix:A}{{A.3.1}{30}}
+\bibcite{abdelfattah2019batched}{7}
+\bibcite{Courbariaux2014Mult}{8}
+\bibcite{Courbariaux2014Storage}{9}
+\bibcite{nvdia}{10}
+\bibcite{tagliavini2018floating}{11}
+\bibcite{Demmel2012}{12}
+\bibcite{Householder1958}{13}
+\bibcite{LAPACK}{14}
+\bibcite{Mori2012}{15}
+\bibcite{BDGJNS2014}{16}
+\bibcite{GraphChallenge}{17}
+\bibcite{Bai2000}{18}
+\bibcite{EKSX1996}{19}
+\bibstyle{ieeetr}
