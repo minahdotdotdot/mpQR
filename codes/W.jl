@@ -5,7 +5,7 @@ include("mpTSQR.jl")
 include("TSQR.jl")
 
 using DelimitedFiles
-name = "W3"
+name = "mpBQR2"
 l = Float16; h=Float32; d=Float64;
 #c=1000.;
 #m=4096;n=2048;
@@ -44,9 +44,9 @@ for t = 1 : trials
         end
         =#
         # mpBQR2
-        Q, R = bhh_QR(A, r);
-        b2 = norm(Matrix{h}(Q)*Matrix{h}(R)-Ah)
-        f2 = opnorm(Matrix{h}(Q')*Matrix{h}(Q)-I)
+        Q, R = bhh_QR(A, r); Qh=Matrix{h}(Q);
+        b2 = norm(Qh*Matrix{h}(R)-Ah)
+        f2 = opnorm(Qh'*Qh-I)
         open("../txtfiles/"*name*"b.txt", "a") do io
             writedlm(io,[b2])
         end

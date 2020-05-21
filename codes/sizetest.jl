@@ -13,7 +13,7 @@ ms = ceil.(Int, ms);
 L = 2;
 κs = 1e3*ones(length(ms));
 dt = h;
-name="W3"
+name="size_"
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
 function addtofile!(name::String, b::AbstractFloat, o::AbstractFloat)
@@ -25,8 +25,8 @@ function addtofile!(name::String, b::AbstractFloat, o::AbstractFloat)
     end
 end
 
-for i = 1 : 9#length(ms)
-	varname=name*string(i,pad=2)
+for i = 1 : 10#length(ms)
+	varname="W3"*string(i,pad=2)
 	file = matopen("../"*varname*".mat")
 	A = Matrix{l}(read(file, varname))
 	close(file)
@@ -65,8 +65,8 @@ for i = 1 : 9#length(ms)
     Q, R = par_TSQR(Ah, L);
     Q = Matrix{h}(Q);
     b = norm(Q*Matrix{h}(R)-Ah)
-    o= opnorm(Q'*Q-I)\
-	addtofile!(name, b, o);
+    o= opnorm(Q'*Q-I)
+    addtofile!(name, b, o);
 
     # mpTSQR2
     Q, R = par_TSQR(A, L);
