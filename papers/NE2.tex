@@ -3,8 +3,8 @@ First, we tested \cref{algo:hhQR,algo:blockHQR,algo:par_tsqr,algo:mpBQR}, {\tt m
 Then, we tested varying block sizes in \cref{algo:mpBQR} for a fixed matrix size, and lastly compared the performance of {\tt mpHQR2} and {\tt mpTSQR2}.\par
 
 In \cref{sec:mpanalysis}, we gave the forward error bounds for $\bb{R}$ and $\bb{Q}$ separately. 
-Since our numerical experiments measure $\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F$ and $\|\hat{\bb{Q}}^{\top}\hat{\bb{Q}}-\bb{I}\|_2$ instead, we show how to convert the forward errors in general.
-Given $\|(\hat{\bb{R}}-\bb{R})[:,j]\|_2\leq \epsilon_R \|\bb{A}[:,j]\|_2$ and $\|(\hat{\bb{Q}}-\bb{Q})\|_F\leq \epsilon_Q$,
+Since our numerical experiments instead measure a backward error, $\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F$, and an orthogonal error, $\|\hat{\bb{Q}}^{\top}\hat{\bb{Q}}-\bb{I}\|_2$, we show how to convert general forward errors into those computed quantities.
+Given $\|(\hat{\bb{R}}-\bb{R})[:,j]\|_2\leq \epsilon_R \|\bb{A}[:,j]\|_2$ and $\|\hat{\bb{Q}}-\bb{Q}\|_F\leq \epsilon_Q$,
 \begin{align}
 	\|(\hat{\bb{Q}}\hat{\bb{R}}-\bb{A})[:,j]\|_2 &\leq (\epsilon_R+\epsilon_Q + \epsilon_R\epsilon_Q)\|\bb{A}[:,j]\|_2,\;\; j=1:n,\quad \text{see \cite{Higham2002}},\\
 	\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F &\leq n^{1/2}(\epsilon_R+\epsilon_Q + \epsilon_R\epsilon_Q)\|\bb{A}\|_F, \label{eqn:QRA} \\
@@ -12,7 +12,8 @@ Given $\|(\hat{\bb{R}}-\bb{R})[:,j]\|_2\leq \epsilon_R \|\bb{A}[:,j]\|_2$ and $\
 \end{align}
 %\subsection{Varying matrix sizes}
 %\subsection{Varying block sizes in {\tt mpBQR3}}
-
+The left plot of \cref{fig:sizempBQR3} shows the backward error for HQR, BQR, TSQR, and their mixed precision variants. 
+The three clusters each correspond to:1) \cref{assump:mp}; 2) TensorCore bFMAs; 3) and the high, uniform precision implementations.
 \begin{figure}[h!]%{r}{.53\textwidth}
 	\centering
 	\vspace{-10pt}

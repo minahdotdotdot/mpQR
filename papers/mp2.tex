@@ -4,7 +4,7 @@ Recall that HQR, BQR, and TSQR all rely on HH transformations in one way or anot
 This implementation capitalizes on the rank-1 update structure of HH transformations where the predominant share of FLOPs is spent on an inner product, and computing the HH vector and constant also rely heavily on inner products.
 Therefore, nearly all of the computational tasks for \cref{algo:hhQR,algo:blockHQR,algo:par_tsqr} are attributed to the inner product, which is important in other linear algebra tools such as projections, matrix-vector, and matrix-matrix multiply.
 Consequently, we return to the mixed precision setting described in \cref{assump:mp}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}. 
-We denote HQR, BQR, and TSQR computed with the mixed precision setting of \cref{assump:mp} with {\tt mpHQR2}, {\tt mpBQR2}, and {\tt mpTSQR2}, where the {\tt 2} represents the mixed precision procedure computed at a level-2 BLAS operation.
+We denote HQR, BQR, and TSQR computed with the \cref{assump:mp} with {\tt mpHQR2}, {\tt mpBQR2}, and {\tt mpTSQR2}, where the {\tt 2} represents the mixed precision procedure computed at a level-2 BLAS operation.
 %\cref{sec:background}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}.
 \subsubsection{Round down at inner product: HQR}
 Consider forming a HH transformation that zeros out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 

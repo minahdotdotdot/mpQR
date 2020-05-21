@@ -1,31 +1,35 @@
 \begin{table}[H]
 	\centering
 	%\begin{tabular}{|m{3cm}|m{9cm}|c|}
-	\begin{tabular}{|m{1.7cm}|m{10.3cm}|c|}
+	\begin{tabular}{|m{2.cm}|m{10.6cm}|c|}
 		\hline
 		%DONE: change table have the following 3 columns, add sections
-		Symbol(s) & Definition(s) & Section(s) \\ \hline
+		Symbol & Definition & Section \\ \hline
 		${\bb x}$, ${\bb A}$  & Vector, matrix  & \ref{sec:background} \\
 		%	${\bb A}$ & Matrix & \ref{sec:intro}\\
 		%$m$, $n$ & Number of rows, columns of matrix, or length of vector&  \ref{sec:intro}\\
 		%$i$, $j$ & Row, column index of matrix or vector & \ref{sec:HQRfA} \\
-		%$\|{\bf x}\|_2$, $\|\bb{A}\|_2$ & Vector operator 2-norm & \ref{sec:HQRf}\\
-		%$|c|$, $|\bb{x}|$ ,$|\bb{A}|$ & Absolute value of constant, all elements of vector, matrix & \ref{sec:HQRf} \\
+		$\|{\bf x}\|_2$, $\|\bb{A}\|_2$ & Vector, operator $p$-norms for $p=2$ & \ref{sec:HQRf}\\
+		$|\bb{x}|$ ,$|\bb{A}|$ & Absolute value of each component of vector, matrix & \ref{sec:HQRf} \\
+		$\bb{x}[i], \bb{A}[i,j]$,$\;:$& $i^{th}$ element of $\bb{x}$, $i^{th}$ row and $j^{th}$ column element of $\bb{A}$, all indices& \ref{}\\
 		%$\bb{x}_i$, $\hat{e}_i$  & $i^{th}$ element of vector $\bb{x}$, cardinal vector &  \ref{sec:HQRfA}, \ref{sec:HQRf}\\
 		%$\bb{A}[a:b, c:d]$ &Rows $a$ to $b$ and columns $c$ to $d$ of matrix $\bb{A}$ & \ref{sec:HQRfA}\\
 		%$\bb{A}[a:b,:]$, $\bb{A}[:,c:d]$ & Rows $a$ to $b$, columns $c$ to $d$ of matrix $\bb{A}$& \ref{sec:HQRfA}\\
 		\hline
-		$\bb{Q}$  & Orthogonal factor $\bb{A}\in\R^{m\times n}$: $m$-by-$m$ (full) or $m$-by-$n$ (thin)  & \ref{sec:background}\\
-		$\bb{R}$ & Upper triangular or trapezoidal factor of $\bb{A}\in\R^{m\times n}$:  $m$-by-$n$ (full) or $n$-by-$n$ (thin)  &  \ref{sec:background}\\ 
+		$\bb{Q},\bb{R}$  & Factors resulting from QR factorization algorithms  & \ref{sec:background}\\
+%		$\bb{Q}$  & Orthogonal factor $\bb{A}\in\R^{m\times n}$: $m$-by-$m$ (full) or $m$-by-$n$ (thin)  & \ref{sec:background}\\
+%		$\bb{R}$ & Upper triangular or trapezoidal factor of $\bb{A}\in\R^{m\times n}$:  $m$-by-$n$ (full) or $n$-by-$n$ (thin)  &  \ref{sec:background}\\ 
 		%$\bb{A}^{(k)}$ & Matrix $\bb{A}$ after $k$ Householder transformations. &\ref{sec:HQRfA}\\
 		\hline
-		$\fl(\bb{x})$, $\hat{\bb{x}}$ & Quantity $\bb{x}$ calculated from floating point operations & \ref{sec:backgroundRE} \\
-		$b$, $t$, $\mu$, $\eta$  & Base/precision/mantissa/exponent bits & \ref{sec:backgroundRE} \\
+		$\fl(\bb{x})$, $\hat{\bb{x}}$ & Quantity $\bb{x}$ calculated from floating point operations & \ref{sec:background} \\
+		$\mu$, $\eta$  & mantissa, exponent bits of a floating point number & \ref{sec:background} \\
+		$b_q$, $t_q$, $u^{(q)}$ & base, precision, unit round-off for precision $q$,  $u^{(q)}:=\frac{1}{2}b_q^{1-t_q}$& \ref{sec:background}\\
 		%\tt{Inf} & Values outside the range of representable numbers & \ref{sssec:NormalizeHV} \\ %https://www.doc.ic.ac.uk/~eedwards/compsys/float/nan.html
-		$k$ & Number of successive FLOPs &  \ref{sec:backgroundRE}\\
-		$u^{(q)}$ & Unit round-off for precision $t_q$ and base $b_q$: $\frac{1}{2}b_q^{1-t_q}$ & \ref{sec:backgroundRE} \\ 
-		$\dd^{(q)}$ &Quantity bounded by: $|\dd^{(q)}| < u^{(q)}$ &  \ref{sec:backgroundRE} \\
-		$\gamma^{(q)}_{k}$,  $\tth^{(q)}_{k}$& $\frac{ku^{(q)}}{1-ku^{(q)}}$, Quantity bounded by: $|\tth^{(q)}_{k}|\leq\gamma^{(q)}_{k}$ &  \ref{sec:backgroundRE} \\
+		%$k$ & Number of successive FLOPs &  \ref{sec:backgroundRE}\\
+		%$u^{(q)}$ & Unit round-off for precision $t_q$ and base $b_q$: $u^{(q)}:=\frac{1}{2}b_q^{1-t_q}$ & \ref{sec:backgroundRE} \\ 
+		$\dd^{(q)}$ &Quantity bounded by: $|\dd^{(q)}| < u^{(q)}$ &  \ref{sec:background} \\
+		$\gamma^{(q)}_{k}$,  $\tth^{(q)}_{k}$& $\frac{ku^{(q)}}{1-ku^{(q)}}$, Quantity bounded by: $|\tilde{\tth}^{(q)}_{k}|\leq\tilde{\gamma}^{(q)}_{k}$ &  \ref{sec:background} \\
+		$\tilde{\gamma}^{(q)}_{k}$,  $\tilde{\tth}^{(q)}_{k}$& $\frac{cku^{(q)}}{1-cku^{(q)}}$ for small integer $c>0$, Quantity bounded by: $|\tth^{(q)}_{k}|\leq\gamma^{(q)}_{k}$ &  \ref{sec:background} \\
 		%$\tth_{q}^{(k)}$ & Quantity bounded by: $|\tth_{q}^{(k)}|\leq\gamma_q^{(k)}$ &  \ref{sec:FPREA} \\ 
 		\hline
 			%$\bb{0}_{m\times n}$, $\bb{I}_{n}$ & $m$-by-$n$ zero matrix, $n$-by-$n$ identity  matrix &  \ref{sec:intro}\\

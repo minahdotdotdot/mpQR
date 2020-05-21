@@ -207,7 +207,7 @@ Note that all the rules hold when replaced by $\tilde{\gamma}$'s, but result in 
 
 We define two mixed precision settings that we use in \cref{sec:mpanalysis}.
 In \cref{sec:mp-3}, we present the block Fused Multiply-Add (bFMA) of NVIDIA's TensorCore (TC) technology, which computes matrix-matrix multiply and accumulate for $4$-by-$4$ blocks, and incorporate it into \cref{algo:blockHQR,algo:par_tsqr}.
-Here, we introduce an ad hoc mixed precision setting which we use in \cref{sec:mp-2}.
+Here, we introduce an ad hoc mixed precision setting (MP Setting) which we use in \cref{sec:mp-2}.
 This is explicitly defined in \cref{assump:mp} and is a level-2 BLAS variant of the TC bFMA. 
 %we use an  that is similar to TensorCore but works at the level of a dot product, which we introduce here.
 Both mixed precision settings define how inner products are computed although the bFMA is only applicable to inner products within matrix products and uses fp16 and fp32 whereas our 
