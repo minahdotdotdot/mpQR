@@ -1,0 +1,22 @@
+Redefine tilde gamma, and introduce tilde theta. 
+Reference into Table 2.
+Table 3: change to lower case.
+Put ehat into table OR lem 3.1.
+
+mpBQR vs BQR
+condition number vs matrix size
+add matrix size for some condition size. 
+
+
+Numerics section: short. 
+grow columns
+grow rows
+grow condition numbers
+
+Remind people about HQR. 
+
+Tell reviewers that you wrote for a big audience. 
+
+Say which part is new, which isn't new. 
+
+Check backward vs. forward error. 

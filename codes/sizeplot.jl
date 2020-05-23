@@ -19,8 +19,8 @@ L = 2;
 κs = 1e3*ones(length(ms));
 dt = h;
 sb, sf = loadtxt("size_", false);
-ssb=Vector{d}(sb[:,1]);
-ssf=Vector{d}(sf[:,1]);
+ssb=Vector{d}(sb[1:9*floor(Int,size(sb)[1]/9),1]);
+ssf=Vector{d}(sf[1:9*floor(Int,size(sf)[1]/9),1]);
 ssb = reshape(ssb,(9,Int(length(ssb)/9)))
 ssf = reshape(ssf,(9,Int(length(ssf)/9)))
 #=
@@ -31,16 +31,19 @@ bound3 = n^(3/2)*(25 ./rs3*ul .+ m/4*uh);
 fig,ax = subplots()
 ax.set_yscale("log")
 ax.set_xscale("log")
-scatter(ms[1:size(ssb)[2]], ssb[1:9:end,:]', marker="o", label="mpHQR2", c=:red)
-scatter(ms[1:size(ssb)[2]], ssb[3:9:end,:]', marker="o", label="mpBQR2", c=:blue)
-scatter(ms[1:size(ssb)[2]], ssb[6:9:end,:]', marker="o", label="mpTSQR2", c=:green)
+scatter(ms[1:size(ssb)[2]], ssb[1:9:end,:]', marker="+", c=:red  , label="mpHQR2") 
+scatter(ms[1:size(ssb)[2]], ssb[3:9:end,:]', marker="+", c=:blue , label="mpBQR2") 
+scatter(ms[1:size(ssb)[2]], ssb[6:9:end,:]', marker="+", c=:green, label="mpTSQR2") 
 
-scatter(ms[1:size(ssb)[2]], ssb[4:9:end,:]', marker="D", label="mpBQR3", c=:blue)
-scatter(ms[1:size(ssb)[2]], ssb[7:9:end,:]', marker="D", label="mpTSQR3", c=:green)
+scatter(ms[1:size(ssb)[2]], ssb[4:9:end,:]', marker="D", c=:blue, label="mpBQR3") 
+scatter(ms[1:size(ssb)[2]], ssb[7:9:end,:]', marker="D", c=:green, label="mpTSQR3") 
 
-scatter(ms[1:size(ssb)[2]], ssb[8:9:end,:]', marker="x", label="HQRh", c=:red)
-scatter(ms[1:size(ssb)[2]], ssb[2:9:end,:]', marker="x", label="BQRh", c=:blue)
-scatter(ms[1:size(ssb)[2]], ssb[5:9:end,:]', marker="x", label="TSQRh", c=:green)
+scatter(ms[1:size(ssb)[2]], ssb[8:9:end,:]', marker="x", c=:red, label="HQRh") 
+scatter(ms[1:size(ssb)[2]], ssb[2:9:end,:]', marker="x", c=:blue, label="BQRh") 
+scatter(ms[1:size(ssb)[2]], ssb[5:9:end,:]', marker="x", c=:green, label="TSQRh") 
+
+axhline(.5*eps(h), label=L"u^{(fp32)}", c=:black)
+axhline(.5*eps(l), label=L"u^{(fp16)}", c=:black, linestyle=:dashed)
 #=
 plot(rs3, boundh,label="BQR bound", c=:blue)
 #plot(rs3, bound2,label="mpBQR2 bound", c=:red)
@@ -49,7 +52,8 @@ plot(rs3, bound3,label="mpBQR3 bound", c=:green)
 xticks()
 xlim(minimum(ms)*.9, maximum(ms)/.9)
 ylim(.1*eps(h), maximum(ssb)/.8)
-xlabel("Number of rows")
+xlabel("m, number of rows")
 ylabel("Backward Frobenius norm error")
 title(L"QR relative backward errors of $m$-by-$\frac{m}{4}$ matrices")
-legend(bbox_to_anchor=(.95, .8))
+legend()
+#legend(bbox_to_anchor=(.95, .8))
