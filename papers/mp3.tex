@@ -153,7 +153,7 @@ Invoking \cref{lem:3.7} with error bounds for $\fl_{TC}(\hat{\bb{X}}_k^{(l)})$'s
 where $\Delta \bb{q}_j = (\fl_{TC}(\hat{\bb{X}}_1^{(l)})\cdots\fl_{TC}(\hat{\bb{X}}_k^{(l)}) - \bb{X}_1\cdots\bb{X}_k )\hat{\bb{e}}_j.$
 Summing over the columns to find a matrix norm error bound yields
 \begin{equation}
-	\|\hat{\bb{Q}}_{mpBQR}-\bb{Q}\|_F \leq n^{1/2}\tilde{\gamma}_{N}^{(l)} + n^{(3/2)}\tilde{\gamma}_m^{(h)},
+	\|\hat{\bb{Q}}_{mpBQR}-\bb{Q}\|_F \leq n^{1/2}\left(\tilde{\gamma}_{N}^{(l)} + n\tilde{\gamma}_m^{(h)}\right),
 \end{equation}
 where the summation of the third term in \cref{eqn:mpBQRcol} is swept under the tilde notation in $n^{1/2} \tilde{\gamma}_{N}^{(l)}$.
 This bound shows that \cref{algo:mpBQR} only adds $n^{1/2}\tilde{\gamma}_{N}^{(l)}$ order errors to the bounds in \cref{eqn:BQRmat}.
@@ -162,8 +162,9 @@ Using that $u^{(l)}=M_{l,h}u^{(h)}$, this increase corresponds to a multiplicati
 	n^{1/2}\tilde{\gamma}_{N}^{(l)} + n^{(3/2)}\tilde{\gamma}_m^{(h)} \approx \left(1+\frac{M_{l,h}}{rm}\right)n^{(3/2)}\tilde{\gamma}_m^{(h)}. \label{eqn:mpBQR3}
 \end{equation}
 Therefore, the loss in accuracy due to mixed precision computing is relatively small when the disparity in precision ($M_{l,h}$) is small in comparison to the block size, $mr$.
+However, as $r$ grows large, $N=n/r$ decreases which then reduces the portion of {\tt mpBQR3} performed using level-3 BLAS operations and increases the size of high precision HQR being performed at each block.
 Whether this loss in accuracy in the worst-case scenario is worth the speed-ups from using mixed precision hardware is an open question that can be tackled in future research.
-We expect that the block size $r$, the dimension of the input matrix $m,n$, and hardware specificities will be contributing factors. 
+Our analysis shows that the block size $r$, the dimension of the input matrix $m,n$, and hardware specificities will be contributing factors. 
 
 \subsubsection{TSQR round down at block level: {\tt mpTSQR3}}\label{sec:mp-3t}
 %Unlike BQR, which is rich in level-3 BLAS operations, TSQR d
@@ -203,20 +204,42 @@ Then, we can use \cref{eqn:mpdeltX} to form backward error
 %There are two low precision rounding errors in each block per level since casting down the matrix operator formed with high precision is cast down to the low precision, and the matrix-matrix product used in applying this operator with TensorCore block FMAs incurs another low precision rounding error. 
 We can now modify the analysis in \cite{Mori2012} by replacing $n\tilde{\gamma}_{m2^{-L}}$ and $n\tilde{\gamma}_{2n}$ with \[(1+\tilde{\gamma}_2^{(l)})(1+n\tilde{\gamma}_{m2^{-L}}^{(h)})-1,\quad\text{and}\quad (1+\tilde{\gamma}_2^{(l)})(1+n\tilde{\gamma}_{2n}^{(h)})-1,\]
 and apply \cref{lem:3.7}.
-Then, the $\bb{Q}$ factor formed with this mixed precision variant of TSQR is denoted with $\hat{\bb{Q}}_{mpTSQR3}$ and its $j^{th}$ column has rounding errors bounded by,
+Then, the factors formed by {\tt mpTSQR3} are denoted by $\hat{\bb{R}}_{mpTSQR3},\hat{\bb{Q}}_{mpTSQR3}$ and the error bounds for the $j^{th}$ column of the triangular factor and the orthogonal factor are
+\begin{align*}
+\|(\hat{\bb{R}}_{mpTSQR3}- \bb{R})[:,j]\|_2 &\leq \tilde{\gamma}_{L+1}^{(l)}+n\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right)\|\bb{A}[:,j]\|_2\label{eqn:mpTSQR1},\\
+%\end{align*}
+%Summing up the columns for a matrix norm error bound, we result in 
+%\begin{align*}
+	\|\hat{\bb{Q}}_{mpTSQR3} - \bb{Q}\|_F &\leq n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right).
+\end{align*}
+Converting the low precision rounding errors as a fraction of the TSQR error bound in \cref{eqn:tsqrQ} to quantify the impact of modifying \cref{algo:par_tsqr} to utilize bFMAs yields
 \begin{equation}
-\|\hat{\bb{Q}}_{mpTSQR3}[:,j] - \bb{Q}[:,j]\|_2 \leq \tilde{\gamma}_{L+1}^{(l)}+n\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right)\label{eqn:mpTSQR1}.
+	n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right) = \left(1+ \frac{M_{l,h}(L+1)}{n(2nL+m2^{-L})}\right)n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right).\label{eqn:mpTSQR3}
 \end{equation}
-Summing up the columns for a matrix norm error bound, we result in 
-\begin{equation}
-	\|\hat{\bb{Q}}_{mpTSQR3} - \bb{Q}\|_F \leq n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right).
-\end{equation}
-Once again, we convert the low precision rounding errors  as a fraction of the original bound in \cref{eqn:tsqrQ} to quantify the impact of modifying \cref{algo:par_tsqr} to utilize bFMAs,
-\begin{equation}
-	n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right) = \left(1+ \frac{M_{l,h}L}{n(2nL+m2^{-L})}\right)n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right).\label{eqn:mpTSQR3}
-\end{equation}
-Like in \cref{eqn:mpBQR3}, the constant that represents the disparity in the two precisions, $M_{l,h}$ is compared against the original matrix size $m,n$ and the block size specifications derived from $L$.
+Like in \cref{eqn:mpBQR3}, the disparity in the two precisions, $M_{l,h}$ is compared against the original matrix size $m,n$ and the block size specifications derived from $L$.
 %TODO: conclusion maybe a parameter regime analysis for m, n, L, M?
+Let us consider the shallowest, middle, and the deepest levels of TSQR that are possible given some matrix in $\R^{m\times n}$.
+All three cases in \cref{table:mpTSQR3} show that {\tt mpTSQR3} on sufficiently large matrices may yield errors closer to the high precision implementation, and the optimal choice for $L$ depends on $m,n$. 
+\begin{table}[H]
+	\center
+	\begin{tabular}{||c|c|c|c||} 
+		\hline
+		 Number of levels, $L$& $1$ & $\frac{1}{2}\log_2(m/n)$ & $-1+\log_2(m/n)$ \\ \hline
+		$\frac{(L+1)}{n(2nL+m2^{-L})}$&  $1/(n^2+m/4)$ &$1/\left(2n^2+\frac{m^{1/2}n^{3/2}}{\log_2(m/n)}\right)$ & $1/(2n^2)$\\ \hline
+	\end{tabular}
+	\caption{Error bounds for $\|\Delta \bb{Q}_{mpTSQR3}\|_F$ for varying $L$'s.} 
+	\label{table:mpTSQR3}
+\end{table} 
+\vspace{-1cm}
+%Let us consider the example where $m2^{-L}=2n$ as we did in \cref{sec:TSQR}. 
+%Now, we compare {\tt mpTSQR3} against {\tt mpBQR3} with respect to their worst-case error bounds. 
+%TSQR has a lower worst-case error bound than HQR when integers $m, n > 0$, and $L\geq0$ satisfy
+%\begin{equation*}
+%1\gg n^{3/2}\gamma^{(m)} \gg n^{3/2}(\gamma^{(\frac{m}{2^L})}+L\gamma^{(2n)}).
+%\end{equation*}
+%%for TSQR to have a better worst-case error bound than HQR.
+%Let us consider as an example the case when $\frac{m}{2^L}=2n$.
+%Then, the HQR bound is $2^L/(L+1)$ larger than the bound for TSQR with $L$ levels. 
 %Let us now consider a WY variant of TSQR, where all instances of {\tt qr} (lines 6,7,9 of \cref{algo:par_tsqr}) are followed by {\tt buildWY} (see \cref{algo:buildWY}), and all instances of {\tt hh\_mult} is replaced by a WY update (line 6 of \cref{algo:blockHQR}).
 %We additionally impose a mixed precision assumption similar to \cref{sec:mp-3b}, where we store all WY representations of HQR within the for-loop (lines 4-8) of \cref{algo:par_tsqr} in low precision, and consider the construction of the $\bb{Q}$ factor.
 %We can assume that each $2n$-by-$n$ and $m2^{-L}$-by-$n$ size matrices can fit into memory and only introduce one cast down for each $\bb{Q}_j^{(i)}$ block, where $i=1:L-1$ and $j=1:2^{i-1}$.
