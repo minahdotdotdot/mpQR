@@ -8,6 +8,7 @@ We present this as zeroing out all but the first element of some vector, $\bb{x}
 	\sigma = -\rm{sign}(\bb{x}[1])\|\bb{x}\|_2, \quad  \bb{v} = \bb{x} -\sigma \hat{\bb{e}}_{1},\mbox{ and } \beta =\frac{2}{\bb{v}^{\top}\bb{v}}=-\frac{1}{\sigma\bb{v}[1]}.
 	\label{eqn:HH} 
 	\end{equation}
+
 	Note that $\bb{P}_{\bb{v}}$ is symmetric and orthogonal, $\bb{P}_{\bb{v}}=\bb{P}_{\bb{v}}^{\top}=\bb{P}_{\bb{v}}^{-1}$.
 	As a result, the transformed vector, $\bb{P_vx}=\sigma\hat{\bb{e}_1}$, has the same 2-norm as $\bb{x}$.
 	\label{lem:hhvec}
@@ -92,6 +93,8 @@ The thin factors for a general matrix $\bb{A}\in\R^{m\times n}$ are
 \end{algorithm2e}
 \subsubsection{HQR: Rounding Error Analysis}
 Now we present an error analysis for \cref{algo:hhQR} by keeping track of the different operations of \cref{algo:hh_v2} and \cref{algo:hhQR}.
+We follow the analysis of \cite{Higham2002} and modify it for the variant where $\bb{v}[1]$ is set to $1$.
+The goal of this section is to present the basic steps of the standard error analysis for HQR so that we modify them easily in \cref{sec:mpanalysis} for different mixed precision settings.
 \paragraph{Calculating the $i^{th}$ HH vector and constant} 
 In \cref{algo:hhQR}, we compute the HH vector and constant by using \cref{algo:hh_v2} to $\bb{A}[i:m,i]$.
 For now, consider zeroing out any vector $\bb{x}\in\R^m$ below its first component with a HH transformation.

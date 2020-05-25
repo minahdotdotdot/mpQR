@@ -2,7 +2,7 @@ We conducted several numerical experiments to confirm the validity of the error 
 First, we tested \cref{algo:hhQR,algo:blockHQR,algo:par_tsqr,algo:mpBQR}, {\tt mpHQR2}, {\tt mpBQR2}, and {\tt mpTSQR2} for varying matrix sizes.
 Then, we tested varying block sizes in \cref{algo:mpBQR} for a fixed matrix size, and lastly compared the performance of {\tt mpHQR2} and {\tt mpTSQR2}.\par
 
-In \cref{sec:mpanalysis}, we gave the forward error bounds for $\bb{R}$ and $\bb{Q}$ separately. 
+In \cref{sec:algo,sec:mpanalysis}, we gave the forward error bounds for $\bb{R}$ and $\bb{Q}$ separately. 
 Since our numerical experiments instead measure a backward error, $\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F$, and an orthogonal error, $\|\hat{\bb{Q}}^{\top}\hat{\bb{Q}}-\bb{I}\|_2$, we show how to convert general forward errors into those computed quantities.
 Given $\|(\hat{\bb{R}}-\bb{R})[:,j]\|_2\leq \epsilon_R \|\bb{A}[:,j]\|_2$ and $\|\hat{\bb{Q}}-\bb{Q}\|_F\leq \epsilon_Q$,
 \begin{align}
@@ -12,8 +12,12 @@ Given $\|(\hat{\bb{R}}-\bb{R})[:,j]\|_2\leq \epsilon_R \|\bb{A}[:,j]\|_2$ and $\
 \end{align}
 %\subsection{Varying matrix sizes}
 %\subsection{Varying block sizes in {\tt mpBQR3}}
-The left plot of \cref{fig:sizempBQR3} shows the backward error for HQR, BQR, TSQR, and their mixed precision variants. 
-The three clusters each correspond to:1) \cref{assump:mp}; 2) TensorCore bFMAs; 3) and the high, uniform precision implementations.
+The left plot of \cref{fig:sizempBQR3} shows the backward error for HQR, BQR, TSQR, and their mixed precision variants.
+We increased the matrix size from 
+The three clusters each correspond to: Top, \cref{assump:mp}; middle, TensorCore bFMAs; and bottom, uniform precision implementations in fp32.
+Note that while HQR, BQR, and TSQR perform similarly in high precision and when using TensorCore bFMAs, TSQR is less accurate for \cref{assump:mp} implementations by a quarter to a half order of magnitude.
+
+
 \begin{figure}[h!]%{r}{.53\textwidth}
 	\centering
 	\vspace{-10pt}
@@ -23,7 +27,7 @@ The three clusters each correspond to:1) \cref{assump:mp}; 2) TensorCore bFMAs; 
 	\vspace{-10pt}
 \end{figure} 
 %\subsection{Varying condition numbers}
-Lastly, we compared HQR and TSQR performances in the mixed precision setting described in \cref{assump:mp}.
+Lastly, we compared HQR and TSQR performances implemented with \cref{assump:mp}.
 Note that an empirical comparison of the two algorithms were reported in \cite{Mori2012} in fp64 arithmetic, and we omit the comparison against {\tt mpBQR2} since it performs very similarly to {\tt mpHQR2}.
 %TODO: talk why omit BQR? or wait for BQR
 The numerical experiments show that TSQR can outperform HQR in mixed precision settings in practice even though the theoretical bounds do not guarantee stability.

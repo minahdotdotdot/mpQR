@@ -1,4 +1,4 @@
-\subsection{Round down at block-level (BLAS-3)}\label{sec:mp-3}
+\subsection{Round down at block-level: level-3 BLAS mixed precision setting}\label{sec:mp-3}
 The mixed precision setting in this section is designed to meet the below requirements.
 \begin{enumerate}
 	\item Modify \Cref{algo:blockHQR,algo:par_tsqr} to maximize level-3 BLAS operations and use TensorCore bFMAs. 
@@ -34,7 +34,7 @@ Adapting the rounding error analysis in \cite{Blanchard2019} into this specific 
 \end{equation}
 
 We denote BQR and TSQR computed via TensorCore bFMA's with {\tt mpBQR3} and {\tt mpTSQR3}, where the {\tt 3} represents the BLAS level-3 nature of this mixed precision setting.
-\subsubsection{Round down at block level: BQR}\label{sec:mp-3b}
+\subsubsection{BQR round down at block level: {\tt mpBQR3}}\label{sec:mp-3b}
 %Let us consider a setting in which only $M$ blocks of width $r$ can be loaded onto memory.
 %Then, lines 2-6 of \cref{algo:blockHQR} can be modified via \cref{algo:mpBQR}.
 %\begin{algorithm2e}
@@ -165,7 +165,7 @@ Therefore, the loss in accuracy due to mixed precision computing is relatively s
 Whether this loss in accuracy in the worst-case scenario is worth the speed-ups from using mixed precision hardware is an open question that can be tackled in future research.
 We expect that the block size $r$, the dimension of the input matrix $m,n$, and hardware specificities will be contributing factors. 
 
-\subsubsection{Round down at block level: TSQR}\label{sec:mp-3t}
+\subsubsection{TSQR round down at block level: {\tt mpTSQR3}}\label{sec:mp-3t}
 %Unlike BQR, which is rich in level-3 BLAS operations, TSQR d
 %Since the majority of FLOPs in BQR use level-3 BLAS operations, it was simple to adapt TensorCore block FMAs within the algorithm.
 %

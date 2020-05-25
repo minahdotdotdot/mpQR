@@ -67,7 +67,7 @@ A pseudoalgorithm for BQR is shown in \cref{algo:blockHQR} where we assume that 
 In practice, an efficient implementation might require $r$ to be a power of two or a product of small prime factors and result a thinner $N^{th}$ block compared to the rest. 
 This discrepancy is easily fixed by padding the matrix with zeros, a standard procedure for standard algorithms like the Fast Fourier Transform (FFT).
 %TODO: cite?
-For any variable $x\in\{\bb{X},\bb{W}, \bb{Y}, \bb{z}, \beta, \bb{v}, \bb{P}\}$,  $x_k^{(j)}$ corresponds to the $j^{th}$ update for the $k^{th}$ block.
+For any variable $x$ in $\{\bb{X},\bb{W}, \bb{Y}, \bb{z}, \beta, \bb{v}, \bb{P}\}$,  $x_k^{(j)}$ corresponds to the $j^{th}$ update for the $k^{th}$ block.
 %Note that the subscripts on $\bb{W}_{k},\bb{Y}_k$ indicate the WY representation for the HH transformations on the $k^{th}$ block of $\bb{A}$, $\bb{C}_{k}$, whereas the superscripts on $\bb{W}_k^{(j)}$ in \cref{lem:WY} refers to the $j^{th}$ update within building a WY representation. 
 \begin{algorithm2e}
 	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
@@ -110,7 +110,7 @@ Since $\bb{z}_{k}^{(j)} = \beta_k^{(j)}\bb{X}_{k}^{(j-1)}\bb{v}_{k}^{(j)}$, this
 \hat{\bb{X}}_k^{(j-1)} - \fl(\hat{\beta}_k^{(j-1)}\hat{\bb{X}}_k^{(j-1)}\hat{\bb{v}}_k^{(j-1)})\hat{\bb{v}}_k^{(j)\top} = \hat{\bb{X}}_k^{(j-1)}(\bb{P}_k^{(j)}+\Delta \bb{P}_k^{(j)}), \label{eqn:Xupdate}
 \end{equation}
 where $\|\Delta \bb{P}_k^{(j)}\|_F \leq \tilde{\gamma}_{m-(k-1)r}$.
-Since $\hat{\bb{X}}_k^{(1)} = \bb{I} - \hat{\beta}_k^{(1)}\hat{\bb{v}}_k^{(1)}\hat{\bb{v}}_k^{(1)\top} = \bb{P}_k^{(1)} + \Delta \bb{P}_k^{(1)}$, we can travel up the recursion relation in \cref{eqn:Xupdate} and use \cref{lem:3.7} to find 
+Since $\hat{\bb{X}}_k^{(1)} = \bb{I} - \hat{\beta}_k^{(1)}\hat{\bb{v}}_k^{(1)}\hat{\bb{v}}_k^{(1)\top} = \bb{P}_k^{(1)} + \Delta \bb{P}_k^{(1)}$, we can travel up the recursion relation in \cref{eqn:Xupdate} and use \cref{lem:3.7} to form
 \begin{equation}
 	\|\Delta \bb{X}_k^{(j)} \|_F \leq j\tilde{\gamma}_{m-(k-1)r}. \label{eqn:deltX}
 \end{equation}
@@ -154,15 +154,13 @@ We now calculate the rounding errors incurred from building the WY representatio
 %Traveling up this recursion relation to $j=1$, we find that $\hat{\bb{X}}_{k}^{(j)}$ is built from applying a sequence of HH transformations $\{\hat{\bb{P}}_{k}^{(2)},\cdots \hat{\bb{P}}_k^{(j)}\}$ to $\bb{P}_k^{(1)}$.
 %Therefore, we can apply \cref{eqn:19.3} (set $\bb{Q}=\bb{X}_{k}^{(j-1)}$, $\bb{x}=\fl(\hat{\beta}_k^{(j)}\hat{\bb{v}}_{k}^{(j)})$, and $\bb{y}=\bb{z}_{k}^{(j)}$) to form \cref{eqn:BQR-z}.
 % directly for the construction of $\bb{z}_{k}^{(j)}$
-Since the columns of $\hat{\bb{Y}}_k$ are simply $\{\hat{\bb{v}}_k^(j)\}$ built in \cref{algo:hhQR} the errors for forming these are shown in \cref{eqn:vbound} where $m$ should be replaced by $m-(k-1)r$.
+Since the columns of $\hat{\bb{Y}}_k$ are simply $\{\hat{\bb{v}}_k^{(j)}\}$ built in \cref{algo:hhQR} the errors for forming these are shown in \cref{eqn:vbound} where $m$ should be replaced by $m-(k-1)r$.
 The HH constants, $\hat{\beta}_k^{(j)}$ are bounded by \cref{eqn:beta3} modified similarly. 
 Thus, $\bb{z}_k^{(j)}$ is the only newly computed quantity. 
 Using \cref{eqn:deltX,eqn:vbound,eqn:beta3}, we find
 \begin{align*}
-\|\Delta \bb{z}_k^{(j)}\|_2 &= \|\Delta\bb{X}_k^{(j-1)}\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)} \|_2 \leq \|\Delta\bb{X}_k^{(j-1)}\|_2 \|\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}\|_2\\
-& \leq \|\Delta\bb{X}_k^{(j)-1}\|_F\|\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}\|_2 \\
-& \leq \left((1+(j-1)\tilde{\gamma}_{m-(k-1)r})(1 + \tilde{\gamma}_{m-(k-1)r})-1\right) \| \beta_k^{(j)}\bb{v}_k^{(j)}\|_2 \\
-& \leq j\tilde{\gamma}_{m-(k-1)r}\|\bb{z}_k^{(j)}\|_2 
+\|\Delta \bb{z}_k^{(j)}\|_2 &= \|\Delta\bb{X}_k^{(j-1)}\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)} \|_2 \leq \|\Delta\bb{X}_k^{(j-1)}\|_2 \|\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}\|_2  \leq \|\Delta\bb{X}_k^{(j)-1}\|_F\|\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}\|_2 \\
+& \leq \left((1+(j-1)\tilde{\gamma}_{m-(k-1)r})(1 + \tilde{\gamma}_{m-(k-1)r})-1\right) \| \beta_k^{(j)}\bb{v}_k^{(j)}\|_2 \leq j\tilde{\gamma}_{m-(k-1)r}\|\bb{z}_k^{(j)}\|_2.
 %	\|\Delta \hat{\bb{z}}_k^{(j)}\|_2 &= \|\bb{X}_k^{(j)-1}(\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}-\beta_k^{(j)}\bb{v}_k^{(j)}) + \Delta \bb{X}_k^{(j-1)}\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)} \|_2 \\
 %	&\leq \|\bb{X}_k^{(j)-1}(\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}-\beta_k^{(j)}\bb{v}_k^{(j)})\|_2 + \|\Delta \bb{X}_k^{(j-1)}\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}\|_2 \\
 %&\leq \tilde{\gamma}_{m-(k-1)r}\|\bb{X}_k^{(j-1)}\|_2\|\beta_k^{(j)}\bb{v}_k^{(j)}\|_2 + \|\Delta \bb{X}_k^{(j-1)}\|_F\|\hat{\beta}_k^{(j)}\hat{\bb{v}}_k^{(j)}\|_2 \\
@@ -171,11 +169,12 @@ Componentwise bounds follow immediately, and are summarized in \cref{lem:BQR-bui
 \begin{lemma}\label{lem:BQR-build}
 	Consider the construction of the WY representation for the $k^{th}$ partition of matrix $\bb{A}\in\R^{m\times n}$ given a set of HH constants and vectors, $\{\beta_k^{(j)}\}_{j=1}^r$ and $\{\bb{v}_{k}^{(j)}\}$ via \cref{algo:buildWY}.
 	Then, 
-	\begin{align}
-		\hat{\bb{z}}_{k}^{(j)}& = \bb{z}_{k}^{(j)} + \Delta \bb{z}_{k}^{(j)},\;\; |\Delta \bb{z}_{k}^{(j)}| \leq j\tilde{\gamma}_{m-(k-1)r} |\bb{z}_{k}^{(j)}|\label{eqn:BQR-z}\\
-		\hat{\bb{v}}_{k}^{(j)}& = \bb{v}_{k}^{(j)} + \Delta \bb{v}_{k}^{(j)},\;\; |\Delta \bb{v}_{k}^{(j)}| \leq \tilde{\gamma}_{m-(k-1)r} |\bb{v}_{k}^{(j)}|\label{eqn:BQR-v},
-	\end{align}
-	where the second bound is derived from \cref{eqn:vbound}.
+	\begin{equation}
+		\hat{\bb{z}}_{k}^{(j)} = \bb{z}_{k}^{(j)} + \Delta \bb{z}_{k}^{(j)},\;\; |\Delta \bb{z}_{k}^{(j)}| \leq j\tilde{\gamma}_{m-(k-1)r} |\bb{z}_{k}^{(j)}|,\;\; \|\Delta \bb{z}_k^{(j)}\|_2 \leq j\tilde{\gamma}_{m-(k-1)r}\|\bb{z}_k^{(j)}\|_2.\label{eqn:BQR-z}
+		%\\
+%		\hat{\bb{v}}_{k}^{(j)}& = \bb{v}_{k}^{(j)} + \Delta \bb{v}_{k}^{(j)},\;\; |\Delta \bb{v}_{k}^{(j)}| \leq \tilde{\gamma}_{m-(k-1)r} |\bb{v}_{k}^{(j)}|\label{eqn:BQR-v},
+	\end{equation}
+	%where the second bound is derived from \cref{eqn:vbound}.
 \end{lemma}
 Most importantly, this shows that constructing the WY update is just as numerically stable as applying successive HH transformations (see Section 19.5 of \cite{Higham2002}).
 
@@ -267,12 +266,17 @@ We can also form the normwise bound for the $j'^{\ th}$ column of $\hat{\bb{Q}}_
 If we let $k' = \lceil j'/r\rceil^{th}$, then the $j'^{\ th}$ column is the result of applying $k'-1$ WY updates and an additional HQR. 
 Applying \cref{lem:3.7} yields 
 \begin{align}
-\|\Delta \bb{R}_{BQR}[:,j']\|_2 \leq rk'\tilde{\gamma}_{m} \|\bb{A}[:,j]\|_2 \\
-\|\Delta \bb{Q}_{BQR}[:,j']\|_2 \leq rk'\tilde{\gamma}_{m}\label{eqn:BQRcol}
+\|\Delta \bb{R}_{BQR}[:,j']\|_2 \leq rk'\tilde{\gamma}_{m} \|\bb{A}[:,j']\|_2,&\;\; \|\Delta \bb{R}_{BQR}\|_F \leq n\tilde{\gamma}_{m} \|\bb{A}\|_F\\
+\|\Delta \bb{Q}_{BQR}[:,j']\|_2 \leq rk'\tilde{\gamma}_{m},&\;\;\|\Delta \bb{Q}_{BQR}\|_F = r\tilde{\gamma}_{m}\sum_{j=1}^n \lceil j/r\rceil = n^{3/2}\tilde{\gamma}_{m}.\label{eqn:BQRQ}
 \end{align}
-and near orthogonality of the $\bb{Q}$ factor is still achieved,
-\begin{equation}
-	\|\Delta \bb{Q}_{BQR}\|_F = r\tilde{\gamma}_{m}\sum_{j=1}^n \lceil j/r\rceil = n^{3/2}\tilde{\gamma}_{m}.\label{eqn:BQRmat}
-\end{equation}
+and near orthogonality of the $\bb{Q}$ factor is still achieved.
+%\begin{equation}
+%	\|\Delta \bb{Q}_{BQR}\|_F = r\tilde{\gamma}_{m}\sum_{j=1}^n \lceil j/r\rceil = n^{3/2}\tilde{\gamma}_{m}.\label{eqn:BQRmat}
+%\end{equation}
+\paragraph{BQR and HQR error bound comparison}
+BQR under exact arithmetic is equivalent to HQR, and it is often referred to as the level-3 BLAS version of HQR. 
+Furthermore, the error analysis of this section shows that BQR is as numerically stable as HQR despite requiring more FLOPs.
+In fact, many linear algebra libraries such as LAPACK use a variant of BQR as the QR factorization algorithm (see {\tt dgeqrf} of \cite{LAPACK}).
+
 The primary goal of the analysis presented in this section is to provide the basic skeleton for the standard BQR rounding error analysis to make the generalization to mixed precision settings in \cref{sec:mpanalysis} easier.
 Readers should refer to \cite{golub2013matrix,Higham2002} for full details.

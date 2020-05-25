@@ -1,12 +1,12 @@
-\subsection{Round down at inner-product}\label{sec:mp-2}
+\subsection{Round down at inner product: level-2 BLAS mixed precision setting}\label{sec:mp-2}
 While the previous section discussed blocked variants of HQR that can be easily adapted for the mixed precision setting specific to TensorCore bFMA's, we want to provide a more general mixed precision environment in this section.
 Recall that HQR, BQR, and TSQR all rely on HH transformations in one way or another, and implementations of HH transformations are expressed by \cref{eqn:effH}.
 This implementation capitalizes on the rank-1 update structure of HH transformations where the predominant share of FLOPs is spent on an inner product, and computing the HH vector and constant also rely heavily on inner products.
 Therefore, nearly all of the computational tasks for \cref{algo:hhQR,algo:blockHQR,algo:par_tsqr} are attributed to the inner product, which is important in other linear algebra tools such as projections, matrix-vector, and matrix-matrix multiply.
-Consequently, we return to the mixed precision setting described in \cref{assump:mp}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}. 
-We denote HQR, BQR, and TSQR computed with the \cref{assump:mp} with {\tt mpHQR2}, {\tt mpBQR2}, and {\tt mpTSQR2}, where the {\tt 2} represents the mixed precision procedure computed at a level-2 BLAS operation.
+Consequently, we return to \cref{assump:mp}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}. 
+We denote HQR, BQR, and TSQR computed with \cref{assump:mp} with {\tt mpHQR2}, {\tt mpBQR2}, and {\tt mpTSQR2}, where the {\tt 2} represents the mixed precision procedure computed at a level-2 BLAS operation.
 %\cref{sec:background}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}.
-\subsubsection{Round down at inner product: HQR}
+\subsubsection{HQR round down at inner product: {\tt mpHQR2}}
 Consider forming a HH transformation that zeros out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 
 We need to compute $\sigma$, $\beta$, $\tilde{\bb{v}}_1$, and $\bb{v}$ as defined in \cref{sec:HQR},
 \begin{align}
@@ -23,7 +23,7 @@ We need to compute $\sigma$, $\beta$, $\tilde{\bb{v}}_1$, and $\bb{v}$ as define
 \end{equation}
 These bounds on $\Delta\sigma$, $\Delta \bb{v}'[1]$, $\Delta \beta$, and $\Delta \bb{v}[j]$ are computed by using the rules from \cref{lem:mp} on the analysis shown in \cref{sec:HQR}.
 Using these, we can formulate the mixed precision version of \cref{eqn:applyP} where $\hat{\bb{y}}=\fl(\bb{P_vx})\in\R^m$ is implemented via \cref{eqn:effH}.
-Note that the inner product $\hat{\bb{v}}^{\top}\bb{x}$ is computed with the mixed precision inner product scheme outlined in \cref{assump:mp}, and all other operations are done in the lower precision.
+Note that the inner product $\hat{\bb{v}}^{\top}\bb{x}$ via \cref{assump:mp}, and all other operations are done in the lower precision.
 Then, the transformed vector is bounded by
 \begin{equation}
 	\hat{\bb{y}} = \bb{y}+\Delta \bb{y},\;\; \|\Delta \bb{y}\|_2 \leq (\gamma_{25}^{(l)} + \tilde{\gamma}_{m}^{(h)})\|\bb{y}\|_2.\label{eqn:mpdelty}
@@ -62,26 +62,34 @@ Unsurprisingly, the inner product mixed precision setting yields higher error bo
 In the next sections we analyze using {\tt mpHQR2} instead of {\tt HQR} within \cref{algo:blockHQR,algo:par_tsqr}.
 %TODO: what do these bounds mean?
 
-\subsubsection{Round down at inner product: BQR}
-Now, we analyze \cref{algo:blockHQR} with the mixed precision inner product scheme of \cref{assump:mp}. 
+\subsubsection{BQR round down at inner product: {\tt mpBQR2}}
+Now, we analyze \cref{algo:blockHQR} implemented with \cref{assump:mp}. 
 At the $k^{th}$ block, we first apply the mixed precision HQR summarized in \cref{thm:mpHQR}.
 Next, we construct the WY representation, where we can now use \cref{eqn:mpdelty,eqn:mpapplyP,lem:3.7} to form
 \begin{equation}
 	\|\hat{\bb{X}}_{k}^{(l)}- \bb{X}_k\|_F = \|(\hat{\bb{P}}_k^{(1)}\cdots \hat{\bb{P}}_k^{(r)})-(\bb{P}_k^{(1)}\cdots \bb{P}_k^{(r)}))\|_F \leq \tilde{\gamma}_{r}^{(l)} + r\tilde{\gamma}_{m}^{(h)}.
 \end{equation}
-Then, the $j^{th}$ column of the $\bb{Q}$ factor resulting from this mixed precision variant of BQR incurs rounding errors bounded by
-\begin{equation}
-	\|\hat{\bb{Q}}_{mpBQR2}[:,j]\|_F = \|\hat{\bb{X}}_1\cdots\hat{\bb{X}}_N\hat{\bb{e}}_j\|_2\leq N\tilde{\gamma}_{r}^{(l)} + n\tilde{\gamma}_{m}^{(h)},
-\end{equation}
-and the matrix norm error bound is, 
-\begin{equation}
-	\|\hat{\bb{Q}}_{mpBQR2}\|_F \leq n^{1/2}N\tilde{\gamma}_{r}^{(l)} + n^{3/2}\tilde{\gamma}_{m}^{(h)} \approx \left(1+\frac{M_{l,h}}{m}\right)n^{3/2}\tilde{\gamma}_{m}^{(h)}. \label{eqn:mpBQR2}
-\end{equation}
-Recall that the block mixed precision variant of \cref{sec:mp-3b} yielded a multiplicative factor of $(1+\frac{M_{l,h}}{rm})$ (see \cref{eqn:mpBQR3}).
-This implies that the mixed precision inner product introduces low precision error $r\times $ larger than the low precision errors incurred from casting down at the block level.
-However, if $m$ is sufficiently larger than $M_{l,h}$, the mixed precision inner product can still had non-leading order error terms to the worst-case scenario.
-\subsubsection{Round down at inner product: TSQR}
-Finally, we consider using the mixed precision inner product of \cref{assump:mp} in \cref{algo:par_tsqr}.
+Then, the 2-norm bound for the $j^{th}$ column of the $\bb{R}$ factor and the Frobenius norm bound for the orthogonal factor resulting from {\tt mpBQR2} are
+\begin{align}
+	\|\hat{\bb{R}}_{mpBQR2}[:,j]\|_2 &= \|\hat{\bb{X}}_1\cdots\hat{\bb{X}}_N\bb{A}[:,j]\|_2\leq\left( N\tilde{\gamma}_{r}^{(l)} + n\tilde{\gamma}_{m}^{(h)}\right)\|\bb{A}[:,j]\|_2,\\
+%\end{equation}
+%and the Frobenius norm error bound for the orthogonal factor is, 
+%\begin{equation}
+	\|\hat{\bb{Q}}_{mpBQR2}\|_F &\leq n^{1/2}\left(N\tilde{\gamma}_{r}^{(l)} + n\tilde{\gamma}_{m}^{(h)}\right) \approx \left(1+\frac{M_{l,h}}{m}\right)n^{3/2}\tilde{\gamma}_{m}^{(h)}. \label{eqn:mpBQR2}
+\end{align}
+Note that this error bound is of the same order as the error bound for {\tt mpHQR2}, shown in \cref{eqn:mpHQR2Q}.
+The corresponding error bound for {\tt mpBQR3} of \cref{sec:mp-3b} yielded low precision errors $r$ times smaller than that from 
+%a multiplicative factor of $(1+\frac{M_{l,h}}{rm})$ (see \cref{eqn:mpBQR3}).
+%This implies that 
+using \cref{assump:mp} inner products,
+% introduces low precision error $r$ times larger than the low precision errors incurred from {\tt mpBQR3} (\cref{algo:mpBQR}),
+ an unsurprising result as intermediate results are cast down more often in {\tt mpBQR2}.
+Furthermore, the $\tilde{\gamma}^{(l)}$ in this section requires $c=\cO(25)$, whereas the same notation in \cref{sec:mp-3b} assumes $c$ to be a \emph{small} positive integer.
+Therefore, the numerical stability of {\tt mpBQR2} is guaranteed at smaller matrix sizes than the numerical stability of {\tt mpBQR3} and BQR in high precision.
+While it is technically possible that the low precision errors introduced from utilizing \cref{assump:mp} do not dominate the errors incurred in {\tt mpBQR2} and {\tt mpHQR2} when $m\gg M_{l,h}$ and can result in accuracy comparable to that of {\tt mpBQR3} and high precision BQR, our numerical results in \cref{sec:NE} show that {\tt mpHQR2} is already unstable at $m\approx M_{l,h}$.
+%the mixed precision inner product can still had non-leading order error terms to the worst-case scenario.
+\subsubsection{TSQR round down at inner product: {\tt mpTSQR2}}
+Finally, we consider using \cref{assump:mp} in \cref{algo:par_tsqr}.
 This corresponds to replacing every instance of $n\tilde{\gamma}_{m'}$ for $m'\in\{2n, m2^{-L}\}$ in \cref{thm:moriTSQR} with $\tilde{\gamma}_n^{(l)} + n\tilde{\gamma}_{m'}^{(h)}$.
 We first consider the norm errors for the $j^{th}$ column of the $\bb{Q}$ factor computed by this mixed precision variant of \cref{algo:par_tsqr},
 \begin{equation}
@@ -93,3 +101,15 @@ Then, the matrix norm error bound is
 \approx \left(1+ \frac{M_{l,h}L}{m2^{-L}+ 2Ln}\right)n^{3/2}(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)}),\label{eqn:mptsqr2Q}
 \end{align}
 and contributes larger low precision rounding errors than in \cref{eqn:mpTSQR3}.
+%\paragraph{{\tt mpTSQR2} and {\tt mpHQR2} error bound comparison}
+If the {\tt mpTSQR2} error bound were to outperform that of {\tt mpHQR2}, we now need integers $m, n > 0$, and $L\geq 0$ that satisfy
+\begin{equation*}
+1\gg n^{1/2}\left(\tilde{\gamma}_{n}^{(l)} + n\tilde{\gamma}_{m}^{(h)}\right) \gg n^{1/2}\left((L+1)\tilde{\gamma}_n^{(l)} +n(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)})\right).%,
+\end{equation*}
+%where $d=\lfloor\frac{(m-1) u_s}{u_w}\rfloor$, $d_1 = \lfloor{(\frac{m}{2^L}-1)\frac{u_s}{u_w}\rfloor}$, and $d_2 =\lfloor \frac{(2n-1)u_s}{u_w}\rfloor$. 
+
+In contrast to the analysis for uniform precision settings, large $L$ values do not necessarily reduce the error bounds of TSQR. 
+While large $L$ can imply $m\gg m2^{-L}+2Ln$, it does not always lead to $d \gg d_1+Ld_2$.
+Although the theoretical error bounds do not give a clear indication of the worst-case performances of HQR and TSQR in mixed-precision settings, TSQR outperformed HQR on ill-conditioned matrices within our numerical simulations.
+
+These experiments are discussed in detail in the next section.%Section~\ref{sec:NE}.

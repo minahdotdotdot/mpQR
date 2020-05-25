@@ -24,17 +24,16 @@ Thus, $\bb{E} = \Delta \bb{x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same a
 \end{equation}
 
 \paragraph{Casting down after HQR in high precision} Let us consider the trivial case of carrying out HQR in high precision and casting down at the very end.
-This is useful in for the analysis of mixed precision
+This is useful for the analysis of mixed precision
 %applications that require economical storage but have enough memory to carry out HQR in higher precision, or in 
-block algorithms as will be shown in \cref{sec:mp-3,sec:mp-2}.
+block algorithms as will be shown in \cref{sec:mp-3}.
 If the two floating point types $\F_{l}$ and $\F_{h}$ satisfy $\F_{l}\subseteq \F_{h}$
 % and for all $x,y\in\F_{l}$, the exact product $xy$ can be represented in $\F_{h}$.
 %Some example pairs of $\{\F_{l}, \F_{h}\}$ include $\{\text{fp16}, \text{fp32}\}$, $\{\text{fp32}, \text{fp64}\}$, and $\{\text{fp16}, \text{fp64}\}$.
 %Suppose that 
 and the matrix to be factorized is stored with low precision numbers, $\bb{A}\in\F_{l}^{m\times n}$, then casting up adds no rounding errors.
 Therefore, we can directly apply the analysis that culminated in \cref{thm:feHQR}, and we only consider the columnwise forward error in the $\bb{Q}$ factor.
-Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR} = \bb{Q} + \Delta \bb{Q}_{HQR}$ is bounded normwise via $\|\Delta \bb{Q}_{HQR}[:,j]\|_2 \leq n\tilde{\gamma}_{m}^{h},$ and incurs an extra rounding error when $\hat{\bb{Q}}_{HQR}\in\F_{h}^{m\times n}$ is cast down to $\F_{l}^{m\times n}$.\par
-
+Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR} = \bb{Q} + \Delta \bb{Q}_{HQR}$ is bounded normwise via $\|\Delta \bb{Q}_{HQR}[:,j]\|_2 \leq n\tilde{\gamma}_{m}^{h},$ and incurs an extra rounding error when $\hat{\bb{Q}}_{HQR}\in\F_{h}^{m\times n}$ is cast down to $\F_{l}^{m\times n}$.
 %Casting down $x\in\F_h$ to $\F_l$ without overflow or underflow results in \[\text{\tt castdown}(x) = x(1+\dd^{(l)}),\;\; |\dd^{(l)}| < u^{(l)},\]
 %and accrues a single rounding error in the lower precision.
 %Extending this result, we represent the backward error of a casting down a vector in $\F_h^{(m)}$ with a linear transformation, $\bb{I}^{(l)}\in\R^{m\times m}$.
