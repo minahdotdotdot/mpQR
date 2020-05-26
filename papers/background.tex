@@ -1,17 +1,19 @@
 In this section, we introduce the basic motivations and tools for mixed precision rounding error analysis needed for the {\it QR factorization}.
 A matrix $\bb{A} \in \R^{m \times n}$ for $m\geq n$ can be written as
-\[\bb{A} = \bb{QR}=\begin{bmatrix}\bb{Q}_{1} & \bb{Q}_2\end{bmatrix} \begin{bmatrix}\bb{R}_{1} \\ \bb{0}_{m-n \times n}\end{bmatrix} = \bb{Q}_{1}\bb{R}_{1},%\qquad\bb{Q} \in \R^{m \times m},\qquad\bb{R} \in \R^{m \times n},
+\[\bb{A} = \bb{QR}=\begin{bmatrix}\bb{Q}_{1} & \bb{Q}_2\end{bmatrix} \begin{bmatrix}\bb{R}_{1} \\ \bb{0}_{m-n \times n}\end{bmatrix} = \bb{Q}_{1}\bb{R}_{1},\vspace{-0.3cm}%\qquad\bb{Q} \in \R^{m \times m},\qquad\bb{R} \in \R^{m \times n},
 \]
 where an orthogonal $\bb{Q}\in\R^{m\times m}$ and an upper trapezoidal $\bb{R}$ form a \emph{full} QR factorization, and $\bb{Q}_{1}\in\R^{m\times n},\bb{R}_{1}\in\R^{n\times n}$ form a \emph{thin} QR factorization.
 % results in , that is
 %\[
 %\bb{A} = \bb{QR} = \begin{bmatrix}\bb{Q}_{1} & \bb{Q}_2\end{bmatrix} \begin{bmatrix}\bb{R}_{1} \\ \bb{0}_{m-n \times n}\end{bmatrix} = \bb{Q}_{1}\bb{R}_{1}.
 %\]
-If $\bb{A}$ is full rank then the columns of $\bb{Q}_{1}$ are orthonormal (i.e. $\bb{Q}_{1}^{\top}\bb{Q}_{1}=\bb{I}_{n\times n}$) and $\bb{R}_1$ is upper triangular.
+If $\bb{A}$ is full rank then the columns of $\bb{Q}_{1}$ are orthonormal
+% (i.e. $\bb{Q}_{1}^{\top}\bb{Q}_{1}=\bb{I}_{n\times n}$) 
+and $\bb{R}_1$ is upper triangular.
 In many applications, computing the \emph{thin} decomposition requires less computation and is sufficient in performance. 
 While important definitions are stated explicitly in the text, Table~\ref{table:notation} serves to establish basic notation.
 \input{deftable}
-\Cref{sec:backgroundRE} introduces basic concepts for rounding error analysis, and \Cref{sec:backgroundIP} exemplifies the need for mixed precision rounding error analysis for the inner product.
+%\Cref{sec:backgroundRE} introduces basic concepts for rounding error analysis, and \Cref{sec:backgroundIP} exemplifies the need for mixed precision rounding error analysis for the inner product.
 \subsection{Basic rounding error analysis of floating point operations}\label{sec:backgroundRE}
 We use and analyze the IEEE 754 Standard floating point number systems, shown in \cref{table:ieee}.
 Let $\F \subset \R$ denote the space of some floating point number system with base $b\in\mathbb{N}$, precision $t\in\mathbb{N}$, significand $\mu\in\mathbb{N}$, and exponent range $[\eta_{\text{min}}, \eta_{\text{max}}]\subset \mathbb{Z}$.
@@ -89,9 +91,9 @@ Note that both $|\tth_2|,|\tth'_2|$ are bounded above by $\gamma_2$.
 Typically, error bounds formed in the fashion of \cref{eqn:FBbasic5} are converted to relative errors in order to put the error magnitudes in perspective.
 The relative error bound for our example is
 \begin{equation*}
-|(x+y+z) - \fl(x+y+z)|\leq \gamma_{2}|x+y+z|
+|(x+y+z) - \fl(x+y+z)|\leq \gamma_{2}|x+y+z|,\;\; x+y+z\neq 0.
 \end{equation*}
-when we assume $x+y+z\neq 0$.\par
+%when we assume $x+y+z\neq 0$.\par
 
 Although Lemma~\ref{lem:gamma} requires $ku<1$, we actually need $ku <\frac{1}{2}$ to maintain a meaningful relative error bound as this assumption implies $\gamma_k < 1$ and guarantees a relative error below 100\%. 
 Since higher precision types have smaller unit round-offs, they can tolerate more successive FLOPs than lower precision floating types before reaching $\gamma_m=1$.
@@ -108,11 +110,10 @@ For example, the IEEE types introduced in \cref{table:ieee} meet this requiremen
 %	\label{table:ieeen}
 %\end{table}
 %\vspace*{-10pt}
-Thus, accumulated rounding errors in lower precision types can lead to an instability with fewer operations in comparison to higher precision types and prompts us to evaluate whether existing algorithms can be naively adapted for mixed precision arithmetic. \par
+Thus, accumulated rounding errors in lower precision types can lead to an instability with fewer operations in comparison to higher precision types and prompts us to evaluate whether existing algorithms can be naively adapted for mixed precision arithmetic.
 %Thus, accumulated rounding errors in lower precision types can lead to an instability with fewer operations in comparison to higher precision types.
 %As $k$ represents the number of FLOPs, this constraint restricts low-precision floating point operations to smaller problem sizes and lower complexity algorithms.\par
 %TODO: mention in comment to reviewers 
-
 \subsection{Rounding Error Example for the Inner Product}\label{sec:backgroundIP}
 We now consider computing the inner product of two vectors to clearly illustrate how this situation restricts rounding error analysis in fp16. 
 An error bound for an inner product of $m$-length vectors is
@@ -120,17 +121,18 @@ An error bound for an inner product of $m$-length vectors is
 |\bb{x}^{\top}\bb{y} - \fl(\bb{x}^{\top}\bb{y})| \leq \gamma_{m} |\bb{x}|^{\top}|\bb{y}|, \quad \bb{x},\bb{y}\in\R^{m} \label{eqn:DDerr}
 \end{equation}
 as shown in \cite{Higham2002}.
-While this result does not guarantee a high relative accuracy when $|\bb{x}^{\top}\bb{y}| \ll |\bb{x}|^{\top}|\bb{y}|$, high relative accuracy is expected in some special cases.
-For example, let $\bb{x}=\bb{y}$.
-Then we have exactly $|\bb{x}^{\top}\bb{x}| = |\bb{x}|^{\top}|\bb{x}|=\|\bb{x}\|_2^2$, which leads to a forward error: $\left|\|\bb{x}\|_2^2 - \fl(\|\bb{x}\|_2^2)\right| \leq \gamma_m \|\bb{x}\|_2^2$.
-Since vectors of length $m$ accumulate rounding errors that are bounded by $\gamma_{m}$, the dot products of vectors computed in fp16 already face a 100\% relative error bound in the worst-case scenario ($\gamma_{512}^\text{(\text{fp16})}=1$). \par
+%While this result does not guarantee a high relative accuracy when $|\bb{x}^{\top}\bb{y}| \ll |\bb{x}|^{\top}|\bb{y}|$, high relative accuracy is expected in some special cases.
+%For example, let $\bb{x}=\bb{y}$.
+%Then we have exactly $|\bb{x}^{\top}\bb{x}| = |\bb{x}|^{\top}|\bb{x}|=\|\bb{x}\|_2^2$, which leads to a forward error: $\left|\|\bb{x}\|_2^2 - \fl(\|\bb{x}\|_2^2)\right| \leq \gamma_m \|\bb{x}\|_2^2$.
+Since vectors of length $m$ accumulate rounding errors that are bounded by $\gamma_{m}$, dot products of vectors computed in fp16 already face a 100\% relative error bound when $m=1024$. \par
 
 A simple numerical experiment shows that the standard deterministic error bound is too pessimistic and cannot be practically used to approximate rounding error for half-precision arithmetic. 
 In this experiment, we generated 2 million random fp16 vectors of length $1024$ from two random distributions: the standard normal distribution, $N(0,1)$, and the uniform distribution over $(0,1)$.
 Half precision arithmetic was simulated by calling \cref{algo:simulate}, which was proven to be a faithful simulation in \cite{HighamPranesh2019b}, for every FLOP (multiplication and addition for the dot product).
 %TODO: comment reviewer
 The relative error in this experiment is formulated as the LHS in Equation \ref{eqn:DDerr} divided by $|\bb{x}|^{\top}|\bb{y}|$ and all operations outside of calculating $\fl(\bb{x}^{\top}\bb{y})$ are executed by casting up to fp64 and using fp64 arithmetic.
-Table \ref{table:HPdoterr} shows some statistics from computing the relative error for simulated fp16 dot products of random $1024$-length  vectors. 
+Table \ref{table:HPdoterr} shows some statistics from computing the relative error for simulated fp16 dot products.
+% of random $1024$-length vectors. 
 \begin{table}[h]
 	\vspace*{-0cm}
 	\centering
@@ -264,8 +266,9 @@ Our hypothesis is indeed true since,
 \[\gamma_m^{(h)}<u^{(l)}+\gamma_{m-1}^{(h)}+u^{(l)}\gamma_{m-1}^{(h)}<\gamma_{m}^{(l)},\]
 where the lower and upper bounds are derived from the uniform precision error bound in \cref{eqn:DDerr}. 
 \Cref{eqn:aftercd} shows us that the two larger error terms are from the higher precision summation, $\gamma_{m-1}^{(h)}$, and the cast down operation, $u^{(l)}$.
-We can measure the impact of the cast down step relative to the length of the vector, $m$, and the disparity in the two precisions, $M_{l,h}:=u^{(l)}/u^{(h)}$, since these two factors determine which one out of $u^{(l)}$ and $mu^{(h)}$ is the leading order term. 
-There are 3 cases to consider. \\
+We can measure the impact of the cast down step relative to the length of the vector, $m$, and the disparity in the two precisions, $M_{l,h}:=u^{(l)}/u^{(h)}$, since these two factors determine which one of $u^{(l)}$ and $mu^{(h)}$ is the leading order term. 
+We consider 3 cases.\\
+%There are 3 cases to consider. \\
 \textbf{Case 1: ($m\ll M_{l,h}$)} The leading order term is $u^{(l)}$.
 The mixed precision inner product has a smaller worst case error bound than the bound of the low precision inner product ($mu^{(l)}$) with no apparent improvements in speed.
 On the other hand, $u^{(l)}$ is a larger upper bound than that of the high precision inner product ($mu^{(h)}=\frac{m}{M_{l,h}}u^{(l)}$), although it was computed approximately twice as fast. 
@@ -284,7 +287,7 @@ As in the above two cases, this is an improvement in the context of the low prec
 Since $u^{(l)} = M_{l,h}u^{(h)} \ll mu^{(h)}$, the mixed precision error bound has the same \emph{order} as the error bound from carrying the computation out in the higher precision. 
 Therefore, we can expect about the same level of accuracy but a factor of 2 or greater reduction in speed when compared to the higher precision.\par
 While the above cases establish 3 regimes of trade-offs between accuracy and speed in mixed precision computing, the remainder of this paper focuses only on accuracy and does not consider the impact of mixed precision computations on speed.
-Readers should refer to timing studies such as .....
+%Readers should refer to timing studies such as .....
 %TODO: cite
 Finally, we present alternative representations of the error bound in \cref{eqn:aftercd},
 %This bound can be simplified using the following rules,

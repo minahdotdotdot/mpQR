@@ -46,18 +46,17 @@ However, a more careful comparison of {\tt mpHQR2} and {\tt mpTSQR2} show that t
 \begin{figure}[h!]%{r}{.53\textwidth}
 	\centering
 	%\vspace{-10pt}
-	\includegraphics[width=0.8\textwidth]{./figures/allTSQR2.pdf}
+	\includegraphics[width=0.75\textwidth]{./figures/allTSQR2.pdf}
 	\caption{\label{fig:allTSQR} Left plot shows the relative error of QR factorization for matrices with condition numbers ranging from 5.3 to 101, and the right plot shows the errors for matrices with condition numbers ranging from 1.1 to 5.3. }
 	\vspace{-10pt}
 \end{figure}
-\begin{wrapfigure}{l}{.45\textwidth}
+\begin{wrapfigure}{l}{.4\textwidth}
 	\centering
 	\vspace{-10pt}
-	\includegraphics[width=0.45\textwidth]{./figures/mpBQR3-blocksize.png}
+	\includegraphics[width=0.4\textwidth]{./figures/mpBQR3-blocksize.png}
 	\caption{\label{fig:mpBQR3}Relative backward error of {\tt mpBQR3} for $8192$-by-$8192$ matrices are shown with block size $r$ ranging from $4$ to $4096$.}
 	\vspace{-10pt}
 \end{wrapfigure}
-
 Note that an empirical comparison of the two algorithms implemented in fp64 arithmetic were reported in \cite{Mori2012}, and we omit the comparison against {\tt mpBQR2} since it performs very similarly to {\tt mpHQR2}.
 %TODO: talk why omit BQR? or wait for BQR
 %The numerical experiments show that TSQR can outperform HQR in mixed precision settings in practice even though the theoretical bounds do not guarantee stability.
@@ -93,7 +92,7 @@ Finally, we discuss the last experiment which varied the block sizes for {\tt mp
 \Cref{fig:mpBQR3} shows the error bounds and the computed value for the backward error for fp32 BQR and {\tt mpBQR3} for $m=n=8193$ and varying $r$. 
 The test matrices were sampled from $N(0,1)$, and their large size immediately pushes both error bounds above $1$ and numerical stability is not guaranteed.
 However, the high precision implementation yields backward error close to $u^{(fp32)}$ and {\tt mpBQR3} yields errors near $u^{(fp16)}$ that follows the downward trend suggested by \cref{eqn:mpBQR3}.
-The rightmost green marker shows the error for {\tt mpBQR3} with a large block size, $r=n/2$, which is 2-3 orders of magnitude higher than its high precision variant. 
+The rightmost data for {\tt mpBQR3} (corresponds to $r=n/2$), is still between 2 and 3 orders of magnitude higher than its high precision variant. 
 There exist applications that are robust to QR factorization errors and could benefit from speed-ups of using bFMAs.
 %TODO: reference graph paper on arXiv (put on arXiv first).
 

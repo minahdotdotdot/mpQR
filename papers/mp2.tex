@@ -12,15 +12,15 @@ We need to compute $\sigma$, $\beta$, $\tilde{\bb{v}}_1$, and $\bb{v}$ as define
 \begin{align}
 \fl(\sigma) &= \fl(-\rm{sign}(\bb{x}[1])\|\bb{x}\|_2) = \sigma + \Delta \sigma,\;\;|\Delta\sigma| \leq \left(\gamma_{2}^{(l)}+\gamma_{m}^{(h)}+\gamma_{2}^{(l)}\gamma_{m}^{(h)}\right)|\sigma|,\label{eqn:mpsigma}\\
 \fl(\bb{v}'[1])& =\bb{v}'[1] + \Delta \bb{v}'[1] = (1+\dd^{(l)}) (\bb{x}[1]-\sigma-\Delta\sigma), \;\;|\Delta\bb{v}'[1]| \leq (\gamma_{3}^{(l)}+\tilde{\gamma}_{m}^{(h)})|\bb{v}'[1]| \label{eqn:mpv1}\\
-\fl(\beta) &= \beta +\Delta \beta= (1+\dd^{(l)})\left(-\bb{v}'[1]/\hat{\sigma}\right), \;\; |\Delta\beta| \leq (\gamma_{8}^{(l)}+\tilde{\gamma}_{m}^{(h)})|\beta|, \label{eqn:mpbeta}
+\fl(\beta) &= \beta +\Delta \beta= (1+\dd^{(l)})\left(-\bb{v}'[1]/\hat{\sigma}\right), \;\; |\Delta\beta| \leq (\gamma_{8}^{(l)}+\tilde{\gamma}_{m}^{(h)})|\beta|, \label{eqn:mpbeta}\\
+%\end{align}
+%\begin{align}
+	\fl(\bb{v}[j])	&= \bb{v}[j] + \Delta \bb{v}[j]\text{ where }|\Delta \bb{v}[j]|\leq 
+%	\begin{cases}
+%	0,& j=1\\
+	(\gamma_{7}^{(l)} + \tilde{\gamma}_{m}^{(h)})|\bb{v}_j|,j=2:m-i+1 \label{eqn:mpv}.
+%	\end{cases}  
 \end{align}
-\begin{equation}
-	\fl(\bb{v}[j])	= \bb{v}[j] + \Delta \bb{v}[j]\text{ where }|\Delta \bb{v}[j]|\leq 
-	\begin{cases}
-	0,& j=1\\
-	(\gamma_{7}^{(l)} + \tilde{\gamma}_{m}^{(h)})|\bb{v}_j|,&j=2:m-i+1.
-	\end{cases}  \label{eqn:mpv}
-\end{equation}
 These bounds on $\Delta\sigma$, $\Delta \bb{v}'[1]$, $\Delta \beta$, and $\Delta \bb{v}[j]$ are computed by using the rules from \cref{lem:mp} on the analysis shown in \cref{sec:HQR}.
 Using these, we can formulate the mixed precision version of \cref{eqn:applyP} where $\hat{\bb{y}}=\fl(\bb{P_vx})\in\R^m$ is implemented via \cref{eqn:effH}.
 Note that the inner product $\hat{\bb{v}}^{\top}\bb{x}$ via \cref{assump:mp}, and all other operations are done in the lower precision.

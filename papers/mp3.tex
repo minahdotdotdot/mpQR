@@ -60,8 +60,7 @@ Consider the input matrix, $\bb{A}\in\F_l^{m\times n}$, partitioned into $N$ blo
 \Cref{algo:mpBQR} shows a mixed precision variant of BQR that maximizes the use of bFMAs but uses high precision arithmetic for level-1 and 2 BLAS operations which are only a $\cO(1/N)$ fraction of the total number of FLOPs. 
 Each block is casted up to compute a high precision HQR and to form the WY representation. 
 The WY representation is then casted down to low precision since the bFMAs require low precision inputs for matrix products, and the $\bb{R}$ factor from the high precision HQR can be casted down to return a low precision $\bb{R}$ factor at the very end. 
-Since the cast down operations for the $\bb{R}$ factor and the WY representations occur at every block, we can expect columnwise error bound for 
-\cref{algo:mpBQR} to increase by approximately $Nu^{(l)}$ from the error bound for \cref{algo:blockHQR}.
+Since the cast down operations for the $\bb{R}$ factor and the WY representations occur at every block, we can expect columnwise error bound for \cref{algo:mpBQR} to increase by approximately $Nu^{(l)}$ from the error bound for \cref{algo:blockHQR}.
 %The $\bb{R}$ factor from each call to HQR is stored in low precision, but the HH constants and vectors ($\bm{\beta}_k^{(j)}$,$\bb{v}_k^{(j)}$) are kept in high precision to build the WY representation.
 %We enforce a cast down at the end of \cref{algo:buildWY} since the bFMAs require low precision inputs.
 %Since the WY representations ($\bb{W}_k$, $\bb{V}_k$) should be stored in low precision, we enforce a cast down at the end of \cref{algo:buildWY}.
@@ -94,17 +93,19 @@ Since the cast down operations for the $\bb{R}$ factor and the WY representation
 	%\tcp{The last update is returned in low precision.}
 	%$\bb{Q}$-= $\bb{W}_1 \left(\bb{V}_1^{\top}\bb{Q}\right)$\;
 	\Return $\bb{Q},\bb{A}$
-	\caption{\label{algo:mpBQR} $\hat{\bb{Q}}_{mpBQR3},\hat{\bb{R}}_{mpBQR3}\gets {\tt mpBQR3}(\bb{A}, r)$: Perform a mixed precision variant of BQR of low precision $\bb{A}$ with column partitions of size $r$. $\hat{\bb{Q}}_{mpBQR3}$,$\hat{\bb{R}}_{mpBQR3}$, and $\hat{\bb{A}}$ are represented in low precision. Matrix-matrix multiplication and accumulate operations in lines 10, 13, and 14 require low precision inputs but can return in either of the two precisions.}
+	\caption{\label{algo:mpBQR} $\hat{\bb{Q}}_{mpBQR3},\hat{\bb{R}}_{mpBQR3}\gets {\tt mpBQR3}(\bb{A}, r)$: Perform a mixed precision variant of BQR of low precision $\bb{A}$ with column partitions of size $r$. $\hat{\bb{Q}}_{mpBQR3}$,$\hat{\bb{R}}_{mpBQR3}$, are returned in low precision. Operations in lines 7 and 10 require low precision inputs.}
 \end{algorithm2e}
 
-\paragraph{Rounding Error Analysis} Since $\hat{\bb{W}}_{k},\hat{\bb{Y}}_k$'s are computed with \cref{algo:buildWY} in high precision then cast down, the new low precision WY update is $\hat{\bb{X}}_{k}^{(l)} = \bb{I}-\bb{I}^{(l)}\hat{\bb{W}}_k\bb{I}^{(l)}\hat{\bb{V}}_k^{(\top)}$.
+Since $\hat{\bb{W}}_{k},\hat{\bb{Y}}_k$'s are computed with \cref{algo:buildWY} in high precision then cast down, the new low precision WY update is $\hat{\bb{X}}_{k}^{(l)} = \bb{I}-\bb{I}^{(l)}\hat{\bb{W}}_k\bb{I}^{(l)}\hat{\bb{V}}_k^{(\top)}$.
 Consider applying $\hat{\bb{X}}_k^{(l)}$ to some matrix stored in low precision, $\bb{B}$ using the TensorCore bFMAs.
 We analyze a single column $\bb{b}_j:=\bb{B}[:,j] \in \F_l^{m-(k-1)r}$ even though this operation is done on $\bb{B}$ as a whole.
-Let \[\bb{I}^{(l)}\hat{\bb{W}}_k = (\bb{I}+\bb{E}_W)\hat{\bb{W}}_k,\quad \bb{I}^{(l)}\hat{\bb{Y}}_k = (\bb{I}+\bb{E}_Y)\hat{\bb{Y}}_k,\] where $\bb{E}_W,\bb{E}_Y$ are diagonal and bounded componentwise by $u^{(l)}$.  
+Let $\bb{I}^{(l)}\hat{\bb{W}}_k = (\bb{I}+\bb{E}_W)\hat{\bb{W}}_k$ and $\bb{I}^{(l)}\hat{\bb{Y}}_k = (\bb{I}+\bb{E}_Y)\hat{\bb{Y}}_k$, where $\bb{E}_W,\bb{E}_Y$ are diagonal and bounded componentwise by $u^{(l)}$.  
 %Since \[\hat{\bb{X}}_{k}^{(l)}- \bb{X}_k = \hat{\bb{X}}_{k}^{(l)} -\hat{\bb{X}}_{k}+ \hat{\bb{X}}_{k}- \bb{X}_k= \hat{\bb{X}}_{k}^{(l)} -\hat{\bb{X}}_{k}+ \Delta \bb{X}_{k},\]
 %the errors derived in \cref{eqn:deltX} since the bFMAs perform block $4$-by-$4$ matrix products using \cref{eqn:bFMAerr}, then.
-The rounding errors for forming $\bb{W}_k$ and $\bb{Y}_k$ remain the same since these are computed in high precision. 
-Therefore, we first include errors introduced from casting down the WY representation and compute the matrix norm error of forming $\hat{\bb{X}}_{k}^{(l)}$,
+%The rounding errors for forming $\bb{W}_k$ and $\bb{Y}_k$ remain the same since these are computed in high precision. 
+Then, 
+%we include errors introduced from casting down $\hat{\bb{W}}$ and $\hat{\bb{Y}}$ and compute 
+the Frobenius norm error of forming $\hat{\bb{X}}_{k}^{(l)}$ is,
 %to $\bb{b}_j$ with exact arithmetic.
 \begin{align*}
 	\|\hat{\bb{X}}_{k}^{(l)}- \bb{X}_{k}\|_F  &= \|-\left(\bb{I}+\bb{E}_W+\bb{E}_Y+ \bb{E}_W\bb{E}_Y\right)\hat{\bb{W}}_k\hat{\bb{Y}}_k^{\top} + \bb{W}_k\bb{Y}_k^{\top}\|_F,\\
