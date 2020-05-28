@@ -129,7 +129,7 @@ Since vectors of length $m$ accumulate rounding errors that are bounded by $\gam
 A simple numerical experiment shows that the standard deterministic error bound is too pessimistic and cannot be practically used to approximate rounding error for half-precision arithmetic. 
 In this experiment, we generated 2 million random fp16 vectors of length $1024$ from two random distributions: the standard normal distribution, $N(0,1)$, and the uniform distribution over $(0,1)$.
 Half precision arithmetic was simulated by calling \cref{algo:simulate}, which was proven to be a faithful simulation in \cite{HighamPranesh2019b}, for every FLOP (multiplication and addition for the dot product).
-%TODO: comment reviewer
+%TODO: E
 The relative error in this experiment is formulated as the LHS in Equation \ref{eqn:DDerr} divided by $|\bb{x}|^{\top}|\bb{y}|$ and all operations outside of calculating $\fl(\bb{x}^{\top}\bb{y})$ are executed by casting up to fp64 and using fp64 arithmetic.
 Table \ref{table:HPdoterr} shows some statistics from computing the relative error for simulated fp16 dot products.
 % of random $1024$-length vectors. 
@@ -161,9 +161,8 @@ Table \ref{table:HPdoterr} shows some statistics from computing the relative err
 
 We see that the inner products of vectors sampled from the standard normal distribution have backward relative errors that do not deviate much from the unit round-off ($\cO$({\tt 1e-4})), whereas the vectors sampled from the uniform distribution tend to accumulate larger errors on average ($\cO$({\tt 1e-3})). 
 Even so, the theoretical upper error bound of 100\% is far too pessimistic as the maximum relative error does not even meet 2\% in this experiment.
-%TODO: comment reviewer
 Recent work in developing probabilistic bounds on rounding errors of floating point operations (see \cite{Higham2019a,Ipsen2019}) have shown that the inner product relative backward error for the conditions used for this experiment is bounded by {\tt 5.466e-2} with probability 0.99.
-
+%TODO: A
 \begin{algorithm2e}
 	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
 	\KwIn{$\bb{x}^{(\text{fp16})}$, $\bb{y}^{(\text{fp16})}$, $f$ \hfill\textbf{Output: } $\bb{z}^{(\text{fp16})}=\fl_{\text{fp16}}(f(\bb{x}^{(\text{fp16})}, \bb{y}^{(\text{fp16})}))$}
@@ -209,6 +208,7 @@ Note that all the rules hold when replaced by $\tilde{\gamma}$'s, but result in 
 
 We define two mixed precision settings that we use in \cref{sec:mpanalysis}.
 In \cref{sec:mp-3}, we present the block Fused Multiply-Add (bFMA) of NVIDIA's TensorCore (TC) technology, which computes matrix-matrix multiply and accumulate for $4$-by-$4$ blocks, and incorporate it into \cref{algo:blockHQR,algo:par_tsqr}.
+%TODO: G
 Here, we introduce an ad hoc mixed precision setting (MP Setting) which we use in \cref{sec:mp-2}.
 This is explicitly defined in \cref{assump:mp} and is a level-2 BLAS variant of the TC bFMA. 
 %we use an  that is similar to TensorCore but works at the level of a dot product, which we introduce here.
@@ -225,6 +225,7 @@ Nonetheless, this gives a vague insight into the trade-offs between speediness a
 %TODO: talk more about other FMA operations and cite properly.
 
 The full precision multiplication in Assumption~\ref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their precisions and exponent ranges. 
+%TODO: F
 As a quick proof, consider $x^{(\text{fp16})} = \pm\mu_x2^{\eta_x -11},y^{(\text{fp16})} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$, and note that the significand and exponent ranges for fp32 are $[0, 2^{24}-1]$ and $[-127,128]$.
 Then the product in full precision is
 \[\footnotesize x^{(\text{fp16})}y^{(\text{fp16})} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},\]
@@ -237,6 +238,7 @@ Thus, the summation and the final cast down operations are the only sources of r
 	Finally, the result is then cast back down to precision $l$.
 	Furthermore, we expect this procedure to be approximately twice as fast as if it were done entirely in the higher precision, and about the same as if it were done entirely in the lower precision. 
 \end{assump}
+%TODO: C
 %Regardless of the specific details of a mixed precision setting, a rounding error analysis for mixed precision arithmetic must support at least two different precision types. 
 We now analyze the rounding error for the inner product scheme described in \cref{assump:mp} and hypothesize that the guaranteed accuracy for this mixed precision inner product should be better than that of the low precision inner product and worse than that of the high precision inner product.
 %innif it were computed entirely in the lower precision and worse than if it were computed entirely in the high precision.

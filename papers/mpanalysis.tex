@@ -92,7 +92,7 @@ However, we will use this mixed precision HQR as a subroutine of the mixed preci
 %One difference is that the cast down operation at the end of the inner product is optional.
 %Matrices larger than $4$-by-$4$'s can be multiplied and added using this optional cast down feature and by using block matrix multiplication with $4$-by-$4$ blocks.
 %In \cref{sec:mp-3}, we consider performing BQR and TSQR with high precision FLOPs within a block/level, but cast down to low precision in between blocks and at the very end.
-%Finally, in \cref{sec:mp-2}, we consider all 3 algorithms with the ad hoc mixed precision setting described in \cref{assump:mp} where inner products are performed in high precision before being cast down, and all other operations are computed in low precision.
+%%Finally, in \cref{sec:mp-2}, we consider all 3 algorithms with the ad hoc mixed precision setting described in \cref{assump:mp} where inner products are performed in high precision before being cast down, and all other operations are computed in low precision.
 %\subsection{Round down at the end of the factorization}\label{sec:mp-f}
 %Results in this section are quite straight forward, but 
 %\subsubsection{HQR}

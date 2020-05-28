@@ -11,6 +11,7 @@ TensorCore's bFMA computes
 \hat{\bb{D}} =\fl_{TC}(\bb{C} + \bb{A}\bb{B}),\qquad \bb{C},\bb{D}\in\F_{\text{fp16}}^{4\times 4}\text{ or }\F_{\text{fp32}}^{4\times 4},\text{ and } \bb{A},\bb{B}\in\F_{\text{fp16}}^{4\times 4},\label{eqn:bFMA}
 \end{equation}
 and employs \emph{full} precision products and fp32 summation accumulate.
+%TODO: D
 Here, the \emph{full} precision multiplication is exact as explained in \cref{sec:background}.
 In \cite{Blanchard2019}, the authors investigate all four possible matrix-matrix multiplication routines in TensorCore, which depend on whether $\bb{C}$ and $\bb{D}$ are computed in fp16 or fp32. 
 They also note that matrices larger than $4$-by-$4$ can still be computed using this block FMA by accumulating matrix sums with $\bb{C}\in\F_{\text{fp32}}^{4\times 4}$.
@@ -21,9 +22,11 @@ Then, we compute $\bb{Z}_{[i,j]}$ via \[
 \bb{Z}_{[i,j]} = \sum_{k=1}^{\lceil p/4\rceil} \bb{X}_{[i,k]} \bb{Y}_{[k,j]},
 \]
 where we use \cref{eqn:bFMA} by initializing with $\bb{A}^{(1)}:= \bb{X}_{[i,1]}$, $\bb{B}^{(1)}:= \bb{Y}_{[1,j]}$, and $\bb{C}^{(1)}:= \bb{0}_{4\times 4}$ and setting $\bb{A}^{(k)}:= \bb{X}_{[i,k]}$, $\bb{B}^{(k)}:= \bb{Y}_{[k,j]}$, and $\bb{C}^{(k)}:= \bb{D}^{(k-1)}$ for $k=2:\lceil p/4\rceil$.
-By setting $\bb{C}^{(k)}, \bb{D}^{(k)}\in\F_{\text{fp32}}^{4\times 4}$ for $k>1$ and only casting down at the end via $\bb{Z}_{[i,j]} =$ fp16$(\bb{D}^{(\lceil p/4\rceil)})$, we mostly employ fp32 arithmetic for a mixed precision matrix product routine whose inputs and output are in fp16.
+By setting $\bb{C}^{(k)}, \bb{D}^{(k)}\in\F_{\text{fp32}}^{4\times 4}$ for $k>1$ and only casting down at the end via $\bb{Z}_{[i,j]} =$ fp16$(\bb{D}^{(\lceil p/4\rceil)})$, we maximize our use of fp32 arithmetic.
+This computes the most accurate mixed precision matrix product routine possible using TensorCore bFMAs whose inputs and output are required to be stored in fp16.
+%TODO: H
 For example, take $p=8$.
-Then,
+Then the $[i,j]^{th}$ $4$-by-$4$ block of the product is computed via,
 \begin{align*}
 \bb{D}^{(1)} &= \fl_{TC}(\bb{X}_{[i,1]} \bb{Y}_{[1,j]}),\quad\bb{D}^{(2)} = \fl_{TC}(\bb{X}_{[i,2]} \bb{Y}_{[2,j]} + \bb{D}^{(1)})\in\F_{\text{fp32}}^{4\times 4}\\
 \bb{Z}_{[i,j]} &= \text{\tt castdown}(\bb{D}^{(2)})\in\F_{\text{fp16}}^{4\times 4}.

@@ -1429,7 +1429,304 @@ Future work is needed to test larger, more ill-conditioned problems with differe
 
 \appendix
 \section{Proofs}
-\input{appendixMPD}
+\section{Proofs}\label{appendix:A}
+\subsection{Lemma \ref{lem:mp} (Equation \ref{lem:mp1})}
+\begin{proof}
+	We wish to round up to the lower precision, $p$, since $1\gg u_p \gg u_s$.  
+	Recall that $d := \left\lfloor k_s u_s  / u_p \right\rfloor$ and $r \leq \left\lfloor u_p  / u_s \right\rfloor$,
+	and note
+	%%% \begin{equation*}
+	$ k_pu_p+k_su_s = (k_p+d)u_p + r u_s \leq (k_p+d+1)u_p$. Then,
+	%%% \end{equation*}
+	\begin{align*}
+	\gamma_{p}^{(k_p)}+\gamma_{s}^{(k_s)}+\gamma_{p}^{(k_p)}\gamma_{s}^{(k_s)} 
+	&= \frac{k_pu_p}{1-k_pu_p} + \frac{k_su_s}{1-k_su_s} + \frac{k_pu_p}{1-k_pu_p}\frac{k_su_s}{1-k_su_s} \\
+	= \frac{k_pu_p+k_su_s-k_pk_su_pu_s}{1-(k_pu_p+k_su_s)+k_pk_su_pu_s} %%% \\
+	&\leq \frac{(k_p+d+1)u_p-k_pk_su_pu_s}{1-(k_p+d+1)u_p+k_pk_su_pu_s} \\
+	&< \frac{(k_p+d+1)u_p}{1-(k_p+d+1)u_p} = \gamma_{p}^{(k_p+d+1)}
+	\end{align*}
+\end{proof}
+
+\subsection{Inner Products}
+\label{appendix:IP}
+\subsubsection{Lemma \ref{lem:ip_a}}
+Let $\dd_p$ and $\dd_s$ be rounding error incurred from products and summations.
+They are bounded by $|\dd_p| < u_p$ and $|\dd_s| < u_s$, following the notation in \cite{Higham2002}. Let $s_k$ denote the $k^{th}$ partial sum, and let $\hat{s_k}$ denote the floating point representation of the calculated $s_k$.
+Then,
+\begin{align*}
+\hat{s_1} &= \fl (\bb{x}_1\bb{y}_1) = \bb{x}_1\bb{y}_1(1 + \dd_{p,1}),\\
+\hat{s_2} &= \fl(\hat{s_1} + \bb{x}_2\bb{y}_2), \\
+&= \left[\bb{x}_1\bb{y}_1(1 + \dd_{p,1}) + \bb{x}_2\bb{y}_2(1 + \dd_{p,2})\right](1+\dd_{s,1}),\\
+\hat{s_3} &= \fl(\hat{s_2}+\bb{x}_3\bb{y}_3), \\
+&= \left(\left[\bb{x}_1\bb{y}_1(1 + \dd_{p,1}) + \bb{x}_2\bb{y}_2(1 + \dd_{p,2})\right](1+\dd_{s,1})  + \bb{x}_3\bb{y}_3(1+\dd_{p,3})\right)(1+\dd_{s,2}).
+\end{align*}
+We can see a pattern emerging. 
+The error for a general length $m$ vector dot product is then:
+\begin{equation}
+\label{eqn:dperr_1}
+\hat{s_m} = (\bb{x}_1\bb{y}_1+\bb{x}_2\bb{y}_2)(1+ \dd_{p,1})\prod_{k=1}^{m-1}(1+\dd_{s,k}) + \sum_{i=3}^n \bb{x}_i\bb{y}_i(1+\dd_{p,i})\left(\prod_{k=i-1}^{m-1}(1+\dd_{s,k})\right),
+\end{equation}
+where each occurrence of $\dd_p$ and $\dd_s$ are distinct, but are still bound by $u_p$ and $u_s$.
+
+Using Lemma \ref{lem:gamma}, we further simplify:
+\begin{align*}
+\fl(\bb{x}^{\top}\bb{y}) &= \hat{s_m} = (1+\tth_p^{(1)})(1+\tth_s^{(m-1)})\bb{x}^{\top}\bb{y}%%%\\
+%%%&
+= (\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y})
+\end{align*}
+Here $\Delta\bb{x}$ and $\Delta\bb{y}$ are vector perturbations.
+
+By using Lemma \ref{lem:mp}, Equation \ref{lem:mp1}, we can bound the perturbations componentwise.
+Let $d:=\lfloor\frac{(m-1)u_s}{u_p}\rfloor$ such that $(m-1)u_s = d u_p + r u_s$. Then,
+\begin{align*}
+|\Delta \bb{x}| &\leq \gamma_p^{(d+2)}|\bb{x}| %%% \\
+\qquad \mbox{and} \qquad
+|\Delta \bb{y}| %%%&
+\leq \gamma_p^{(d+2)}|\bb{y}|.
+\end{align*}
+Furthermore, these bounds lead to a forward error result as shown in Equation \ref{eqn:ipforward},
+\begin{equation}
+\label{eqn:ipforward}
+|\bb{x}^{\top}\bb{y}-\fl(\bb{x}^{\top}\bb{y})| \leq \gamma_p^{(d+2)}|\bb{x}|^{\top}|\bb{y}|.
+\end{equation}
+%
+%While this result does not guarantee a high relative accuracy when $|\bb{x}^{\top}\bb{y}| \ll |\bb{x}|^{\top}|\bb{y}|$, high relative accuracy is expected in some special cases.
+%For example, let $\bb{x}=\bb{y}$.
+%Then we have exactly $|\bb{x}^{\top}\bb{x}| = |\bb{x}|^{\top}|\bb{x}|=\|\bb{x}\|_2^2$.
+%This leads to
+%\begin{equation}
+%\left|\frac{\|\bb{x}\|_2^2 - \fl(\|\bb{x}\|_2^2)}{\|\bb{x}\|_2^2}\right| \leq \gamma_p^{(d+2)}
+%\end{equation}
+%
+
+\subsubsection{Corollary \ref{lem:ip_b}}
+This proof follows similarly to the proof for Lemma \ref{lem:ip_a}.
+Since no error is incurred in the multiplication portion of the inner products, $\dd_s$ and $\dd_{st}$ are rounding error incurred from summations and storage.
+The error for a general $m$-length vector dot product is then
+\begin{equation}
+\label{eqn:dperr_2}
+\hat{s_m} = (\bb{x}_1\bb{y}_1+\bb{x}_2\bb{y}_2)\prod_{k=1}^{m-1}(1+\dd_{s,k}) + \sum_{i=3}^n \bb{x}_i\bb{y}_i\left(\prod_{k=i-1}^{m-1}(1+\dd_{s,k})\right).
+\end{equation}
+Using Lemma \ref{lem:gamma}, we further simplify, 
+\begin{equation*}
+\fl(\bb{x}^{\top}\bb{y}) = \hat{s_m} = (1+\tth_s^{(m-1)})\bb{x}^{\top}\bb{y}= (\bb{x}+\Delta\bb{x})^{\top}\bb{y} = \bb{x}^{\top}(\bb{y}+\Delta\bb{y}).
+\end{equation*}
+Here $\Delta\bb{x}$ and $\Delta\bb{y}$ are vector perturbations.
+
+By using Lemma \ref{lem:mp} equation \ref{lem:mp1}, we can bound the perturbations componentwise.
+Let $d:=\lfloor\frac{(m-1)u_s}{u_p}\rfloor$ such that $(m-1)u_s = d u_p + r u_s$. 
+\begin{align*}
+|\Delta \bb{x}| &\leq \gamma_p^{(d+1)}|\bb{x}| %%%\\
+\qquad \mbox{and} \qquad
+|\Delta \bb{y}| %%%&
+\leq \gamma_p^{(d+1)}|\bb{y}| 
+\end{align*}
+Furthermore, these bounds lead to a forward error result as shown in Equation \ref{eqn:ipforward2},
+\begin{equation}
+\label{eqn:ipforward2}
+|\bb{x}^{\top}\bb{y}-\fl(\bb{x}^{\top}\bb{y})| \leq \gamma_p^{(d+1)}|\bb{x}|^{\top}|\bb{y}|.
+\end{equation}
+
+\subsection{Proof for Mixed-Precision HQR result}
+\label{Appendix:HQR}
+Here, we show a few results that are necessary for the proof for Theorem~\ref{thm:feHQR}.
+Lemma~\ref{lem:19.2} shows normwise results for a single mixed-precision Householder transformation performed on a vector, and Lemma~\ref{lem:19.3} builds on Lemma~\ref{lem:19.2} to show normwise results for multiple mixed-precision Householder transformations on a vector. 
+We build column-wise results for HQR based on these lemmas and then compute the matrix norms at the end.
+\begin{lemma}
+	\label{lem:19.2}
+	Let $\bb{x}\in\R^m$ and consider the computation of $\bb{y}=\hat{\bb P_v}\bb{x} = \bb{x}-\hat{\beta}\hat{\bb{v}}\hat{\bb{v}}^{\top}\bb{x}$, where $\hat{\bb{v}}$ has accumulated error shown in Lemma~\ref{lem:HQRv}.
+	Then, the computed $\hat{\bb{y}}$ satisfies 
+	\begin{equation}
+	\hat{\bb y} = (\bb{P}+\bb{\Delta P}) \bb{x},\quad \|\bb{\Delta P}\|_F\leq\gamma_w^{(6d+6z+13)},
+	\end{equation}
+	where $\bb{P} = \bb{I}-\beta\bb{v}\bb{v}^{\top}$ is a Householder transformation.
+\end{lemma}
+\begin{proof}
+	Recall that the computed $\hat{\bb y}$ accumulates component-wise error shown in Equation~\ref{eqn:applyP}.
+	Even though we do not explicitly form $\bb{P}$, forming the normwise error bound for this matrix makes the analysis simple.
+	First, recall that any matrix $\bb{A}$ with rank $r$ has the following relations between its 2-norm and Frobenius norm,
+	%%%\begin{equation}
+	$\|\bb{A}\|_2\leq\|\bb{A}\|_F\leq\sqrt{r}\|\bb{A}\|_2$.
+	%%%\end{equation}
+	Then, we have 
+	\begin{equation}
+	\label{eqn:19.2a}
+	\|\bb{y}\|_2 = \|\bb{P x}\|_2 \leq \|\bb{P}\|_2 \|\bb{x}\|_2 = \|\bb{x}\|_2,
+	\end{equation}
+	since $\bb{P}$ is orthogonal and $\|\bb{P}\|_2=1$.
+	We now transition from the componentwise error to normwise error for $\bb{\Delta y}$, and write $\tilde{z} = 6d+6z+13$:
+	\begin{equation}
+	\label{eqn:19.2b}
+	\|\bb{\Delta y}\|_2 = \left(\sum_{i=1}^m \bb{\Delta y}_i^2\right)^{1/2} \leq \gamma_w^{(\tilde{z})}\left(\sum_{i=1}^m \bb{y}_i^2\right)^{1/2} =  \gamma_w^{(\tilde{z})}\|\bb{y}\|_2
+	\end{equation}
+	Combining Equations~\ref{eqn:19.2a} and \ref{eqn:19.2b}, we find
+	\begin{equation}
+	\frac{\|\bb{\Delta y}\|_2}{\|\bb{x}\|_2} \leq \gamma_w^{(\tilde{z})}. \label{eqn:19.2c}
+	\end{equation}
+	Now, notice that $\bb{\Delta P}$ is exactly $\frac{1}{\bb{x}^{\top}\bb{x}}\bb{\Delta y}\bb{x}^{\top}$; thus, 
+	\begin{align*}
+	(\bb{P}+\bb{\Delta P}) \bb{x} &= (\bb{P}+\frac{1}{\bb{x}^{\top}\bb{x}}\bb{\Delta y}\bb{x}^{\top})\bb{x}    %%%\\
+	%%%&
+	=\bb{P}\bb{x}  + \frac{\bb{x}^{\top}\bb{x}}{\bb{x}^{\top}\bb{x}}\bb{\Delta y} = \bb{y} + \bb{\Delta y}
+	\end{align*}
+	We can compute the Frobenius norm of $\bb{\Delta P}$ by using $\bb{\Delta P}_{ij} = \frac{1}{\|\bb{x}\|_2^2}\bb{\Delta y}_i\bb{x}_j$.
+	\begin{align*}
+	\|\bb{\Delta P}\|_F %%&= \left(\sum_{i=1}^m\sum_{j=1}^m\Delta \bb{P}_{ij}^2\right)^{1/2} 
+	= \left(\sum_{i=1}^m\sum_{j=1}^m\left(\frac{1}{\|\bb{x}\|_2^2}\bb{\Delta y}_i\bb{x}_j\right)^2\right)^{1/2} %%%\\
+	%%%&= \left(\frac{1}{\|\bb{x}\|_2^4}\sum_{i=1}^m\sum_{j=1}^m\bb{\Delta y}_i^2\bb{x}_j^2\right)^{1/2} 
+	%%%=\frac{1}{\|\bb{x}\|_2^2}\left(\sum_{i=1}^m \bb{\Delta y}_i^2\left( \sum_{j=1}^m\bb{x}_j^2\right)\right)^{1/2}\\
+	%%%&=\frac{1}{\|\bb{x}\|_2^2}\left(\|\bb{x}\|_2^2\sum_{i=1}^m\bb{\Delta y}_i^2 \right)^{1/2}
+	%%%=  \frac{\|\bb{x}\|_2\|\bb{\Delta y}\|_2}{\|\bb{x}\|_2^2} 
+	=  \frac{\|\bb{\Delta y}\|_2}{\|\bb{x}\|_2}
+	\end{align*}
+	Finally, using Equation~\ref{eqn:19.2c}, we find $\|\bb{\Delta P}\|_F \leq \gamma_w^{(\tilde{z})}$.
+\end{proof}
+
+%\begin{lemma}
+%	\label{lem:3.7}
+%	If $\bb{P}_j + \bb{\Delta P}_j\in\R^{m\times m}$ satisfies $\|\bb{\Delta P}_j\|_F\leq\delta_j\|\bb{P}_j\|_2$ for all $j$, then
+%	\begin{equation}
+%	\left|\left|\prod_{j=0}^m \left(\bb{P}_j + \bb{\Delta P}_j\right) - \prod_{j=0}^m \bb{P}_j\right|\right|_F\leq \left(\prod_{j=0}^m(1+\delta_j)-1\right)\prod_{j=0}^m\|\bb{P}_j\|_2
+%	\end{equation}
+%\end{lemma}
+
+\begin{lemma}
+	\label{lem:19.3}
+	Consider applying a sequence of transformations in the set $\{\bb{P}_j\}_{j=1}^r\subset\R^{m\times m}$ to $\bb{x}\in\R^m$, where $\bb{P}_j$'s are all Householder transformations and where we will assume that $r\gamma_w^{(\tilde{z})}<\frac{1}{2}.$ 
+	Let $\bb{y} = \bb{P}_r\bb{P}_{r-1}\cdots\bb{P}_1\bb{x} = \bb{Q}^{\top}\bb{x}$.
+	Then, $\hat{\bb{y}} = (\bb{Q}+\bb{\Delta Q})^{\top}\bb{x}$, where 
+	\begin{equation}
+	\|\bb{\Delta Q}\|_F \leq r\gamma_w^{(\tilde{z})},\quad  \|\bb{\Delta y}\|_2 \leq r \gamma_w^{(\tilde{z})} \|\bb{y}\|_2.\label{eqn:19.3}
+	\end{equation}
+	In addition, if we let $\hat{\bb{y}} =\bb{Q}^{\top}(\bb{x} + \bb{\Delta x})$, then 
+	\begin{equation}
+	\|\bb{\Delta x}\|_2 \leq r \gamma_w^{(\tilde{z})} \|\bb{x}\|_2.\label{eqn:19.3c}
+	\end{equation}
+\end{lemma}
+
+\begin{proof}
+	As was for the proof for Lemma~\ref{lem:19.2}, we know $\bb{\Delta Q}^{\top} = \frac{1}{\|\bb{x}\|_2^2}\bb{\Delta y}\bb{x}^{\top}$.
+	Recall that the HQR factorization applies a series of Householder transformations on $\bb{A}$ to form $\bb{R}$, and applies the same series of Householder transformations in reverse order to $\bb{I}$ to form $\bb{Q}$.
+	Therefore, it is appropriate to assume that $\bb{x}$ is exact in this proof, and we form a forward bound on $\hat{\bb{y}}$.
+	However, we can still easily switch between forward and backward errors in the following way:
+	\begin{align*}
+	\hat{\bb{y}} &= \bb{y} + \bb{\Delta y} = \bb{Q}^{\top} (\bb{x}+\bb{\Delta x}) = (\bb{Q}+\bb{\Delta Q})^{\top} \bb{x},\\
+	\bb{\Delta y} &= \bb{\Delta Q}^{\top} \bb{x} = \bb{Q}^{\top}\bb{\Delta x}.
+	\end{align*}
+	In addition, we can switch between $\bb{\Delta y}$ and $\bb{\Delta x}$ by using the fact that $\|\bb{Q}\|_2 = 1$.
+	%So another way of formulating $\bb{\Delta Q}$ is given by $\frac{1}{\|\bb{x}\|_2^2}(\bb{Q}\bb{\Delta x})\bb{x}^{\top}$, where $\bb{\Delta x}$ can be understood as the backward error.\par	
+	\paragraph{Error bound for $\|\bb{\Delta y}\|_2$}
+	We will first find $\|\bb{\Delta Q}\|_2$, where this is NOT the forward error from forming $\bb{Q}$ with Householder transformations, but rather a backward error in accumulating Householder transformations. 
+	From Lemma~\ref{lem:19.2}, we have$ \|\bb{\Delta P}\|_F\leq\gamma_w^{(\tilde{z})} = \gamma_w^{(\tilde{z})} \|\bb{P}\|_2$ for any Householder transformation $\bb{P}\in\R^{m\times m}$, where $\tilde{z} = 6d+6z+13$ and $d=\lfloor\frac{(m-1)u_s}{u_w}\rfloor$, $z\in\{1,2\}$.
+	Therefore, this applies to the sequence of $\bb{P}_i$'s that form $\bb{Q}$ as well.
+	
+	We will now use Lemma 3.7 from \cite{Higham2002} to bound $\bb{\Delta Q}$:
+	\begin{align*}
+	\bb{\Delta Q}^{\top}& = \left(\hat{\bb{Q}} - \bb{Q}\right)^{\top}= \prod_{i=r}^{1}\left(\bb{P}_i +\bb{\Delta P}_i\right) - \prod_{i=r}^{1}\bb{P}_i,\\
+	\|\bb{\Delta Q}\|_F = \|\bb{\Delta Q}^{\top}\|_F  &= \left|\left| \prod_{i=r}^{1}\left(\bb{P}_i +\bb{\Delta P}_i\right) - \prod_{i=r}^{1}\bb{P}_i \right|\right|_F,\\
+	&\leq \left(\prod_{i=r}^1(1+\gamma_w^{(\tilde{z})})-1\right)\prod_{i=r}^1\|\bb{P}_i\|_2 = \prod_{i=r}^1(1+\gamma_w^{(\tilde{z})})-1.
+	\end{align*}
+	The last equality results from the orthogonality of Householder matrices.\par
+	
+	Consider the constant, $(1+\gamma_w^{(\tilde{z})})^r-1$.
+	From the very last rule in Lemma~\ref{lem:up}, we can generalize the following:
+	\begin{equation*}
+	(1+\gamma_w^{(\tilde{z})})^r = (1+\gamma_w^{(\tilde{z})})^{r-2}(1+\gamma_w^{(\tilde{z})})(1+\gamma_w^{(\tilde{z})}) \leq  (1+\gamma_w^{(\tilde{z})})^{r-2}(1+\gamma_w^{(2\tilde{z})}) \leq \cdots \leq (1+\gamma_w^{(r\tilde{z})}).
+	\end{equation*}
+	So, our quantity of interest can be bound by $(1+\gamma_w^{(\tilde{z})})^r-1 \leq \gamma_w^{(r\tilde{z})}$.
+	
+	Now we will use the following equivalent algebraic inequalities to get the final result.
+	\begin{equation}
+	0<a<b<1 \Leftrightarrow 1-a > 1-b \Leftrightarrow \frac{1}{1-a} <\frac{1}{1-b} \Leftrightarrow \frac{a}{1-a} < \frac{b}{1-b}
+	\label{eqn:algebra}
+	\end{equation}
+	In addition, we assume $r\gamma_w^{(\tilde{z})}< \frac{1}{2}$, such that 
+	\begin{align*}
+	(1+\gamma_w^{(\tilde{z})})^r-1 &\leq \gamma_w^{(r\tilde{z})} = \frac{r\tilde{z}u_w}{1-r\tilde{z}u_w}\qquad\text{(by definition)}\\
+	&\leq \frac{r\gamma_w^{(\tilde{z})}}{1-r\gamma_w^{(\tilde{z})}},\text{ since } r\tilde{z}u_w < r\gamma_w^{(\tilde{z})}\qquad\text{(by Equation \ref{eqn:algebra})}\\
+	&\leq 2 r \gamma_w^{(\tilde{z})}\qquad\text{(since $r\gamma_w^{(\tilde{z})}< \frac{1}{2}$ implies  $\frac{1}{1-r\gamma_w^{(\tilde{z})}} < 2$)}\\
+	&= r\tilde{\gamma}_w^{(\tilde{z})},
+	\end{align*}
+	where $\tilde{\gamma^{(m)}}:= \frac{cmu}{1-cmu}$ for some small integer, $c$.
+	If we had started with $(1+\tilde{\gamma}_w^{(\tilde{z})})^r-1$, we can still find $r\tilde{\gamma}_w^{(\tilde{z})}$ assuming that $2c$ is still a small integer. 
+	In conclusion, we have 
+	$$
+	(1+\gamma_w^{(\tilde{z})})^r-1 \leq r\tilde{\gamma}_w^{(\tilde{z})},
+	$$
+	which results in the bound for $\bb{\Delta Q}$ as shown in Equation~\ref{eqn:19.3}, $\|\bb{\Delta Q}\|_2 \leq \|\bb{\Delta Q}\|_F \leq r\gamma_w^{(\tilde{z})}$.
+	
+	Next, we bound $\|\bb{\Delta y}\|_2 = \|\bb{\Delta Q x}\|_2 \leq \|\bb{\Delta Q}\|_2 \|\bb{x}\|_2 \leq  r\tilde{\gamma}_w^{(\tilde{z})}\|\bb{x}\|_2$.
+	
+	\paragraph{Bound for $\|\bb{\Delta x}\|_2$}
+	We use the above result,
+	\begin{equation}
+	\|\bb{\Delta x}\|_2 = \|\bb{Q \Delta y}\|_2\| \leq \|\bb{Q}\|_2\|\bb{\Delta y}\|_2 = \|\bb{\Delta y}\|_2 \leq  r\tilde{\gamma}_w^{(\tilde{z})}\|\bb{x}\|_2.
+	\end{equation}
+	While $r\gamma^{(k)} = r\frac{ku}{1-ku} < \frac{rku}{1-rku} =\gamma^{(rk)}$ holds true when $r>0$ and $rku< 1$ are satisfied, the strict inequality implies that $r\gamma^{(k)}$ is a tighter bound than $\gamma^{(rk)}$.
+	However, $\gamma^{(rk)}$ is easier to work with using the rules in Lemma~\ref{lem:gamma}.
+\end{proof}
+
+\subsubsection{Proof for Theorem \ref{thm:feHQR}}
+First, we use Lemma~\ref{lem:19.3} directly on columns of $\bb{A}$ and $\bb{I}_{m\times n}$ to get a result for columns of $\hat{\bb{R}}$ and $\hat{\bb{Q}}$.
+%Figure~\ref{fig:QRerr} shows that each elements of $\hat{\bb{Q}}$ and $\hat{\bb{R}}$ each go through different numbers of Householder transformations and Householder transformations for different lengths of vectors as well. 
+We will use the maximum number of transformations and the length of the longest vector on to which we perform a Householder transformation, that is, $n$ transformations of vectors of length $m$. 
+%Also, note that $n\gamma^{(k)} = \frac{nku}{1-ku}<\frac{nku}{1-nku} = \gamma^{(nk)}$ as long as $nku <1$.
+For $j$ in $\{1, \cdots, n\}$, the $j^{th}$ column of $\bb{R}$ and $\bb{Q}$ are the results of $j$ Householder transformations on $\bb{A}$ and $\bb{I}$:
+\begin{align}
+\|\bb{\Delta Q}[:,j]\|_2 &\leq j\tilde{\gamma}_w^{(\tilde{z})}\|\hat{e}_{j}\|_2 < \tilde{\gamma}_w^{(j\tilde{z})}, \\
+\|\bb{\Delta R}[:,j]\|_2 &\leq j\tilde{\gamma}_w^{(\tilde{z})}\|\bb{A}[:,j]\|_2 < \tilde{\gamma}_w^{(j\tilde{z})}\|\bb{A}[:,j]\|_2.
+\end{align}
+
+Finally, we relate columnwise 2-norms to matrix Frobenius norms.
+%\begin{lemma}
+%	Let $\bb{A}=[\bb{c}_1 \cdots \bb{c}_n]\in\R^{m\times n}$, where $\bb{c_i}\in\R^m$ for $i=1, \cdots, n$. 
+%	If $\max_{i \in\{1, \cdots, n\}}\|\bb{c}_i\| = \epsilon$, then
+%	\begin{equation}
+%	\|\bb{A}\|_F \leq \sqrt{n}\epsilon
+%	\end{equation}
+%\end{lemma}
+%\begin{proof}
+%	The Frobenius norm is exactly the 2-norm for vectors. 
+%	\begin{equation*}
+%	\|\bb{A}\|_F = \left(\sum_{i=1}^n \sum_{j=1}^m \bb{A}_{ij}^2\right)^{1/2} = \left(\sum_{i=1}^n\|\bb{c}_i\|_2^2\right)^{1/2}\leq \left(\sum_{i=1}^n \epsilon^2\right)^{1/2} = \sqrt{n}\epsilon
+%	\end{equation*}
+%\end{proof}
+It is straightforward to see the result for the $\bb{Q}$ factor,
+\begin{equation}
+\|\bb{\Delta Q}\|_F = \left(\sum_{j=1}^n \|\bb{\Delta Q}[:,j]\|_2^2\right)^{1/2} \leq \left(\sum_{j=1}^n (j\tilde{\gamma}_w^{(\tilde{z})})^2 \|\hat{e}_j\|_2^2\right)^{1/2} \leq n^{3/2}\tilde{\gamma}_w^{(\tilde{z})}.
+\end{equation}
+Note that we bound $\sum_{j=1}^n j^2$ by $n^3$, but the summation is actually exactly $\frac{n(n+1)(2n+1)}{6}$. 
+Therefore, a tighter bound would replace $n^{3/2}$ with $\left(\frac{n(n+1)(2n+1)}{6}\right)^{1/2}$.\par 
+We can bound the $\bb{R}$ factor in a similar way,
+\begin{equation}
+\|\bb{\Delta R}\|_F = \left(\sum_{j=1}^n \|\bb{\Delta R}[:,j]\|_2^2\right)^{1/2} \leq \left(\sum_{j=1}^n (j\tilde{\gamma}_w^{(\tilde{z})})^2 \|\bb{A}[:,j]\|_2^2\right)^{1/2} \leq n\tilde{\gamma}_w^{(\tilde{z})} \|\bb{A}\|_F.
+\end{equation}
+
+Obtaining the backward error from the HQR factorization,
+$$\bb{\Delta A}=\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}
+= \bb{A}-\bb{Q}\hat{\bb{R}} + \bb{Q}\hat{\bb{R}} - \hat{\bb{Q}}\hat{\bb{R}}
+= \bb{Q \Delta R} + \bb{\Delta Q} \hat{\bb{R}}.$$
+
+A columnwise result for $\hat{\bb{A}}$ is shown by
+\begin{align*}
+\|\bb{\Delta A}[:,j]\|_2 & = \|(\bb{Q \Delta R} + \bb{\Delta Q} \hat{\bb{R}} )[:,j]\|_2,\\
+&\leq \|\bb{Q \Delta R}[:,j]\|_2  + \|\bb{\Delta Q}\hat{\bb{R}}[:,j]\|_2,\\
+&\leq \|\bb{\Delta R}[:,j]\|_2 + \|\bb{\Delta Q}\|_2\|\hat{\bb{R}}[:,j]\|_2,\\
+&\leq \|\bb{\Delta R}[:,j]\|_2 + \|\bb{\Delta Q}\|_F\|(\bb{R} +\bb{\Delta R})[:,j]\|_2,\\
+&\leq j\tilde{\gamma}_w^{(\tilde{z})}\|\bb{A}[:,j]\|_2 + n^{3/2}\tilde{\gamma}_w^{(\tilde{z})} \|(\bb{Q}^{\top}\bb{A} +\bb{\Delta R})[:,j]\|_2,\\
+&\leq j\tilde{\gamma}_w^{(\tilde{z})}\|\bb{A}[:,j]\|_2 + n^{3/2}\tilde{\gamma}_w^{(\tilde{z})} \left(\|\bb{A}[:,j]\|_2 +\|\bb{\Delta R}[:,j]\|_2\right),\\
+&\leq \left(j\tilde{\gamma}_w^{(\tilde{z})} + n^{3/2}\tilde{\gamma}_w^{(\tilde{z})}  (1+j\tilde{\gamma}_w^{(\tilde{z})})\right)\|\bb{A}[:,j]\|_2,\\
+&=n^{3/2}\tilde{\gamma}_w^{(\tilde{z})}  \|\bb{A}[:,j]\|_2,
+\end{align*}
+where we assume $n\tilde{\gamma}_w^{(\tilde{z})}\ll 1$ and where the last equality sweeps all non-leading order terms into the arbitrary constant $c$ within the definition of $\tilde{\gamma}$,
+\begin{equation}
+\|\bb{\Delta A}\|_F = \left(\sum_{j=1}^n \|\bb{\Delta A}[:,j]\|_2^2\right)^{1/2} \leq \left(\sum_{j=1}^n (n^{3/2}\tilde{\gamma}_w^{(\tilde{z})})^2 \|\bb{A}[:,j]\|_2^2\right)^{1/2} \leq n^{3/2}\tilde{\gamma}_w^{(\tilde{z})} \|\bb{A}\|_F.
+\end{equation}
+
+
+
+
+
 \bibliography{report,../../../../library.bib,../../../../sans_library.bib}
 \bibliographystyle{siamplain}%ieeetr
 \end{document}
