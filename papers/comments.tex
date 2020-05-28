@@ -40,7 +40,7 @@
 
 \maketitle
 We would like to thank both reviewers for your time and effort. 
-First, we would like to make a few comments on the major revisions:
+First, we would like to make a few comments on the major aspects of the revisions:
 \begin{itemize}\bfseries
 	\item Column partitioned Householder QR factorization algorithm (HQR) has been added to reflect on mixed precision settings of GPU tensor cores units.\\
 	{\normalfont We added the analysis of the level-3 BLAS variant of HQR since it is the standard HQR implementation in many libraries and can be effortlessly adapted to utilize the block Fused Multiply-Add operations (bFMAs) of NVIDIA TensorCore units.
@@ -49,7 +49,7 @@ First, we would like to make a few comments on the major revisions:
 	\item We have added the mixed precision setting of NVIDIA's TensorCore bFMAs.
 	{\normalfont
 	This setting is more relevant and practical since these hardware units are already in use, and result in fewer low precision errors than the inner product mixed precision setting we had introduced. 
-	While we do not discuss the speed-up advantages in depth, we do refer to the speed benchmarks for these operations that already exist and may be of interest ot the readers.
+	While we do not discuss the speed-up advantages in depth, we do refer to the speed benchmarks for these operations that already exist and may be of interest to the readers.
 	}
 	\item Section 5 (Applications) has been removed from this manuscript.\\
 	{\normalfont 
@@ -61,28 +61,64 @@ First, we would like to make a few comments on the major revisions:
 Next, we would like to address concerns voiced by both referees:
 \begin{itemize}\bfseries
 	\item Missing references to relevant and prior works.\\
-	{\normalfont
-	
-
-    }
-	\item Inconsistencies in notation and adhering to standard notation:
-	\begin{itemize}
-		\item Hyphens have been removed from ``low-'', ``mixed-'', and ``high-precision''.
-		\item We changed the notation for $\gamma$ for $k$ accumulated rounding errors in precision type $q$ from $\gamma_{q}^{(k)}$ to $\gamma_{k}^{(q)}$.
+	Referee \#1: The paper also suffers a complete lack of acknowledgment of prior work in this area and of the current state-of-the-art.
+	\begin{itemize}\bfseries
+		\item lines 157-159: citation missing at the end of this sentence. \\
+		{\normalfont
+		Citations for probabilistic rounding error analyses have been added (\cite{Higham2019a,Ipsen2019}) to line A. 
+		}
+		\item lines 163-165: Be more specific about what rounding error analysis framework was established in the textbook [13]. As far as I know, the textbook does not establish any new error analysis framework, nor is it limited to analyses using a single precision.\\
+		{\normalfont
+		We did not intend to imply that \cite{Higham2002} establishes new error analysis framework. 
+		In section 3, we have included the standard rounding error analyses for HQR and its level-3 BLAS variant and have appropriately attributed and redirected readers to a main source, \cite{Higham2002}. 
+		The textbook (\cite{Higham2002}) does refer to mixed precision iterative refinement, but the rounding error analysis for HQR(Section 19.3) and aggregated Householder transformations (Section 19.5) both assume a uniform precision setting. 
+		Modifying these analyses for various mixed precision settings is precisely our major contribution, and are presented in Section 4.
+	    } 
+		\item Section 2.2: Prior work should be discussed and cited here.\\
+		{\normalfont
+		In section 2.2, we define MP Setting 2.3 (line C), which is the mixed precision inner product that mimics TensorCore bFMAs but in a level-2 BLAS operation.
+		Later in section 4.1 (line D), we discuss the specifics of NVIDIA TensorCore bFMAs, and reference work from \cite{Blanchard2019}. 
+		}
 	\end{itemize}
-	\item line 44-45: ``QR factorization is known to provide a backward stable solution to the linear least squares problem ...' Using what algorithm/under what conditions? / P2L44 "QR factorization is known to..."
+    Referee \#2:
+    \begin{itemize}\normalfont
+    	\item We have referenced \cite{Blanchard2019} for their work on mixed precision matrix products and LU decomposition in section 4.1 (line D).
+    	\item References to (\cite{Higham2019a,Ipsen2019}) on probabilistic rounding error analyses have been added to to line A. 
+    	\item Work on proving that the faithfulness of Algorithm 1 on simulating half precision arithmetic have been referenced (\cite{HighamPranesh2019b}) in line E. 
+    \end{itemize}
+	\item Inconsistencies in notation and adhering to standard notation:
+	\begin{itemize}\normalfont
+		\item \textbf{Referee \#1: }Hyphens have been removed from ``low-'', ``mixed-'', and ``high-precision''.
+		\item \textbf{Referee \#2: }We changed the notation for $\gamma$ for $k$ accumulated rounding errors in precision type $q$ from $\gamma_{q}^{(k)}$ to $\gamma_{k}^{(q)}$ to match the standard notation.
+	\end{itemize}
+	\item P2L44-45: ``QR factorization is known to provide a backward stable solution to the linear least squares problem ...' \\
+	{\normalfont
+	We meant to emphasize that mixed precision is an active area of research and to motivate the need for mixed precision QR factorization algorithms.
+	However, we have removed this sentence as it was confusing and did not serve the purpose of the paper.
+	}
 \end{itemize}
+
+We now address unique concerns from each referee separately.
 \section*{Requests from Referee \#1}
 \begin{enumerate}\bfseries
 	\item The primary problem that I see is that the authors have not convinced me that there is any novelty in what they call a ``new framework'' for doing mixed-precision floating point error analysis.\\
-	{\normalfont asdf}
-	\item The paper also suffers a complete lack of acknowledgement of prior work in this area and of the current state-of-the-art.
-	\item line 39: What is meant by "exact products"? 
+	{\normalfont I need help addressing this.}
+%	\item The paper also suffers a complete lack of acknowledgement of prior work in this area and of the current state-of-the-art.
+	\item line 39: What is meant by ``exact products''? \\
+	{\normalfont 
+	The documentation for TensorCore bFMAs says ``full precision products'', which in our context is equivalent to a product in exact arithmetic.
+	We have added a full explanation to clarify this in section 2 (line F). 
+	}
 	%\item line 44-45: ``QR factorization is known to provide a backward stable solution to the linear least squares problem ...' Using what algorithm/under what conditions? 
-	\item lines 157-159: citation missing at the end of this sentence. 
-	\item lines 163-165: Be more specific about what rounding error analysis framework was established in the textbook [13]. As far as I know, the textbook does not establish any new error analysis framework, nor is it limited to analyses using a single precision. 
-	\item Section 2.2: Prior work should be discussed and cited here. 
-	\item Pages 2-6 contain standard introductory textbook material and can be significantly shortened. 
+%	\item lines 157-159: citation missing at the end of this sentence. 
+%	\item lines 163-165: Be more specific about what rounding error analysis framework was established in the textbook [13]. As far as I know, the textbook does not establish any new error analysis framework, nor is it limited to analyses using a single precision. 
+%	\item Section 2.2: Prior work should be discussed and cited here. 
+	\item Pages 2-6 contain standard introductory textbook material and can be significantly shortened. \\
+	{\normalfont
+	While this material is standard, intermediate results from these analyses are necessary for the rounding error analyses for the mixed precision variant of the algorithms in section 4.
+	We are aware that this adds significant length to this paper and have tried to shorten it while keeping it accessible for readers who may not be familiar with rounding error analyses.
+	
+	}
 	%\item Consistency in notation, typos...
 \end{enumerate}
 \section*{Requests from Referee \#2}
