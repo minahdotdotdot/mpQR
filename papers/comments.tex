@@ -1,0 +1,118 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{geometry, graphicx,wrapfig}
+\usepackage{enumerate}
+\usepackage{amsmath,amssymb,amsfonts,amsthm, bm}
+%\usepackage{amsmath,amssymb,amsfonts,bm}
+\usepackage{xcolor} %just for visible comments.
+\usepackage[linesnumbered,ruled,vlined,algo2e]{algorithm2e}
+\usepackage[toc,page]{appendix}
+\usepackage{makecell}
+\usepackage{cleveref}
+\usepackage{sectsty}
+\usepackage{url}
+\usepackage{titling}
+
+% New theorems and commands
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{assump}[theorem]{MP Setting}
+\newcommand\mycommfont[1]{\ttfamily\textcolor{orange}{#1}}
+%\SetCommentSty{mycommfont}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\dd}{\delta}
+\newcommand{\tth}{\theta}
+\newcommand{\bb}[1]{\mathbf{#1}}
+\newcommand{\fl}{\mathrm{fl}}
+\newcommand{\cO}{\mathcal{O}}
+\sectionfont{\large\normalfont\centering}
+\posttitle{\par\end{center}}
+\setlength{\droptitle}{-1in}
+
+%opening
+\title{Comments to Reviewers}
+\author{\small L. Minah Yang, Alyson Fox, Geoffrey Sanders \vspace{-5cm}}
+\date{\small \today}
+\begin{document}
+
+\maketitle
+We would like to thank both reviewers for your time and effort. 
+First, we would like to make a few comments on the major revisions:
+\begin{itemize}\bfseries
+	\item Column partitioned Householder QR factorization algorithm (HQR) has been added to reflect on mixed precision settings of GPU tensor cores units.\\
+	{\normalfont We added the analysis of the level-3 BLAS variant of HQR since it is the standard HQR implementation in many libraries and can be effortlessly adapted to utilize the block Fused Multiply-Add operations (bFMAs) of NVIDIA TensorCore units.
+	The WY representation of \cite{Bischof1987} is used instead of the compact, storage-efficient version of \cite{Schreiber1989} since the former is discussed in both \cite{golub2013matrix,Higham2002}, which we often refer to in the text.
+	}
+	\item We have added the mixed precision setting of NVIDIA's TensorCore bFMAs.
+	{\normalfont
+	This setting is more relevant and practical since these hardware units are already in use, and result in fewer low precision errors than the inner product mixed precision setting we had introduced. 
+	While we do not discuss the speed-up advantages in depth, we do refer to the speed benchmarks for these operations that already exist and may be of interest ot the readers.
+	}
+	\item Section 5 (Applications) has been removed from this manuscript.\\
+	{\normalfont 
+	Given the length of the first submission and the additional materials introduced as explained above, we have removed the applications section from this text.
+	However, we plan on presenting our work on using mixed precision arithmetic in graph clustering in a future work, where we will include other graph problems.
+	} 
+	
+\end{itemize}
+Next, we would like to address concerns voiced by both referees:
+\begin{itemize}\bfseries
+	\item Missing references to relevant and prior works.\\
+	{\normalfont
+	
+
+    }
+	\item Inconsistencies in notation and adhering to standard notation:
+	\begin{itemize}
+		\item Hyphens have been removed from ``low-'', ``mixed-'', and ``high-precision''.
+		\item We changed the notation for $\gamma$ for $k$ accumulated rounding errors in precision type $q$ from $\gamma_{q}^{(k)}$ to $\gamma_{k}^{(q)}$.
+	\end{itemize}
+	\item line 44-45: ``QR factorization is known to provide a backward stable solution to the linear least squares problem ...' Using what algorithm/under what conditions? / P2L44 "QR factorization is known to..."
+\end{itemize}
+\section*{Requests from Referee \#1}
+\begin{enumerate}\bfseries
+	\item The primary problem that I see is that the authors have not convinced me that there is any novelty in what they call a ``new framework'' for doing mixed-precision floating point error analysis.\\
+	{\normalfont asdf}
+	\item The paper also suffers a complete lack of acknowledgement of prior work in this area and of the current state-of-the-art.
+	\item line 39: What is meant by "exact products"? 
+	%\item line 44-45: ``QR factorization is known to provide a backward stable solution to the linear least squares problem ...' Using what algorithm/under what conditions? 
+	\item lines 157-159: citation missing at the end of this sentence. 
+	\item lines 163-165: Be more specific about what rounding error analysis framework was established in the textbook [13]. As far as I know, the textbook does not establish any new error analysis framework, nor is it limited to analyses using a single precision. 
+	\item Section 2.2: Prior work should be discussed and cited here. 
+	\item Pages 2-6 contain standard introductory textbook material and can be significantly shortened. 
+	%\item Consistency in notation, typos...
+\end{enumerate}
+\section*{Requests from Referee \#2}
+\begin{enumerate}
+	\item Choice of mixed precision assumptions
+	\begin{itemize}
+		\item Relation with GPU tensor core units
+		\item Assumptions on storage precision types
+		\item Distinction between Lemma 2.4 and Corollary 2.5
+	\end{itemize}
+	\item Rounding error analysis framework
+	\item Conclusions from the mixed precision HQR analysis (section 3)
+	\item Conclusion from HQR vs TSQR comparison (section 4)
+	\item Mislabel of forward and backward errors
+	\item P1L15: ``standard algorithms may no longer be numerically stable when using half precision''
+	\item P2L49: fp16 should be removed, bfloat should be bfloat16.
+	\item P5L125: Rewording is needed to clarify "k represents the number of FLOPs" 
+	\item Title suggestion:
+	\item P1L20: what does ``weight'' refer to in this context?
+	\item P2L57 ``can successfully'' $\rightarrow$ ``can be succcessfully''.
+	\item P5L134: $\gamma_p^{(d+2)}$ has not been defined yet.
+	\item P12L329: the middle term should be $(1+\dd_w)(x_1-\sigma-\Delta\sigma)$, rather than $(1+\dd_w)(\sigma+\Delta\sigma)$. Moreover, the last equality is only true because no cancellation can happen, since $x_1$ and $\sigma$ have the same sign: this should be commented on.
+	\item Equations (4.6) and (4.7): isn't the $\sqrt{n}$ factor on the wrong equation?
+	\item P18L527: ``for the a meaningful''.
+	\item P18L531: as mentioned above, the $(L+1)/2^L$ factor is reversed
+	\item P20L599: I find it very strange that the backward error depends on the condition number of the matrix! Is it rather the forward error that is being plotted?
+	\item Section 5: given the relatively theoretical nature of this article, section 5 felt slightly out of place to me. Given that the article is quite long, perhaps the authors could consider including section 4 in another piece of work? 
+	
+\end{enumerate}
+
+\bibliography{../../../../../library.bib,../../../../../sans_library.bib,./report.bib}
+\bibliographystyle{siamplain}%ieeetr
+\end{document}
