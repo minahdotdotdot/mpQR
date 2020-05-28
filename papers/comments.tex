@@ -72,7 +72,6 @@ Next, we would like to address concerns voiced by both referees:
 		We did not intend to imply that \cite{Higham2002} establishes new error analysis framework. 
 		In section 3, we have included the standard rounding error analyses for HQR and its level-3 BLAS variant and have appropriately attributed and redirected readers to a main source, \cite{Higham2002}. 
 		The textbook (\cite{Higham2002}) does refer to mixed precision iterative refinement, but the rounding error analysis for HQR(Section 19.3) and aggregated Householder transformations (Section 19.5) both assume a uniform precision setting. 
-		Modifying these analyses for various mixed precision settings is precisely our major contribution, and are presented in Section 4.
 	    } 
 		\item Section 2.2: Prior work should be discussed and cited here.\\
 		{\normalfont
@@ -80,7 +79,7 @@ Next, we would like to address concerns voiced by both referees:
 		Later in section 4.1 (line D), we discuss the specifics of NVIDIA TensorCore bFMAs, and reference work from \cite{Blanchard2019}. 
 		}
 	\end{itemize}
-    Referee \#2:
+    Referee \#2: {\normalfont We have added the suggested references for the following topics.}
     \begin{itemize}\normalfont
     	\item We have referenced \cite{Blanchard2019} for their work on mixed precision matrix products and LU decomposition in section 4.1 (line D).
     	\item References to (\cite{Higham2019a,Ipsen2019}) on probabilistic rounding error analyses have been added to to line A. 
@@ -93,7 +92,7 @@ Next, we would like to address concerns voiced by both referees:
 	\end{itemize}
 	\item P2L44-45: ``QR factorization is known to provide a backward stable solution to the linear least squares problem ...' \\
 	{\normalfont
-	We meant to emphasize that mixed precision is an active area of research and to motivate the need for mixed precision QR factorization algorithms.
+	We meant to motivate the need for mixed precision QR factorization algorithms since mixed precision is an active area of research.
 	However, we have removed this sentence as it was confusing and did not serve the purpose of the paper.
 	}
 \end{itemize}
@@ -117,17 +116,28 @@ We now address unique concerns from each referee separately.
 	{\normalfont
 	While this material is standard, intermediate results from these analyses are necessary for the rounding error analyses for the mixed precision variant of the algorithms in section 4.
 	We are aware that this adds significant length to this paper and have tried to shorten it while keeping it accessible for readers who may not be familiar with rounding error analyses.
-	
+	Modifying the existing analyses for various mixed precision settings is precisely our major contribution, which is presented in Section 4.
 	}
 	%\item Consistency in notation, typos...
 \end{enumerate}
 \section*{Requests from Referee \#2}
-\begin{enumerate}
+\begin{enumerate}\bfseries
 	\item Choice of mixed precision assumptions
 	\begin{itemize}
-		\item Relation with GPU tensor core units
-		\item Assumptions on storage precision types
-		\item Distinction between Lemma 2.4 and Corollary 2.5
+		\item Relation with GPU tensor core units\\
+		{\normalfont We have added a mixed precision setting that addresses this specific hardware.
+		This is first mentioned in line G of section 2.2, and further explored in section 4.2 (line D).	
+	}
+		\item Assumptions on storage precision types\\
+		{\normalfont In line H of section 4.2, we explain that  intermediate matrix products should be stored in the higher precision and the low precision output is used only for the final result of the block matrix product in order to gain the highest accuracy.
+		In the analysis for a mixed precision variant of the level-3 HQR (BQR) in section 4.2, this translates to introducing only $\cO(n/r)$ low precision rounding errors for forming the QR factorization for an $m$-by-$n$ sized matrix whose columns are partitioned in groups of $r$.
+		Also, we reference the readers to \cite{Blanchard2019} for a full analysis of matrix products. 
+		}
+		\item Distinction between Lemma 2.4 and Corollary 2.5\\
+		{\normalfont 
+		We only define the exact product variant of Corollary 2.5 in MP Setting 2.3. 
+		With adding the TensorCore bFMAs, we felt that we didn't need two different types of mixed precision inner products. 
+		}
 	\end{itemize}
 	\item Rounding error analysis framework
 	\item Conclusions from the mixed precision HQR analysis (section 3)
