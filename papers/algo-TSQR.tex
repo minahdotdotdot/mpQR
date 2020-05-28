@@ -119,7 +119,7 @@ TSQR has a lower worst-case error bound than HQR when integers $m, n > 0$, and $
 %for TSQR to have a better worst-case error bound than HQR.
 Let us consider as an example the case when $\frac{m}{2^L}=2n$.
 Then, the HQR bound is $2^L/(L+1)$ larger than the bound for TSQR with $L$ levels. 
-%TODO: comment reviewer
+%TODO: O
 For example, in single precision, a HQR of a $2^{15}$-by-$2^6$ matrix results in an upper bound relative backward error ($\|\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}\|_F/\|\bb{A}\|_F$) of $\approx${\tt1.002}, but a TSQR with $L=8$ is bounded by $\approx${\tt 3.516e-02}. 
 This case exemplifies a situation in which stability is not guaranteed in HQR, but the method is stable when using TSQR, even in the worst-case. 
 Now consider some $2^{20}$-by-$2^{12}$ matrix and QR factorizations performed with double precision.

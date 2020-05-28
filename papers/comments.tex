@@ -140,22 +140,104 @@ We now address unique concerns from each referee separately.
 		}
 	\end{itemize}
 	\item Rounding error analysis framework
-	\item Conclusions from the mixed precision HQR analysis (section 3)
-	\item Conclusion from HQR vs TSQR comparison (section 4)
-	\item Mislabel of forward and backward errors
-	\item P1L15: ``standard algorithms may no longer be numerically stable when using half precision''
-	\item P2L49: fp16 should be removed, bfloat should be bfloat16.
-	\item P5L125: Rewording is needed to clarify "k represents the number of FLOPs" 
-	\item Title suggestion:
-	\item P1L20: what does ``weight'' refer to in this context?
-	\item P2L57 ``can successfully'' $\rightarrow$ ``can be succcessfully''.
-	\item P5L134: $\gamma_p^{(d+2)}$ has not been defined yet.
+	\begin{itemize}\bfseries
+		\item Add interpretation after every major result.\\ 
+		{\normalfont
+			As suggested, we moved the material from Appendix A into the main body. 
+			Since we have added the bFMAs as a separate mixed precision setting, we first present the standard error analysis in section 3, present mixed precision variants of the 3 main algorithms (HQR, BQR, TSQR) and their rounding error analysis in section 4. 
+			The error analysis in section 4 heavily relies on intermediate results from section 3, and references specific equations and lemmas established in section 3. 
+		}
+	\item Keep different precisions in the bound.\\
+	{\normalfont
+		In the first submission, we had converted bounds in the form of $\gamma_{k_1}^{(l)}+\gamma_{k_2}^{(h)}$ to $\gamma_{\lceil k_1+k_2\frac{u^h}{u^l}\rceil}^{(l)}$ by defining some constant $d\approx \lceil k_1+k_2\frac{u^h}{u^l}\rceil$. 
+		Since it was difficult to determine how to relate $d$ back to the original problem size, we have eliminated this conversion and kept track of the errors in the low and high precision separately, as suggested. 
+	}
+	\item Use the $\tilde{\gamma}$ notation to avoid keeping track of all constants.\\
+	{\normalfont
+	We changed to using the $\tilde{\gamma}$ notation whenever it was possible to do so, and specifically mentioned whenever we applied the assumptions under this notation to get rid of a non-leading order terms (e.g. lines I's).
+	}
+	\end{itemize}
+	
+	\item Conclusions from the mixed precision HQR analysis (section 3). 
+	The main results need to be highlighted, discussed in more depth
+	\begin{itemize}\bfseries
+		\item How do we feel about the low precision error term still having a dependence on $n$? Is there a way to drop this dependence?\\
+		{\normalfont }
+		\item Do the numerical experiments give any insight to the questions posed above?\\
+		{\normalfont }
+	\end{itemize}
+	\item Conclusion from HQR vs TSQR comparison (section 4).
+	\begin{itemize}\bfseries
+		\item It may be beneficial to summarize the error bounds for HQR, TSQR, and their mixed precision variants in one place. 
+		{\normalfont
+			
+		}
+		\item Uniform precision comparison of HQR and TSQR needs to be simplified and clarified \\
+		{\normalfont
+		}
+		\item Mixed precision comparison of HQR and TSQR needs to be emphasized, and not overshadowed by Figure 3. 
+		\begin{itemize}\bfseries
+			\item P18L531: The $(L+1)/2^L$ factor is reversed \\
+			{\normalfont This is fixed and is now on line O of section 3.3.3.}
+		\end{itemize}
+	\end{itemize}
+	
+	\item Mislabel of forward and backward errors.\\
+	{\normalfont
+		We fixed these inaccuracies in the various locations noted by the referee.
+	}
+	\item P1L15: ``standard algorithms may no longer be numerically stable when using half precision''.\\
+	{\normalfont
+		We reworded this sentence to ``standard algorithms yield insufficient accuracy when using half precision'' as suggested since the definition of numerical stability is relative with respect to machine precision (line K, section 1).
+	}
+	\item P2L49: fp16 should be removed, bfloat should be bfloat16.\\
+	{\normalfont
+		We made this change in line J of section 1.
+	}
+	\item P5L125: Rewording is needed to clarify ``k represents the number of FLOPs'' \\
+	{\normalfont
+		A rewording of this sentence eliminated that phrase in line L of section 2.1. 
+	}
+	\item Title suggestion:\\
+	{\normalfont
+		We altered the title to: Rounding Error Analysis of Mixed Precision Block Householder QR Algorithms.
+	}
+	\item P1L20: what does ``weight'' refer to in this context?\\
+	{\normalfont
+		Weight refers to the physical weight of the hardware, which is a relevant feature in sensor formation literature (line M of section 1).
+		We did not add an explanation in the text as it is just an example, and does not play a crucial role in the main contributions of this paper.
+	}
+%	\item P2L57 ``can successfully'' $\rightarrow$ ``can be succcessfully''.\\
+%	{\normalfont
+%		This portion of the introduction was removed since we omitted the graph application section.
+%	}
+%	\item P5L134: $\gamma_p^{(d+2)}$ has not been defined yet.\\
+%	{\normalfont
+%		
+%	}
 	\item P12L329: the middle term should be $(1+\dd_w)(x_1-\sigma-\Delta\sigma)$, rather than $(1+\dd_w)(\sigma+\Delta\sigma)$. Moreover, the last equality is only true because no cancellation can happen, since $x_1$ and $\sigma$ have the same sign: this should be commented on.
-	\item Equations (4.6) and (4.7): isn't the $\sqrt{n}$ factor on the wrong equation?
-	\item P18L527: ``for the a meaningful''.
-	\item P18L531: as mentioned above, the $(L+1)/2^L$ factor is reversed
-	\item P20L599: I find it very strange that the backward error depends on the condition number of the matrix! Is it rather the forward error that is being plotted?
-	\item Section 5: given the relatively theoretical nature of this article, section 5 felt slightly out of place to me. Given that the article is quite long, perhaps the authors could consider including section 4 in another piece of work? 
+	{\normalfont
+	The changes were made and the last equality being contingent on the special case that $x_1$ and $\sigma$ have the same sign was mentioned in line N of section 3.1.2.
+	}
+	\item Equations (4.6) and (4.7): isn't the $\sqrt{n}$ factor on the wrong equation?\\
+	{\normalfont
+		The $\sqrt{n}$ factor should be on the bounds for $\|\Delta\bb{Q}\|_F$ and $\|\hat{\bb{Q}}\hat{\bb{R}}-\bb{A}\|_F$.
+		We checked for and fixed this inaccuracy in various locations throughout sections 3 and 4. 
+	}
+%	\item P18L527: ``for the a meaningful''.\\
+%	{\normalfont
+%		
+%	}
+%	\item P18L531: as mentioned above, the $(L+1)/2^L$ factor is reversed\\
+%	{\normalfont
+%		
+%	}
+	\item P20L599: I find it very strange that the backward error depends on the condition number of the matrix! Is it rather the forward error that is being plotted?\\
+	{\normalfont
+	
+	}
+	\item Section 5: given the relatively theoretical nature of this article, section 5 felt slightly out of place to me. Given that the article is quite long, perhaps the authors could consider including section 5 in another piece of work? \\
+	{\normalfont We plan to include this section in another piece of work.}
 	
 \end{enumerate}
 

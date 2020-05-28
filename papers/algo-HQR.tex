@@ -112,7 +112,7 @@ The subtraction adds a single additional rounding error via
 	\fl(\bb{v}'[1]) =\bb{v}'[1] + \Delta \bb{v}'[1] = (1+\dd) (\bb{x}[i]-\sigma-\Delta\sigma)= (1+\tth_{m+2})\bb{v}'[1]
 \end{equation}
 where the last equality is granted because the sign of $\sigma$ is chosen to prevent cancellation.  
-%TODO: comment reviewer
+%TODO: N
 %For the sake of simplicity, we write $|\Delta \bb{\tilde{v}}[1] |\leq \tilde{\gamma}_{m-i+1}|\bb{\tilde{v}}[1]|$ even though a tighter relative upper bound is $\tth_{m-i+2}$.
 %We sweep that minor difference (in comparison to $\cO(m-i)$) under the our use of the $\tilde{\gamma}$ notation defined in \cref{lem:gamma}.
 Since \cref{algo:hh_v2} normalizes the HH vector so that its first component is $1$, the remaining components of $\bb{v}$ are divided by $\fl(\tilde{\bb{v}}_1)$ incurring another single rounding error.

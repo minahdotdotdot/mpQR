@@ -113,7 +113,7 @@ For example, the IEEE types introduced in \cref{table:ieee} meet this requiremen
 Thus, accumulated rounding errors in lower precision types can lead to an instability with fewer operations in comparison to higher precision types and prompts us to evaluate whether existing algorithms can be naively adapted for mixed precision arithmetic.
 %Thus, accumulated rounding errors in lower precision types can lead to an instability with fewer operations in comparison to higher precision types.
 %As $k$ represents the number of FLOPs, this constraint restricts low-precision floating point operations to smaller problem sizes and lower complexity algorithms.\par
-%TODO: mention in comment to reviewers 
+%TODO: L 
 \subsection{Rounding Error Example for the Inner Product}\label{sec:backgroundIP}
 We now consider computing the inner product of two vectors to clearly illustrate how this situation restricts rounding error analysis in fp16. 
 An error bound for an inner product of $m$-length vectors is
@@ -218,8 +218,7 @@ ad hoc mixed precision setting is applicable to all inner products with any two 
 %is a level-2 BLAS operation to work on any two different precision types.\par
 
 Although our analysis concerns accuracy and stability and leaves out timing results of various hardwares, we add a general timing statement to \cref{assump:mp} that is analogous to that of TC: the mixed precision FMA inner product performs at least 2 times faster than the inner product in the higher precision.
-Note that TCs perform matrix-matrix multiply and accumulate up to 8 times faster than fp32, and up to 16 times faster than fp64 (see ), and our ad hoc timing assumption is in conservative in comparison. 
-%TODO: cite
+Note that TCs perform matrix-matrix multiply and accumulate up to 8 times faster than fp32, and up to 16 times faster than fp64 (see \cite{Markidis2018}), and our ad hoc timing assumption is in conservative in comparison. 
 Nonetheless, this gives a vague insight into the trade-offs between speediness and accuracy from some mixed precision computations.  
 %TODO: BLAS and FMA should have been introduced in the introduction section.
 %TODO: talk more about other FMA operations and cite properly.
