@@ -5,7 +5,7 @@ include("mpTSQR.jl")
 include("TSQR.jl")
 
 using DelimitedFiles
-name = "sBQR3"
+#name = "sBQR3"
 l = Float16; h=Float32; d=Float64;
 #c=1000.;
 #m=4096;n=2048;
@@ -15,16 +15,17 @@ l = Float16; h=Float32; d=Float64;
 #m=2^13
 #n=m
 #rs = 2 .^ (12:-1:2)
-m=2^11;
-n=2^9;
-rs = 2 .^(1:9);
-trials = 10;
+#m=2^11;
+#n=2^9;
+#rs=ceil.(Int,2 .^range(1, stop=9, length=19))
+#rs = 2 .^(1:9);
+#trials = 10;
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
 for t = 1 : trials
     Ah = genmat(m,n,1000.0,h);
     A = Matrix{l}(Ah);
-    Ah = Matrix{h}(Ah)
+    Ah = Matrix{h}(A);
 	@printf("\n%d: ",t)
 	for (i,r) in enumerate(rs)
         @printf("%d\t",i)
