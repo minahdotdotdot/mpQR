@@ -44,6 +44,7 @@ scatter(ms[1:size(ssb)[2]], ssb[5:9:end,:]', marker="x", c=:green, label="TSQRh"
 
 axhline(.5*eps(h), label=L"u^{(fp32)}", c=:black)
 axhline(.5*eps(l), label=L"u^{(fp16)}", c=:black, linestyle=:dashed)
+axhline(1, label="1",c=:red, linewidth=0.5)
 #=
 plot(rs3, boundh,label="BQR bound", c=:blue)
 #plot(rs3, bound2,label="mpBQR2 bound", c=:red)

@@ -14,15 +14,15 @@ end
 
 #rs3 = 2 .^(2:12)        # dat
 #m=2^13; n=m;
-
-name = "1106_"
-rs=ceil.(Int,2 .^range(1, stop=8, length=19))
+m=2^11; n=2^8;
+name = string(Int(log2(m)),pad=2)*string(Int(log2(n)),pad=2)*"_"
+rs=ceil.(Int,2 .^range(1, stop=log2(n), length=19))
 rlen = length(rs);
-trials=2;
-m=2^11; n=2^6;
-include("W.jl")
-datb, datf = loadtxt(name, false);
 
+
+#include("W.jl")
+datb, datf = loadtxt(name, false);
+trials=Int(size(datb)[1]/19);
 datbh = reshape(datb[:,1],rlen,trials); datbh = maximum(datbh, dims=2);
 datbmp3 = reshape(datb[:,2],rlen,trials); datbmp3 = maximum(datbmp3, dims=2);
 datfh = reshape(datf[:,1],rlen,trials); datfh = maximum(datfh, dims=2);
@@ -33,7 +33,8 @@ datfmp3 = reshape(datf[:,2],rlen,trials); datfmp3 = maximum(datfmp3, dims=2);
 #datfmp3 = datf[2:2:end,1];
 
 boundh = n^(3/2)*m*uh*ones(19)#length(datbh));
-bound3 = n^(3/2)*(10 ./rs*ul .+ m/4*uh);
+bound3 = n^(3/2)*(1 ./rs*ul .+ m/4*uh);
+
 
 fig,ax = subplots()
 ax.set_yscale("log")
@@ -44,12 +45,13 @@ scatter(rs, datfh, label="BQRh orthogonal", c=:blue, marker="x")
 scatter(rs, datfmp3, label="mpBQR3 orthogonal", c=:green, marker="x")
 
 plot(rs, boundh,label=L"n^{3/2}mu^{(h)}", c=:blue)
-plot(rs, bound3,label=L"n^{1/2}(10Nu^{(l)}+\frac{nm}{4}u^{(h)})", c=:green)
+plot(rs, bound3,label=L"n^{1/2}(Nu^{(l)}+\frac{nm}{4}u^{(h)})", c=:green)
 #plot(rs3, boundh,label="BQR bound", c=:blue)
 #plot(rs3, bound2,label="mpBQR2 bound", c=:red)
 #plot(rs3, bound3,label="mpBQR3 bound", c=:green)
 axhline(.5*eps(h), label=L"u^{(fp32)}", c=:black)
 axhline(.5*eps(l), label=L"u^{(fp16)}", c=:black, linestyle=:dashed)
+axhline(1, c=:red, linewidth=0.5)
 
 xticks()
 xlim(minimum(rs)*.9, maximum(rs)/.9)
