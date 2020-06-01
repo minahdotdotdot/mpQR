@@ -41,7 +41,7 @@ This work focuses on analyzing a few algorithms that use fp16/fp32 as the low/hi
 The standard HH QR algorithm and its block variants that partition the columns (level-3 BLAS variant, see \cite{golub2013matrix,Higham2002}) and those that partition the columns (communication-avoiding algorithms of \cite{Demmel2012}) are presented in \cref{sec:algo}, then modified to support bFMAs and an ad hoc mixed precision setting that mimics NVIDIA TensorCores in \cref{sec:mpanalysis}.
 Our key findings are that mixed precision error analyses produce tighter error bounds as supported by experiments in \cref{sec:NE}, algorithms that utilize level-3 BLAS operations can easily be modified to incorporate TensorCore bFMAs, and a row partition block algorithm operates  more robustly in mixed precision than non-block techniques in certain regimes.
 %that some small-scale benchmark graph clustering problems can be successfully solved with mixed precision arithmetic.
-%TODO: MINAH rewrite outline of paper paragraph, and remove graph references in above paragraph.
+%TODO: R
 %In Section~\ref{sec:FPREA}, we will give an overview of the modern developments in hardware that motivates rounding error analysis that supports multiple precision types, and we will present a set of error analysis tools. 
 %The HQR factorization algorithm and a mixed precision rounding error analysis of its implementation is discussed in Section~\ref{sec:HQRf}.
 %In Section~\ref{sec:TSQR}, we present the TSQR algorithm as well as numerical experiments that show that TSQR can be useful in low precision environments. Section~\ref{sec:Apps} explores the use of low and mixed precision QR algorithms as subroutines for an application: spectral clustering.

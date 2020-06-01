@@ -79,6 +79,10 @@ Next, we would like to address concerns voiced by both referees:
 		Later in section 4.1 (line D), we discuss the specifics of NVIDIA TensorCore bFMAs, and reference work from \cite{Blanchard2019}. 
 		}
 	\end{itemize}
+{\normalfont In general, we tried to be clear about what is existing, standard error analysis and what are our new error analyses for mixed precision algorithms.
+This was mainly done by separating the two into section 3 (standard) and section 4 (mixed precision).
+The idea behind mixed precision analysis is not novel, and our contributions are in applying them into mixed precision QR factorization algorithms that we developed. 
+Furthermore, we still present many details considered to be standard in order to allow readers from varying mathematical backgrounds.}
     Referee \#2: {\normalfont We have added the suggested references for the following topics.}
     \begin{itemize}\normalfont
     	\item We have referenced \cite{Blanchard2019} for their work on mixed precision matrix products and LU decomposition in section 4.1 (line D).
@@ -101,7 +105,10 @@ We now address unique concerns from each referee separately.
 \section*{Requests from Referee \#1}
 \begin{enumerate}\bfseries
 	\item The primary problem that I see is that the authors have not convinced me that there is any novelty in what they call a ``new framework'' for doing mixed-precision floating point error analysis.\\
-	{\normalfont I need help addressing this.}
+	{\normalfont We have reestablished our contributions in this work to be developing and analyzing mixed precision Householder QR factorization algorithms.
+	This is reflected on the change in the title, as well as in line R of the introduction, and in the abstract. 
+	We also dropped the notation of using $\gamma_{d:=\lceil mu^{(h)}/u^{(l)}\rceil}$ (which we had considered a part of the new framework in the first submission) in favor of keeping two precisions separate.
+}
 %	\item The paper also suffers a complete lack of acknowledgement of prior work in this area and of the current state-of-the-art.
 	\item line 39: What is meant by ``exact products''? \\
 	{\normalfont 
@@ -161,25 +168,25 @@ We now address unique concerns from each referee separately.
 	\item Conclusions from the mixed precision HQR analysis (section 3). 
 	The main results need to be highlighted, discussed in more depth
 	\begin{itemize}\bfseries
-		\item How do we feel about the low precision error term still having a dependence on $n$? Is there a way to drop this dependence?\\
-		{\normalfont }
-		\item Do the numerical experiments give any insight to the questions posed above?\\
-		{\normalfont }
+		\item How do we feel about the low precision error term still having a dependence on $n$? Is there a way to drop this dependence?
+		\item Do the numerical experiments give any insight to the questions posed above?
 	\end{itemize}
+{\normalfont The above two questions in combination with concerns about the mixed precision setting prompted us to look into the column-partitioned HQR variants. 
+The low precision error dependence on $n$ when using MP Setting 2.3 is an improvement than $mn$, but still is quite limiting. 
+The algorithm discussed in Section 4.2. drops this dependence from $n$ to $N:=n/r$, where $1-1/N = 1-r/n$ should be correlated to the speed-ups possible from TensorCores. 
+We discuss this briefly in line Q of section 5. }
 	\item Conclusion from HQR vs TSQR comparison (section 4).
 	\begin{itemize}\bfseries
 		\item It may be beneficial to summarize the error bounds for HQR, TSQR, and their mixed precision variants in one place. 
 		{\normalfont
-			
+			Now that we have added another mixed precision setting and another QR factorization algorithm, we decided to leave the discussions for each mixed precision setting separate (i.e. section 4.1 and 4.2.)
 		}
-		\item Uniform precision comparison of HQR and TSQR needs to be simplified and clarified \\
+		\item Uniform precision comparison of HQR and TSQR needs to be simplified and clarified,  P18L531: The $(L+1)/2^L$ factor is reversed\\
 		{\normalfont
+			We have shorted this discussion and reversed the fraction in line O of section 3.3.3. 
 		}
 		\item Mixed precision comparison of HQR and TSQR needs to be emphasized, and not overshadowed by Figure 3. 
-		\begin{itemize}\bfseries
-			\item P18L531: The $(L+1)/2^L$ factor is reversed \\
-			{\normalfont This is fixed and is now on line O of section 3.3.3.}
-		\end{itemize}
+		{\normalfont This has been moved to section 4.2.3. Also, we reworded the statement that comments on the empirical results vs the error bounds in line P of the conclusion.}
 	\end{itemize}
 	
 	\item Mislabel of forward and backward errors.\\
@@ -233,7 +240,7 @@ We now address unique concerns from each referee separately.
 %		
 %	}
 	\item P20L599: I find it very strange that the backward error depends on the condition number of the matrix! Is it rather the forward error that is being plotted?\\
-	{\normalfont
+	{\normalfont The error plotted here is $\|\hat{\bb{Q}}_{mpHQR2}\hat{\bb{R}}_{mpHQR2}-A\|F$, and is now a part of Figure 3.
 	
 	}
 	\item Section 5: given the relatively theoretical nature of this article, section 5 felt slightly out of place to me. Given that the article is quite long, perhaps the authors could consider including section 5 in another piece of work? \\

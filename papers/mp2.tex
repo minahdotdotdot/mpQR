@@ -107,9 +107,7 @@ If the {\tt mpTSQR2} error bound were to outperform that of {\tt mpHQR2}, we now
 1\gg n^{1/2}\left(\tilde{\gamma}_{n}^{(l)} + n\tilde{\gamma}_{m}^{(h)}\right) \gg n^{1/2}\left((L+1)\tilde{\gamma}_n^{(l)} +n(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)})\right).%,
 \end{equation*}
 %where $d=\lfloor\frac{(m-1) u_s}{u_w}\rfloor$, $d_1 = \lfloor{(\frac{m}{2^L}-1)\frac{u_s}{u_w}\rfloor}$, and $d_2 =\lfloor \frac{(2n-1)u_s}{u_w}\rfloor$. 
-
 In contrast to the analysis for uniform precision settings, large $L$ values do not necessarily reduce the error bounds of TSQR. 
 While large $L$ can imply $m\gg m2^{-L}+2Ln$, it does not always lead to $d \gg d_1+Ld_2$.
 Although the theoretical error bounds do not give a clear indication of the worst-case performances of HQR and TSQR in mixed-precision settings, TSQR outperformed HQR on ill-conditioned matrices within our numerical simulations.
-
 These experiments are discussed in detail in the next section.%Section~\ref{sec:NE}.
