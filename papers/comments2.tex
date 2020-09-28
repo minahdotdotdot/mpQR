@@ -1,0 +1,142 @@
+\documentclass[final,onefignum,onetabnum]{siamart190516}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry, graphicx,wrapfig}
+\usepackage{enumerate}
+\usepackage{amsmath,amssymb,amsfonts,bm}%,amsthm}
+\usepackage{xcolor} %just for visible comments.
+\usepackage[linesnumbered,ruled,vlined,algo2e]{algorithm2e}
+\usepackage[toc,page]{appendix}
+\usepackage{makecell}
+\usepackage{cleveref}
+
+% New theorems and commands
+\newtheorem{assump}[theorem]{MP Setting}
+\newcommand\mycommfont[1]{\ttfamily\textcolor{orange}{#1}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\dd}{\delta}
+\newcommand{\tth}{\theta}
+\newcommand{\bb}[1]{\mathbf{#1}}
+\newcommand{\fl}{\mathrm{fl}}
+\newcommand{\cO}{\mathcal{O}}
+\begin{document}
+\title{Response to Reviewers}
+\date{Octobe 1, 2020}
+\maketitle
+We are grateful to our editor, Laura Grigori, for handling the reviews of our paper, and to both reviewers for their constructive criticisms.
+
+Our response to the reviews is below.\\
+
+\noindent{\bf Reviewer \#1}
+{\it I find the reorganization and reframing of the paper to be an improvement. I believe that the work has merit and deserves to be published. However, in my opinion further revision is required before this can be considered. Some of the main issues I find are the use of the term "backward error" and the treatment of the "disparity in precisions". Namely, there must be some constraint on the disparity in precisions in order for the assumption of "full precision" to apply, but this is not stated clearly.}
+\begin{enumerate}
+    \item {\it line 5: ``lower storage'' $\rightarrow$ ``lower storage cost'' or ``lower storage requirement'' }\\
+    {\bf Done.}
+    \item {\it line 13: Inconsistent use of ``round off'' and ``round-off'' (see, e.g., line 16) }\\
+    {\bf Done.}
+    \item {\it line 11: Inconsistent hyphenation, e.g. ``low precision'' in line 11 and ``high-precision'' in line 21 }\\
+    {\bf Done.}
+    \item {\it line 25: What is the ``weight of memory''? }
+    \item {\it line 25: ``4x'' versus what? }
+    \item {\it line 36: ``computed up to 16x than that of fp64''--- do you mean ``16x faster''? }\\
+    {\bf Done.}
+    \item {\it lines 36-37: ``The existing rounding error analyses are built within ...'' Existing rounding error analyses of what? }\\
+    {\bf Done ( added ``of linear algebra routines'').}
+    \item {\it line 39: This is the first time that HH QR (or QR factorization at all) is even mentioned. The problem that you are considering should be stated earlier in the text. }
+    \item {\it lines 43-44: ``... its block variants that partition the columns ... and those that partition the columns'' Is there some typo here? }\\
+    {\bf Fixed.}
+    \item {\it line 58: What does ``sufficient in performance'' mean? }
+    \item {\it line 137: The ``(j,k)'' in the max should not be a subscript. }\\
+    {\bf Done.}
+    \item {\it line 144: State here what algorithms 5 and 6 are, since they have not been introduced yet. }\\
+    {\bf Done.}
+    \item {\it line 145: Define what is meant by ``ad hoc''. }
+    \item {\it line 155: ``is in'' $\rightarrow $ ``in'' }\\
+    {\bf Done.}
+    \item {\it line 157: There is no ``Assumption 2.3''. I assume you meant ``MP Setting 2.3''. }\\
+    {\bf Done.}
+    \item {\it line 157-160: It might help to give a verbal summary of this, i.e., ``When two fp16 numbers are multiplied and stored in fp32, there is no roundoff error''. }
+    \item {\it line 168: The concept of ``full precision'' needs some additional constraint. By my understanding, this ``full precision'' argument only applies when $u^{(h)} \leq (u^{(l)})^2$. If so, then this constraint should be stated explicitly. This further contrains the values that the ``disparity in the precisions'' $M_{l,h}$ can have (line 192). It would be good to state these bounds on $M_{l,h}$. }
+    \item {\it line 288: extra plus sign in ``2(m+2)+''. }\\
+    {\bf Done.}
+    \item {\it line 288-289: ``swept that minor difference between under'' Some typo/extra word here. }\\
+    {\bf Done.}
+    \item {\it Lemma 3.2: This use of ``$\delta$'' is different than before, and different than that defined in Table 1. I would use some other symbol here. }
+    \item {\it line 341: I am confused as to where the "r" exponent is coming from. }
+    \item {\it line 359 (and throughout the text): It is incorrect to refer to $\|\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}\|$as a backward error. This is better referred to as the "residual". The backward error is the quantity which minimizes the difference $\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}$ over all orthogonal matrices Q. The backward error may be bounded in terms of the loss of orthogonality and the residual. }
+    \item {\it line 399: ``negligble'' spelling }\\
+    {\bf Fixed.}
+    \item {\it line 416: Where is $\Delta X_k^{(j)}$ defined? }
+    \item {\it line 441: missing period after displayed equation }
+    \item {\it line 494: $2^{(l)}$ should be $2^L$, correct? }
+    \item {\it line 536 (and elsewhere): $m2^{-L}$ would look nicer as $2^{-L}m$ }\\
+    {\bf Done.}
+    \item {\it line 548: The $\gamma$ notation here is not consistent with the rest of the text (gamma with a superscript in parenthesis is used for different precisions; the superscripts here should just be subscripts) }
+    \item {\it lines 552-553: This case ..." Ok, but do we really expect this in practice? Say something about this. }
+    \item {\it line 556: "2Ln" typo }
+    \item {\it line 684-685: "Therefore, the loss ..." But again, there is some constraint on the disparity between precisions in order for the "full precision" assumption to apply, correct? }
+    \item {\it line 694-695: Why is the exact algorithm for mixed precision TSQR omitted? }
+    \item {\it lines 708-710: Are there some factors dropped from the displayed equations here? }
+    \item {\it lines 778-780: "Therefore, the numerical stability of mpBQR2 is guaranteed at smaller matrix sizes than the numerical stability of ... BQR in high precision". I am confused as to how this can be the case. }
+    \item {\it lines 866: "... particularly when HQR is unstable due to larger condition numbers". What is meant by this? Error bounds for HQR do not depend on condition number. (In fact, I don't see a condition number in any of the bounds in the entire paper). }
+    \item {\it line 870: "mpTSQR2 can outperform mpHQR2" - "outperform" in terms of what? }
+    \item {\it line 885: "accurately bound" - I would remove or soften this claim, as you just said in the previous paragraph that the error bounds overestimate by 2-3 orders of magnitude (line 874).}
+\end{enumerate}
+
+\noindent{\bf Reviewer \#2}
+{\it I would like to start by thanking the authors for clearly having taken the review process very seriously. I have found the revised article to be much stronger and clearer. The authors have taken into account all the major points of my first review, and in some cases have completely exceeded my expectations. I’m notably referring to the fact that the revised article now analyzes both BLAS-2 and BLAS-3 (blocked) QR algorithms, thereby covering the use of block FMA units such as GPU tensor cores. This is a valuable addition that makes the paper very useful for practitioners interested in exploiting this type of hardware to accelerate QR factorization.
+After this second round of review, I have several other new comments, but I consider them to be minor and hopefully easy to address. I have no doubt that this paper will go on to be a reference on the error analysis of mixed precision QR.}
+
+\textbf{Main Points:}
+\begin{enumerate}
+    \item {\it In Lemma 2.2 and in various places in the analyses, $(1+\theta_{k})/(1+\theta_{j}) = 1+\theta_{k+2j}$ is used when $j > k$. As noted in [\cite{Higham2002}, bottom of p. 67], $\theta_{k+2j}$ can be improved to $\theta_{k+j}$ when the expressions of $\theta_{k}$ and $\theta_{j}$ are known and given by products of $(1 + \delta_i)^{\pm 1}$ terms. I have not checked all the details carefully but I believe in most if not all places in this article, the improved expression could be used? Could the authors please confirm whether this is correct? This may especially be important in the analysis of section 4.2.1 where a constant of 25 could be avoided.}
+    \item {\it In my first review I suggested using the $\tilde{\gamma}$  notation to hide small constants and simplify the analysis. I wonder whether it would however be useful/interesting to keep track of the constant in front of m, thatis, to replace $\gamma_{c_1m+c_2}$ by$\tilde{\gamma}_{c_1m}$instead of $\tilde{\gamma}_{m}$. I wonder about this because the analysis can apparently sometimes lead to quite large constants, although perhaps my first comment will make this issue go away.}
+    \item {\it Pages 6 and 7, there is a discussion of the speed benefits associated with MP Setting 2.3. I have found this discussion to be slightly confusing/questionable and not really useful, given this article focuses on error analysis and does not provide any performance experiments, as indicated on L212. I suggest removing any detailed discussion of the speed benefits of MP Setting 2.3 vs the TensorCore setting. In particular, I feel that the distinction of the 3 cases is not really meaningful and could be replaced by a simpler discussion comparing the mixed-precision bound with the uniform precisions bounds $mu^{(l)}$ and $mu^{(h)}$.}
+    \item {\it Figure 1 is hard to decipher, mainly due to the use of a color map for the error which can vary by several orders of magnitude. Can the authors use a color map using a log-scale? Or perhaps the figure can be replaced by a simpler, less rich figure with fixed n and varying m on the x-axis, error on the y-axis, and different plots for each variant.}
+    \item {\it Section 4: I think the paper would read better by interchanging sections 4.1 and 4.2. The bounds of section 4.2 are weaker, and adding them after section 4.1 therefore seems artificial and unnecessary. Instead, giving first the bounds for the more general MP setting 2.3 would allow to present the bFMA/TensorCore setting as a further improvement, which would neatly emphasize the accuracy benefits brought by this type of hardware.}
+    \item {\it Equation (4.5): $\gamma_{p/4}^{(fp32)}$ should be replaced by $\gamma_p^{(fp32)}$. In an early preprint version of \cite{Blanchard2020}, the former was indeed given under the assumption that NVIDIA tensor cores implement a “true FMA”, that is, that in (4.4) the additions in the $4\times 4$ product AB are done in full precision. However this is not the case, the additions are performed in fp32, and so there are still p rounding errors that accumulate in a general product of inner dimension p, as indicated in the published version of \cite{Blanchard2020} (cf. [1, Thm 3.1]). Fortunately I do not think this impacts the analysis of this paper beyond equation (4.5).}
+    \item {\it The discussion on L684–691 is overall OK, although I feel that there are two points that could be better emphasized.}
+    \begin{itemize}
+        \item First, the sentence “However, as $r$ grows large. . . ” makes it seems as if $r$ should be taken as small as possible for performance, but of course this is not the case since the factorization then also reduces to BLAS-2 operations. In practice, realistic values of $r$ probably range between $\cO(10)$ and $\cO(100)$, depending on hardware, and not discussing double partitioning strategies. So it is entirely possible that the optimal value of $r$for performance is already quite large enough so that the accuracy is satisfying.
+        \item Second, for a fixed $r$, (4.11) shows that the loss of accuracy becomes less and less significand as m increases and so asymptotically, regardless of the practical value of $r$, the accuracy eventually will be satisfying. I feel this should be mentioned.
+\end{itemize}
+    \item I suggest adding a Table at the end of section 4 or beginning of section 5 sum- marizing the bounds obtained for each of the 9 algorithms: \{H,B,TS\}QR and mp\{H,B,TS\}QR\{2,3\}. It would really be useful to have such a Table, for other ar- ticles to refer to, and as reference when comparing with the numerical experiments of section 5.
+    \item Figure 2, left plot: I suggest fixing $r$ to a constant rather than $n/4$, which I think is more realistic. Also, have the authors checked what the plots look like for fixed $n$ rather than $n = m/4$ ? The bounds suggest n should not play a significant role in the relative accuracy of the MP block algorithms vs. the uniform precision ones, but it might be worth checking.
+    \item Figure 2, right plot: the chosen m is a bit small, would it be worth giving the errors for a larger $m$ (which would probably lead to the MP and uniform algorithms to be closer in accuracy) ?
+\end{enumerate}
+
+\textbf{Stylistic suggestions, typos, and other very minor things:}
+\begin{enumerate}
+    \item {\it Everywhere: a HH $\rightarrow$ an HH.}\\
+    {\bf Done.}
+    \item {\it L44: columns $\rightarrow$ rows.}\\
+    {\bf Done.}
+    \item {\it L120–123: the behavior of the error depending on the data distribution has been explained in the recent preprint \cite{HighamMary2020}, which could be referenced here.}
+    \item {\it L157: Assumption 2.3 $\rightarrow$ MP Setting 2.3.}\\
+    {\bf Done.}
+    \item {\it L175: the notation $x^{(l)}$, $y^{(l)}$ is introduced but does not seem to be used in the
+subsequent analysis.}
+    \item {\it L233–236: I did not fully understand these two sentences. I think the authors are saying that computations introduce error terms of the form (2.9) while castdowns introduce error terms of the form (2.10). Perhaps consider clarifying or removing these two sentences.}
+    \item {\it L255, L261, L382, L384, L733: zeros out $\rightarrow$ zeroes out.}
+    \item {\it L288: remove “between”.}\\
+    {\bf Done.}
+    \item {\it L294: (3.7) show $\rightarrow$ (3.7) to show ?}
+    \item {\it L295: calculating of $\|x\|\rightarrow$ remove ``of''.}
+    \item {\it L316, L317, L319: I suggest rewriting $v^{\top}xv$ either as $vv^{\top} x$ or $(v^{\top} x)v$.}
+    \item {\it (3.13): $\Delta y \rightarrow \Delta x$.}
+    \item {\it L375: constants, $\beta \rightarrow$ missing space.}
+    \item {\it L385: $k+1^{st} \rightarrow (k+1)^{th}$, idem at L420.}
+    \item {\it L397, L617: TensorCore $\rightarrow$ TensorCores ?}
+    \item {\it L399: negligble $\rightarrow$ negligible.}
+    \item {\it L761: “the inner product mixed precision setting yields higher error bounds”: specify than what (add a reference to Thm. 3.4 ?)}
+    \item {\it L762: I suggest adding a sentence of the form “Before commenting on the significance of Theorem 4.1, we show that the same bounds hold for the BQR variant”. Otherwise section 4.2.1 ends a little abruptly and without any analysis of Thm 4.1 (which is in fact to be found later, L775–L783). In fact, perhaps consider merging sections 4.2.1 and 4.2.2 since the analysis and bounds are essentially the same?}
+    \item {\it L798: what are d1 and d2 here?}
+    \item {\it Sections 4.1.2 and 4.2.3: I suggest writing consistently either $2Ln + m2^{-L}$ (as in
+section 4.1.2) or $m2^{-L} + 2Ln$ (as in section 4.2.3).}
+    \item {\it L885: analysis that accurately bound $\rightarrow$ change to ``analyses'' or ``bounds''.}
+    \item {\it Reference [5] has now appeared: cf. [1].}
+\end{enumerate}
+
+\bibliographystyle{siamplain}%ieeetr
+\bibliography{../../../../../library.bib,../../../../../sans_library.bib,./report.bib}
+\end{document}
