@@ -51,7 +51,9 @@
 The accuracy of a numerical algorithm depends on several factors, including numerical stability and well-conditionedness of the problem, both of which may be sensitive to rounding errors, the difference between exact and finite precision arithmetic. 
 Low precision floats use fewer bits than high precision floats to represent the real numbers and naturally incur larger rounding errors. 
 Therefore, error attributed to round-off may have a larger influence over the total error and some standard algorithms may yield insufficient accuracy when using low precision storage and arithmetic.
-However, many applications exist that would benefit from the use of low precision arithmetic and storage that are less sensitive to floating-point round-off error, such as clustering or ranking graph algorithms \cite{vonLuxburg2007} or training dense neural networks \cite{micikevicius2018mixed}.\par
+However, many applications exist that would benefit from the use of low precision arithmetic and storage that are less sensitive to floating-point round-off error, such as clustering or ranking graph algorithms \cite{vonLuxburg2007} or training dense neural networks \cite{micikevicius2018mixed}.
+We investigate the use of mixed precision arithmetic for the QR factorization.
+\par
 
 Many computing applications today require solutions quickly and often under low size, weight, and power constraints, such as in sensor formation, where low precision computation offers the ability to solve many problems with improvement in all four parameters.
 Utilizing mixed precision, one can achieve similar quality of computation as high precision and still achieve 
@@ -83,7 +85,8 @@ A matrix $\bb{A} \in \R^{m \times n}$ for $m\geq n$ can be written as
 where an orthogonal $\bb{Q}\in\R^{m\times m}$ and an upper trapezoidal $\bb{R}$ form a \emph{full} QR factorization, and $\bb{Q}_{1}\in\R^{m\times n},\bb{R}_{1}\in\R^{n\times n}$ form a \emph{thin} QR factorization.
 If $\bb{A}$ is full rank then the columns of $\bb{Q}_{1}$ are orthonormal
 and $\bb{R}_1$ is upper triangular.
-In many applications, computing the \emph{thin} decomposition requires less computation and is sufficient in performance. 
+In many applications, only a \emph{thin} decomposition is needed as it produces an orthonormal basis for the column space of $\bb{A}$ while requiring less computation and storage.
+%and is sufficient in performance. 
 While important definitions are stated explicitly in the text, Table~\ref{table:notation} serves to establish basic notation.
 %\input{deftable}
 \begin{table}[H]
@@ -259,9 +262,9 @@ Nonetheless, this gives a vague insight into the trade-offs between speediness a
 The full precision multiplication in \cref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their precisions and exponent ranges.
 As a quick proof, consider $x^{(\text{fp16})} = \pm\mu_x2^{\eta_x -11},y^{(\text{fp16})} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$, and note that the significand and exponent ranges for fp32 are $[0, 2^{24}-1]$ and $[-127,128]$.
 Then the product in full precision is
-\[\scriptstyle x^{(\text{fp16})}y^{(\text{fp16})} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},\]
-where  $\mu_x\mu_y \in[0,(2^{11}-1)^2] \subseteq [0,2^{24}-1]$ and $\eta_x+\eta_y +2\in[-28,34]\subseteq[-127,128]$, and therefore is exact.
-Thus, the summation and the final cast down operations are the only sources of rounding error in this inner product scheme.
+\[x^{(\text{fp16})}y^{(\text{fp16})} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},\]
+where  $\mu_x\mu_y \in[0,(2^{11}-1)^2] \subseteq [0,2^{24}-1]$ and $\eta_x+\eta_y +2\in[-28,34]\subseteq[-127,128]$.
+Thus, when two fp16 numbers are multiplied and stored in fp32, there is no roundoff error, and the summation and the final cast down operations are the only sources of rounding error in this inner product scheme.
 \begin{assump}
 	\label{assump:mp}
 	Let $l$ and $h$ each denote low and high precision types with unit round-off values $u^{(l)}$ and $u^{(h)}$, where $1 \gg u^{(l)} \gg u^{(h)} >0$.
@@ -352,7 +355,7 @@ We present the standard rounding error analysis of these algorithms (see \cite{H
 The HQR algorithm uses HH transformations to zero out elements below the diagonal of a matrix (see \cite{Householder1958}). 
 We present this as zeroing out all but the first element of some vector, $\bb{x}\in\R^m$.
 \begin{lemma}
-	Given vector $\bb{x}\in\R^{m}$, there exist a HH vector , $\bb{v}$, and a HH constant, $\beta$, that define the HH transformation matrix, $\bb{P}_{\bb{v}}:=\bb{I}_{m} - \beta \bb{v}\bb{v}^{\top}$, such that $\bb{P}_{\bb{v}}$ zeros out $\bb{x}$ below the first element. 
+	Given vector $\bb{x}\in\R^{m}$, there exist an HH vector , $\bb{v}$, and an HH constant, $\beta$, that define the HH transformation matrix, $\bb{P}_{\bb{v}}:=\bb{I}_{m} - \beta \bb{v}\bb{v}^{\top}$, such that $\bb{P}_{\bb{v}}$ zeros out $\bb{x}$ below the first element. 
 	The HH vector and constant are defined via
 	\begin{equation}
 	\sigma = -\rm{sign}(\bb{x}[1])\|\bb{x}\|_2, \quad  \bb{v} = \bb{x} -\sigma \hat{\bb{e}}_{1},\mbox{ and } \beta =\frac{2}{\bb{v}^{\top}\bb{v}}=-\frac{1}{\sigma\bb{v}[1]}.
@@ -438,7 +441,7 @@ We follow the analysis of \cite{Higham2002} and modify it for the variant where 
 The goal of this section is to present the basic steps of the standard error analysis for HQR so that we modify them easily in \cref{sec:mpanalysis} for different mixed precision settings.
 \paragraph{Calculating the $i^{th}$ HH vector and constant} 
 In \cref{algo:hhQR}, we compute the HH vector and constant by using \cref{algo:hh_v2} to $\bb{A}[i:m,i]$.
-For now, consider zeroing out any vector $\bb{x}\in\R^m$ below its first component with a HH transformation.
+For now, consider zeroing out any vector $\bb{x}\in\R^m$ below its first component with an HH transformation.
 %$i^{th}$ HH vector shares all but the first component with the target column, . 
 We first calculate $\sigma$ as is implemented in line 2 of \cref{algo:hh_v2}.
 \begin{equation}
@@ -469,7 +472,7 @@ At iteration $i$, we replace $\bb{x}$ with $\bb{A}[i:m,i]\in\R^{m-i+1}$ and the 
 \paragraph{Applying a Single HH Transformation}
 Now we consider lines 4-6 of \cref{algo:hhQR}.
 At iteration $i$, we set $\bb{A}[i+1:m,:]$ to zero and replace $\bb{A}[i,i]$ with $\sigma$ computed from \cref{algo:hh_v2}.
-Therefore, we now need to calculate the errors for applying a HH transformation to the remaining columns, $\bb{A}[i:m, i+1:n]$ with the computed HH vector and constant.
+Therefore, we now need to calculate the errors for applying an HH transformation to the remaining columns, $\bb{A}[i:m, i+1:n]$ with the computed HH vector and constant.
 This is the most crucial building block of the rounding error analysis for any variant of HQR because the $\bb{R}$ factor is formed by applying the HH transformations to $\bb{A}$ and the $\bb{Q}$ factor is formed by applying them in reverse order to the identity.
 Both of the blocked versions in \cref{sec:BQR} and \cref{sec:TSQR} also require slightly different but efficient implementations of this step.
 For example, BQR in \cref{algo:blockHQR} uses level-3 BLAS operations to apply multiple HH transformations at once whereas the variant of HQR in \cref{algo:hhQR} can only use level-2 BLAS operations to apply HH transformations.\par
@@ -527,12 +530,12 @@ We will invoke this lemma to prove \cref{lem:19.3}, and use it in future section
 \end{lemma}
 \begin{proof}
 	Applying \cref{lem:3.7} directly to $\bb{Q}$ yields
-	\[\scriptscriptstyle
+	\[
 		\|\Delta\bb{Q}\|_F = \left|\left|\prod_{j=1}^r (\bb{P}_{j} + \Delta \bb{P}_{j})- \prod_{j=1}^r\bb{P}_{j} \right|\right|_F\leq\left(-1+\prod_{j-1}^r(1+\tilde{\gamma}_{m-j+1})^r\right)\prod_{j=1}^n\|\bb{P}_{j}\|_2 \leq -1+(1+\tilde{\gamma}_m)^r,\]
 	since $\bb{P}_{j}$'s are orthogonal and have 2-norm, 1, and $m-j+1 \leq m$.
 	While we omit the details here, we can show that $(1+\tilde{\gamma}_m)^r-1 \leq r\tilde{\gamma}_m$ using the argument from \cref{lem:gamma} if $r\tilde{\gamma}_m \leq 1/2$.
 \end{proof}
-In this error analysis, the prevailing bound for errors at various stages of forming and applying a HH transformation is $\tilde{\gamma}_{m}$ where $m$ corresponds to the dimension of the transformed vectors.
+In this error analysis, the prevailing bound for errors at various stages of forming and applying an HH transformation is $\tilde{\gamma}_{m}$ where $m$ corresponds to the dimension of the transformed vectors.
 In \cref{lem:19.3}, a factor of $r$ is introduced for applying $r$ HH transformations to form the term $r\tilde{\gamma}_m \approx rmu$. 
 Therefore, we can expect that the columnwise norm error for a thin QR factorization should be $\cO(mnu)$ for a full rank matrix.
 In \cref{thm:feHQR}, we formalize this by applying \cref{lem:19.3} directly and also show a conversion of columnwise bounds to a matrix norm bound,
@@ -561,7 +564,7 @@ We refer to the blocked variant of HQR where the columns are partitioned as BQR.
 Note that this section relies on the WY representation described in \cite{Bischof1987} instead of the storage-efficient version of \cite{Schreiber1989}, even though both are known to be just as numerically stable as HQR.
 \subsubsection{The WY Representation}
 A convenient matrix representation that accumulates $r$ HH reflectors is known as the WY representation (see \cite{Bischof1987,golub2013matrix}).
-\Cref{lem:WY} shows how to update a rank-$j$ update of the identity, $\bb{Q}^{(j)}$, with a HH transformation, $\bb{P}$, to produce a rank-$(j+1)$ update of the identity, $\bb{Q}^{(j+1)}$. 
+\Cref{lem:WY} shows how to update a rank-$j$ update of the identity, $\bb{Q}^{(j)}$, with an HH transformation, $\bb{P}$, to produce a rank-$(j+1)$ update of the identity, $\bb{Q}^{(j+1)}$. 
 With the correct initialization of $\bb{W}$ and $\bb{Y}$, we can build the WY representation of successive HH transformations as shown in \Cref{algo:buildWY}. 
 This algorithm assumes that the HH vectors, $\bb{V}$, and constants,$\bm{\beta}$, have already been computed.
 Since the $\bb{Y}$ factor is exactly $\bb{V}$, we only need to compute the $\bb{W}$ factor.
@@ -584,7 +587,7 @@ Since the $\bb{Y}$ factor is exactly $\bb{V}$, we only need to compute the $\bb{
 	\label{algo:buildWY}
 \end{algorithm2e}
 
-In HQR, $\bb{A}$ is transformed into an upper triangular matrix $\bb{R}$ by identifying a HH transformation that zeros out a column below the diagonal, then applying that HH transformation to the bottom right partition. 
+In HQR, $\bb{A}$ is transformed into an upper triangular matrix $\bb{R}$ by identifying an HH transformation that zeros out a column below the diagonal, then applying that HH transformation to the bottom right partition. 
 For example, the $k^{th}$ HH transformation finds an $m-k+1$ sized HH transformation that zeros out column $k$ below the diagonal and then applies it to the $(m-k+1)$-by-$(n-k)$ partition of the matrix, $\bb{A}[k:m,k+1:n]$.
 Since the $k+1^{st}$ column is transformed by the $k^{th}$ HH transformation, this algorithm must be executed serially as shown in \cref{algo:hhQR}.
 The highest computational burden at each iteration falls on \cref{algo:hhQR} line 6, which requires Level-2 BLAS operations when computed efficiently. \par
@@ -725,7 +728,7 @@ The inline function {\tt qr} refers to \cref{algo:hhQR} and we use \cref{algo:hh
 	\KwIn{$\bb{A}\in\R^{m \times n}$ where $m \gg n$, $L\leq\lfloor\log_2\left(\frac{m}{n}\right)\rfloor$, and $2^L$ is the initial number of blocks. }
 	
 	\KwOut{$\bb{Q}\in\R^{m \times n}$, $\bb{R} \in\R^{n\times n}$ such that 	$\bb{Q}\bb{R} = \bb{A}$.}
-	$h \gets m2^{-L}$ \tcp*{Number of rows.}
+	$h \gets 2^{-L}m$ \tcp*{Number of rows.}
 	\tcc{Split $\bb{A}$ into $2^L$ blocks. Note that level $(i)$ has $ 2^{L-i}$ blocks.}
 	\For {$j = 1 : 2^L$}{
 		$\bb{A}_j^{(0)} \gets \bb{A}[(j-1)h+1: jh, :]$ 
@@ -835,16 +838,16 @@ These concepts are elucidated in \cite{Mori2012} and we summarize the main resul
 \begin{theorem}
 	\label{thm:moriTSQR}
 	Let $\bb{A}\in\R^{m\times n}$ with $m\geq n$ have full rank, $n$, and $\hat{\bb{Q}}_{TSQR}\in\R^{m\times n}$ and $\hat{\bb{R}}_{TSQR}\in\R^{n\times n}$ be the thin QR factors of $\bb{A}$ obtained via \cref{algo:par_tsqr} with $L$ levels. 
-	Let us further assume that $m$ is divisible by $2^L$ and $n\tilde{\gamma}_{m2^{-L}}, n\tilde{\gamma}_{ 2n} \ll 1$.
+	Let us further assume that $m$ is divisible by $2^L$ and $n\tilde{\gamma}_{2^{-L}m}, n\tilde{\gamma}_{ 2n} \ll 1$.
 	Then, 2-norm error bound for the $j^{th}$ column ($j=1:n$) of $\hat{\bb{R}}_{TSQR}$ and the Frobenius norm error bound for $\hat{\bb{Q}}_{TSQR}$ are
 	\begin{align}
-	\|\hat{\bb{R}}_{TSQR}[:,j]-\bb{R}[:,j]\|_2 &\leq n(\tilde{\gamma}_{m2^{-L}} + L\tilde{\gamma}_{ 2n})\|\bb{A}[:,j]\|_2,  \label{eqn:tsqrRA}\\
-	\|\hat{\bb{Q}}_{TSQR}-\bb{Q}\|_F &\leq n^{3/2}(\tilde{\gamma}_{m2^{-L}} + L\tilde{\gamma}_{ 2n}).\label{eqn:tsqrQ}
-	%\|\hat{\bb{Q}}_{TSQR}[:,j]-\bb{Q}[:,]\|_2 &\leq n(\tilde{\gamma}_{m2^{-L}} + L\tilde{\gamma}_{ 2n}).\label{eqn:tsqrQ}
+	\|\hat{\bb{R}}_{TSQR}[:,j]-\bb{R}[:,j]\|_2 &\leq n(\tilde{\gamma}_{2^{-L}m} + L\tilde{\gamma}_{ 2n})\|\bb{A}[:,j]\|_2,  \label{eqn:tsqrRA}\\
+	\|\hat{\bb{Q}}_{TSQR}-\bb{Q}\|_F &\leq n^{3/2}(\tilde{\gamma}_{2^{-L}m} + L\tilde{\gamma}_{ 2n}).\label{eqn:tsqrQ}
+	%\|\hat{\bb{Q}}_{TSQR}[:,j]-\bb{Q}[:,]\|_2 &\leq n(\tilde{\gamma}_{2^{-L}m} + L\tilde{\gamma}_{ 2n}).\label{eqn:tsqrQ}
 	\end{align}
 \end{theorem}
 
-Note that the $n\tilde{\gamma}_{m2^{-L}}$ and $n\tilde{\gamma}_{ 2n}$ terms correspond to errors from applying HQR to the blocks in the initial partition and to the blocks in levels 1 through $L$ respectively.
+Note that the $n\tilde{\gamma}_{2^{-L}m}$ and $n\tilde{\gamma}_{ 2n}$ terms correspond to errors from applying HQR to the blocks in the initial partition and to the blocks in levels 1 through $L$ respectively.
 We can easily replace these with analogous mixed precision terms and keep the analysis accurate.
 Both level-2 and level-3 BLAS implementations will be considered in \cref{sec:mpanalysis}.
 \paragraph{TSQR and HQR error bound comparison}
@@ -860,7 +863,7 @@ For example, in single precision, a HQR of a $2^{15}$-by-$2^6$ matrix results in
 This case exemplifies a situation in which stability is not guaranteed in HQR, but the method is stable when using TSQR, even in the worst-case. 
 Now consider some $2^{20}$-by-$2^{12}$ matrix and QR factorizations performed with double precision.
 The error bound for HQR is {\tt 1.686e-7}, whereas the error bound for TSQR with 12 levels is {\tt 5.351e-10}.
-In general, we can conjecture that values of $L$ that can make $m2^{-L}$ and $2Ln$ much smaller than $m$, should produce a TSQR that outperforms HQR in worst-case scenarios, at least in uniform precision settings.
+In general, we can conjecture that values of $L$ that can make $2^{-L}m$ and $2Ln$ much smaller than $m$, should produce a TSQR that outperforms HQR in worst-case scenarios, at least in uniform precision settings.
 However, the range of matrix sizes that TSQR can accommodate decreases as $L$ grows larger.
 Figure~\ref{fig:paramspace} shows the matrix sizes HQR, 2-level TSQR, and 4-level TSQR can accommodate as well as their respective error bounds.\par
 \begin{wrapfigure}{l}{.45\textwidth}
@@ -1030,25 +1033,25 @@ Unlike BQR which is rich in level-3 BLAS operations, the variant of TSQR in \cre
 Therefore, we modify \cref{algo:par_tsqr} by replacing all instances of {\tt hh\_mult} with level-3 BLAS operations.
 We omit presenting the exact algorithm for mixed precision variant of TSQR in this paper, but consider computing the HQR of each block in high precision and build and store the WY representation of the HH transformations in low precision as we did in lines (3-6) of \cref{algo:mpBQR}.
 The low precision WY representation is then applied with TensorCore bFMAs when building the $\bb{Q}$ factor (lines 11-16 of \cref{algo:par_tsqr}).
-\paragraph{Rounding Error analysis} The analysis in \cite{Mori2012} shows that each column of $\bb{Q}$ is transformed by $n$ HH transformations of length $2n$ from levels $L:-1:1$, and another set of $n$ HH transformations of length $m2^{-L}$ at level $0$.
+\paragraph{Rounding Error analysis} The analysis in \cite{Mori2012} shows that each column of $\bb{Q}$ is transformed by $n$ HH transformations of length $2n$ from levels $L:-1:1$, and another set of $n$ HH transformations of length $2^{-L}m$ at level $0$.
 Let us represent the WY representation at the $j^{th}$ block of level $i$ and its bFMA counterpart as $\bb{X}_j^{(i)}$ and $\fl_{TC}(\hat{\bb{X}}_j^{(i)})$.
 Then, we can use \cref{eqn:mpdeltX} to form backward error  
 \begin{equation}
 	\|\fl_{TC}(\hat{\bb{X}}_j^{(i)})-\bb{X}_j^{(i)})\|_F \leq \tilde{\gamma}_2^{(l)} +n\tilde{\gamma}_{m'}^{(h)} + n\tilde{\gamma}_2^{(l)}\tilde{\gamma}_{m'}^{(h)}, \;\; m' = \begin{cases}
-	m2^{-L}, &i=0\\
+	2^{-L}m, &i=0\\
 	2n, & i = 1 : L
 	\end{cases}.
 \end{equation}
-We can now modify the analysis in \cite{Mori2012} by replacing $n\tilde{\gamma}_{m2^{-L}}$ and $n\tilde{\gamma}_{2n}$ with \[(1+\tilde{\gamma}_2^{(l)})(1+n\tilde{\gamma}_{m2^{-L}}^{(h)})-1,\quad\text{and}\quad (1+\tilde{\gamma}_2^{(l)})(1+n\tilde{\gamma}_{2n}^{(h)})-1,\]
+We can now modify the analysis in \cite{Mori2012} by replacing $n\tilde{\gamma}_{2^{-L}m}$ and $n\tilde{\gamma}_{2n}$ with \[(1+\tilde{\gamma}_2^{(l)})(1+n\tilde{\gamma}_{2^{-L}m}^{(h)})-1,\quad\text{and}\quad (1+\tilde{\gamma}_2^{(l)})(1+n\tilde{\gamma}_{2n}^{(h)})-1,\]
 and apply \cref{lem:3.7}.
 Then, the factors formed by {\tt mpTSQR3} are denoted by $\hat{\bb{R}}_{mpTSQR3},\hat{\bb{Q}}_{mpTSQR3}$ and the error bounds for the $j^{th}$ column of the triangular factor and the orthogonal factor are
 \begin{align*}
-\|(\hat{\bb{R}}_{mpTSQR3}- \bb{R})[:,j]\|_2 &\leq \tilde{\gamma}_{L+1}^{(l)}+n\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right)\|\bb{A}[:,j]\|_2\label{eqn:mpTSQR1},\\
-	\|\hat{\bb{Q}}_{mpTSQR3} - \bb{Q}\|_F &\leq n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right).
+\|(\hat{\bb{R}}_{mpTSQR3}- \bb{R})[:,j]\|_2 &\leq \tilde{\gamma}_{L+1}^{(l)}+n\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{2^{-L}m}^{(h)}\right)\|\bb{A}[:,j]\|_2\label{eqn:mpTSQR1},\\
+	\|\hat{\bb{Q}}_{mpTSQR3} - \bb{Q}\|_F &\leq n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{2^{-L}m}^{(h)}\right).
 \end{align*}
 Converting the low precision rounding errors as a fraction of the TSQR error bound in \cref{eqn:tsqrQ} to quantify the impact of modifying \cref{algo:par_tsqr} to utilize bFMAs yields
 \begin{equation}
-	n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right) = \left(1+ \frac{M_{l,h}(L+1)}{n(2nL+m2^{-L})}\right)n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right).\label{eqn:mpTSQR3}
+	n^{1/2}\tilde{\gamma}_{L+1}^{(l)}+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{2^{-L}m}^{(h)}\right) = \left(1+ \frac{M_{l,h}(L+1)}{n(2nL+2^{-L}m)}\right)n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{2^{-L}m}^{(h)}\right).\label{eqn:mpTSQR3}
 \end{equation}
 Like in \cref{eqn:mpBQR3}, the disparity in the two precisions, $M_{l,h}$ is compared against the original matrix size $m,n$ and the block size specifications derived from $L$.
 %TODO: line U
@@ -1059,7 +1062,7 @@ All three cases in \cref{table:mpTSQR3} show that {\tt mpTSQR3} on sufficiently 
 	\begin{tabular}{||c|c|c|c||} 
 		\hline
 		 Number of levels, $L$& $1$ & $\frac{1}{2}\log_2(m/n)$ & $-1+\log_2(m/n)$ \\ \hline
-		$\frac{(L+1)}{n(2nL+m2^{-L})}$&  $1/(n^2+m/4)$ &$1/\left(2n^2+\frac{m^{1/2}n^{3/2}}{\log_2(m/n)}\right)$ & $1/(2n^2)$\\ \hline
+		$\frac{(L+1)}{n(2nL+2^{-L}m)}$&  $1/(n^2+m/4)$ &$1/\left(2n^2+\frac{m^{1/2}n^{3/2}}{\log_2(m/n)}\right)$ & $1/(2n^2)$\\ \hline
 	\end{tabular}
 	\caption{Error bounds for $\|\Delta \bb{Q}_{mpTSQR3}\|_F$ for varying $L$'s.} 
 	\label{table:mpTSQR3}
@@ -1074,7 +1077,7 @@ Therefore, nearly all of the computational tasks for \cref{algo:hhQR,algo:blockH
 Consequently, we return to \cref{assump:mp}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}. 
 We denote HQR, BQR, and TSQR computed with \cref{assump:mp} with {\tt mpHQR2}, {\tt mpBQR2}, and {\tt mpTSQR2}, where the {\tt 2} represents the mixed precision procedure computed at a level-2 BLAS operation.
 \subsubsection{HQR round down at inner product: {\tt mpHQR2}}
-Consider forming a HH transformation that zeros out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 
+Consider forming an HH transformation that zeros out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 
 We need to compute $\sigma$, $\beta$, $\tilde{\bb{v}}_1$, and $\bb{v}$ as defined in \cref{sec:HQR},
 \begin{align}
 \fl(\sigma) &= \fl(-\rm{sign}(\bb{x}[1])\|\bb{x}\|_2) = \sigma + \Delta \sigma,\;\;|\Delta\sigma| \leq \left(\gamma_{2}^{(l)}+\gamma_{m}^{(h)}+\gamma_{2}^{(l)}\gamma_{m}^{(h)}\right)|\sigma|,\label{eqn:mpsigma}\\
@@ -1136,23 +1139,23 @@ Therefore, the numerical stability of {\tt mpBQR2} is guaranteed at smaller matr
 While it is technically possible that the low precision errors introduced from utilizing \cref{assump:mp} do not dominate the errors incurred in {\tt mpBQR2} and {\tt mpHQR2} when $m\gg M_{l,h}$ and can result in accuracy comparable to that of {\tt mpBQR3} and high precision BQR, our numerical results in \cref{sec:NE} show that {\tt mpHQR2} is already unstable at $m\approx M_{l,h}$.
 \subsubsection{TSQR round down at inner product: {\tt mpTSQR2}}
 Finally, we consider using \cref{assump:mp} in \cref{algo:par_tsqr}.
-This corresponds to replacing every instance of $n\tilde{\gamma}_{m'}$ for $m'\in\{2n, m2^{-L}\}$ in \cref{thm:moriTSQR} with $\tilde{\gamma}_n^{(l)} + n\tilde{\gamma}_{m'}^{(h)}$.
+This corresponds to replacing every instance of $n\tilde{\gamma}_{m'}$ for $m'\in\{2n, 2^{-L}m\}$ in \cref{thm:moriTSQR} with $\tilde{\gamma}_n^{(l)} + n\tilde{\gamma}_{m'}^{(h)}$.
 We first consider the norm errors for the $j^{th}$ column of the $\bb{Q}$ factor computed by this mixed precision variant of \cref{algo:par_tsqr},
 \begin{equation}
-	\|\hat{\bb{Q}}_{mpTSQR2}[:,j] -\bb{Q}[:,j]\|_2 \leq (L+1)\tilde{\gamma}_n^{(l)} +n(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)}).\label{eqn:mptsqr2Qcol}
+	\|\hat{\bb{Q}}_{mpTSQR2}[:,j] -\bb{Q}[:,j]\|_2 \leq (L+1)\tilde{\gamma}_n^{(l)} +n(\tilde{\gamma}_{2^{-L}m}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)}).\label{eqn:mptsqr2Qcol}
 \end{equation} 
 Then, the matrix norm error bound is 
 \begin{align}
-\|\hat{\bb{Q}}_{mpTSQR2}-\bb{Q}\|_F \leq n^{1/2}(L+1)\tilde{\gamma}_n^{(l)} +n^{3/2}(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)})\\
-\approx \left(1+ \frac{M_{l,h}L}{m2^{-L}+ 2Ln}\right)n^{3/2}(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)}),\label{eqn:mptsqr2Q}
+\|\hat{\bb{Q}}_{mpTSQR2}-\bb{Q}\|_F \leq n^{1/2}(L+1)\tilde{\gamma}_n^{(l)} +n^{3/2}(\tilde{\gamma}_{2^{-L}m}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)})\\
+\approx \left(1+ \frac{M_{l,h}L}{2^{-L}m+ 2Ln}\right)n^{3/2}(\tilde{\gamma}_{2^{-L}m}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)}),\label{eqn:mptsqr2Q}
 \end{align}
 and contributes larger low precision rounding errors than in \cref{eqn:mpTSQR3}.
 If the {\tt mpTSQR2} error bound were to outperform that of {\tt mpHQR2}, we now need integers $m, n > 0$, and $L\geq 0$ that satisfy
 \begin{equation*}
-1\gg n^{1/2}\left(\tilde{\gamma}_{n}^{(l)} + n\tilde{\gamma}_{m}^{(h)}\right) \gg n^{1/2}\left((L+1)\tilde{\gamma}_n^{(l)} +n(\tilde{\gamma}_{m2^{-L}}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)})\right).%,
+1\gg n^{1/2}\left(\tilde{\gamma}_{n}^{(l)} + n\tilde{\gamma}_{m}^{(h)}\right) \gg n^{1/2}\left((L+1)\tilde{\gamma}_n^{(l)} +n(\tilde{\gamma}_{2^{-L}m}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)})\right).%,
 \end{equation*}
 In contrast to the analysis for uniform precision settings, large $L$ values do not necessarily reduce the error bounds of TSQR. 
-While large $L$ can imply $m\gg m2^{-L}+2Ln$, it does not always lead to $d \gg d_1+Ld_2$.
+While large $L$ can imply $m\gg 2^{-L}m+2Ln$, it does not always lead to $d \gg d_1+Ld_2$.
 Although the theoretical error bounds do not give a clear indication of the worst-case performances of HQR and TSQR in mixed precision settings, TSQR outperformed HQR on ill-conditioned matrices within our numerical simulations.
 These experiments are discussed in detail in the next section.
 \section{Numerical Experiments}\label{sec:NE}

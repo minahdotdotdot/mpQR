@@ -19,6 +19,7 @@
 \newcommand{\bb}[1]{\mathbf{#1}}
 \newcommand{\fl}{\mathrm{fl}}
 \newcommand{\cO}{\mathcal{O}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
 \begin{document}
 \title{Response to Reviewers}
 \date{Octobe 1, 2020}
@@ -36,26 +37,33 @@ Our response to the reviews is below.\\
     {\bf Done.}
     \item {\it line 11: Inconsistent hyphenation, e.g. ``low precision'' in line 11 and ``high-precision'' in line 21 }\\
     {\bf Done.}
-    \item {\it line 25: What is the ``weight of memory''? }
-    \item {\it line 25: ``4x'' versus what? }
+    \item {\it line 25: What is the ``weight of memory''? }\\
+    \red{Not sure what to say.}
+    \item {\it line 25: ``4x'' versus what? }\\
+    \red{Not sure what to say.}
     \item {\it line 36: ``computed up to 16x than that of fp64''--- do you mean ``16x faster''? }\\
     {\bf Done.}
     \item {\it lines 36-37: ``The existing rounding error analyses are built within ...'' Existing rounding error analyses of what? }\\
     {\bf Done ( added ``of linear algebra routines'').}
-    \item {\it line 39: This is the first time that HH QR (or QR factorization at all) is even mentioned. The problem that you are considering should be stated earlier in the text. }
+    \item {\it line 39: This is the first time that HH QR (or QR factorization at all) is even mentioned. The problem that you are considering should be stated earlier in the text. }\\
+    {\bf We have included an additional sentence at the end of the first paragraph of the introduction that mentions the QR factorization.}
+    \red{Is this what the reviewer wants?}
     \item {\it lines 43-44: ``... its block variants that partition the columns ... and those that partition the columns'' Is there some typo here? }\\
     {\bf Fixed.}
-    \item {\it line 58: What does ``sufficient in performance'' mean? }
+    \item {\it line 58: What does ``sufficient in performance'' mean? }\\
+    {\bf This is now clarified.}
     \item {\it line 137: The ``(j,k)'' in the max should not be a subscript. }\\
     {\bf Done.}
     \item {\it line 144: State here what algorithms 5 and 6 are, since they have not been introduced yet. }\\
     {\bf Done.}
-    \item {\it line 145: Define what is meant by ``ad hoc''. }
+    \item {\it line 145: Define what is meant by ``ad hoc''. }\\
+    \red{Not sure what to say.}
     \item {\it line 155: ``is in'' $\rightarrow $ ``in'' }\\
     {\bf Done.}
     \item {\it line 157: There is no ``Assumption 2.3''. I assume you meant ``MP Setting 2.3''. }\\
     {\bf Done.}
-    \item {\it line 157-160: It might help to give a verbal summary of this, i.e., ``When two fp16 numbers are multiplied and stored in fp32, there is no roundoff error''. }
+    \item {\it line 157-160: It might help to give a verbal summary of this, i.e., ``When two fp16 numbers are multiplied and stored in fp32, there is no roundoff error''. }\\
+    {\bf Done.}
     \item {\it line 168: The concept of ``full precision'' needs some additional constraint. By my understanding, this ``full precision'' argument only applies when $u^{(h)} \leq (u^{(l)})^2$. If so, then this constraint should be stated explicitly. This further contrains the values that the ``disparity in the precisions'' $M_{l,h}$ can have (line 192). It would be good to state these bounds on $M_{l,h}$. }
     \item {\it line 288: extra plus sign in ``2(m+2)+''. }\\
     {\bf Done.}
@@ -134,7 +142,8 @@ subsequent analysis.}
     \item {\it Sections 4.1.2 and 4.2.3: I suggest writing consistently either $2Ln + m2^{-L}$ (as in
 section 4.1.2) or $m2^{-L} + 2Ln$ (as in section 4.2.3).}
     \item {\it L885: analysis that accurately bound $\rightarrow$ change to ``analyses'' or ``bounds''.}
-    \item {\it Reference [5] has now appeared: cf. [1].}
+    \item {\it Reference [5] has now appeared: cf. [1].} \\
+    {\bf The referenc has been updated.}
 \end{enumerate}
 
 \bibliographystyle{siamplain}%ieeetr
