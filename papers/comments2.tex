@@ -105,7 +105,7 @@ Our response to the reviews is below.\\
     \item {\it line 870: ``mpTSQR2 can outperform mpHQR2'' - ``outperform'' in terms of what? } \\
     {\bf We have added that this is with respect to accuracy.}
     \item {\it line 885: ``accurately bound'' - I would remove or soften this claim, as you just said in the previous paragraph that the error bounds overestimate by 2-3 orders of magnitude (line 874).}\\
-    {\bf We have removed ``accurately''.}
+    {\bf We have removed ``accurately''.} \red{Although, aren't most rounding error bounds 2-3 orders of magnitudes off? Oh well.}
 \end{enumerate}
 
 \noindent{\bf Reviewer \#2}
@@ -142,25 +142,39 @@ After this second round of review, I have several other new comments, but I cons
     \item {\it L175: the notation $x^{(l)}$, $y^{(l)}$ is introduced but does not seem to be used in the
 subsequent analysis.}
     \item {\it L233–236: I did not fully understand these two sentences. I think the authors are saying that computations introduce error terms of the form (2.9) while castdowns introduce error terms of the form (2.10). Perhaps consider clarifying or removing these two sentences.}
-    \item {\it L255, L261, L382, L384, L733: zeros out $\rightarrow$ zeroes out.}
+    \item {\it L255, L261, L382, L384, L733: zeros out $\rightarrow$ zeroes out.}\\
+    {\bf Done.}
     \item {\it L288: remove “between”.}\\
     {\bf Done.}
-    \item {\it L294: (3.7) show $\rightarrow$ (3.7) to show ?}
-    \item {\it L295: calculating of $\|x\|\rightarrow$ remove ``of''.}
-    \item {\it L316, L317, L319: I suggest rewriting $v^{\top}xv$ either as $vv^{\top} x$ or $(v^{\top} x)v$.}
-    \item {\it (3.13): $\Delta y \rightarrow \Delta x$.}
-    \item {\it L375: constants, $\beta \rightarrow$ missing space.}
-    \item {\it L385: $k+1^{st} \rightarrow (k+1)^{th}$, idem at L420.}
-    \item {\it L397, L617: TensorCore $\rightarrow$ TensorCores ?}
-    \item {\it L399: negligble $\rightarrow$ negligible.}
-    \item {\it L761: “the inner product mixed precision setting yields higher error bounds”: specify than what (add a reference to Thm. 3.4 ?)}
-    \item {\it L762: I suggest adding a sentence of the form “Before commenting on the significance of Theorem 4.1, we show that the same bounds hold for the BQR variant”. Otherwise section 4.2.1 ends a little abruptly and without any analysis of Thm 4.1 (which is in fact to be found later, L775–L783). In fact, perhaps consider merging sections 4.2.1 and 4.2.2 since the analysis and bounds are essentially the same?}
-    \item {\it L798: what are d1 and d2 here?}
+    \item {\it L294: (3.7) show $\rightarrow$ (3.7) to show ?}\\
+    {\bf Done.}
+    \item {\it L295: calculating of $\|x\|\rightarrow$ remove ``of''.}\\
+    {\bf Done.}
+    \item {\it L316, L317, L319: I suggest rewriting $v^{\top}xv$ either as $vv^{\top} x$ or $(v^{\top} x)v$.}\\
+    {\bf Done.}
+    \item {\it (3.13): $\Delta y \rightarrow \Delta x$.}\\
+    {\bf I think this should be $\Delta y$ as is stated in (3.10).}\red{Right?} 
+    \item {\it L375: constants, $\beta \rightarrow$ missing space.}\\
+    {\bf Space added.}
+    \item {\it L385: $k+1^{st} \rightarrow (k+1)^{th}$, idem at L420.}\\
+    {\bf Fixed.}
+    \item {\it L397, L617: TensorCore $\rightarrow$ TensorCores ?}\\
+    {\bf Fixed.}
+    \item {\it L399: negligble $\rightarrow$ negligible.}\\
+    {\bf Fixed.}
+    \item {\it L761: “the inner product mixed precision setting yields higher error bounds”: specify than what (add a reference to Thm. 3.4 ?)}\\
+    {\bf Reference added.}
+    \item {\it L762: I suggest adding a sentence of the form ``Before commenting on the significance of Theorem 4.1, we show that the same bounds hold for the BQR variant''. Otherwise section 4.2.1 ends a little abruptly and without any analysis of Thm 4.1 (which is in fact to be found later, L775–L783). In fact, perhaps consider merging sections 4.2.1 and 4.2.2 since the analysis and bounds are essentially the same?}\\
+    {\bf Done.}\red{ Should I merge these sections as suggested? I feel neutral.}
+    \item {\it L798: what are d1 and d2 here?}\\
+    {\bf Oops, an artifact from the first submission had survived! This has been reworded.}
     \item {\it Sections 4.1.2 and 4.2.3: I suggest writing consistently either $2Ln + m2^{-L}$ (as in
 section 4.1.2) or $m2^{-L} + 2Ln$ (as in section 4.2.3).}
-    \item {\it L885: analysis that accurately bound $\rightarrow$ change to ``analyses'' or ``bounds''.}
+\red{I'll check this at the last sweep.}
+    \item {\it L885: analysis that accurately bound $\rightarrow$ change to ``analyses'' or ``bounds''.}\\
+    {\bf Done.}
     \item {\it Reference [5] has now appeared: cf. [1].} \\
-    {\bf The referenc has been updated.}
+    {\bf The reference has been updated.}
 \end{enumerate}
 
 \bibliographystyle{siamplain}%ieeetr

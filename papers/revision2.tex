@@ -356,7 +356,7 @@ We present the standard rounding error analysis of these algorithms (see \cite{H
 The HQR algorithm uses HH transformations to zero out elements below the diagonal of a matrix (see \cite{Householder1958}). 
 We present this as zeroing out all but the first element of some vector, $\bb{x}\in\R^m$.
 \begin{lemma}
-	Given vector $\bb{x}\in\R^{m}$, there exist an HH vector , $\bb{v}$, and an HH constant, $\beta$, that define the HH transformation matrix, $\bb{P}_{\bb{v}}:=\bb{I}_{m} - \beta \bb{v}\bb{v}^{\top}$, such that $\bb{P}_{\bb{v}}$ zeros out $\bb{x}$ below the first element. 
+	Given vector $\bb{x}\in\R^{m}$, there exist an HH vector , $\bb{v}$, and an HH constant, $\beta$, that define the HH transformation matrix, $\bb{P}_{\bb{v}}:=\bb{I}_{m} - \beta \bb{v}\bb{v}^{\top}$, such that $\bb{P}_{\bb{v}}$ zeroes out $\bb{x}$ below the first element. 
 	The HH vector and constant are defined via
 	\begin{equation}
 	\sigma = -\rm{sign}(\bb{x}[1])\|\bb{x}\|_2, \quad  \bb{v} = \bb{x} -\sigma \hat{\bb{e}}_{1},\mbox{ and } \beta =\frac{2}{\bb{v}^{\top}\bb{v}}=-\frac{1}{\sigma\bb{v}[1]}.
@@ -370,7 +370,7 @@ We present this as zeroing out all but the first element of some vector, $\bb{x}
 Given $\bb{A}\in\R^{m\times n}$ and Lemma \ref{lem:hhvec}, HQR is done by repeating the following processes until only an upper triangle matrix remains.
 For $i = 1, 2, \cdots, n,$
 \begin{enumerate}[Step 1)]
-	\item Compute $\bb{v}$ and $\beta$ that zeros out the $i^{th}$ column of $\bb{A}$ beneath $a_{ii}$ (see \cref{algo:hh_v2}), and
+	\item Compute $\bb{v}$ and $\beta$ that zeroes out the $i^{th}$ column of $\bb{A}$ beneath $a_{ii}$ (see \cref{algo:hh_v2}), and
 	\item Apply $\bb{P}_{\bb{v}}$ to the bottom right partition, $\bb{A}[i:m, i:n]$ (lines 4-6 of \cref{algo:hhQR}).
 \end{enumerate}
 
@@ -468,7 +468,7 @@ Next, we consider the HH constant, $\beta$, as is computed in line 4 of \cref{al
 \hat{\beta} = \fl\left(-\bb{v}'[1]/\hat{\sigma}\right) &=-(1+\dd)\frac{\bb{v}'[1]+\Delta \bb{v}'[1]}{\sigma + \Delta\sigma} = \frac{(1+\dd)(1+\tth_{m+2})}{(1+\tth_{m+1})}\beta \label{eqn:beta}\\
 &= (1+\tth_{3m+5})\beta= \beta + \Delta \beta,\text{ where } |\Delta\beta| \leq \tilde{\gamma}_{m} \beta\label{eqn:beta3}.
 \end{align}
-We have shown \cref{eqn:beta} to keep our analysis simple in \cref{sec:mpanalysis} and \cref{eqn:beta3} show that the error incurred from calculating of $\|\bb{x}\|_2$ accounts for the vast majority of the rounding error so far.
+We have shown \cref{eqn:beta} to keep our analysis simple in \cref{sec:mpanalysis} and \cref{eqn:beta3} to show that the error incurred from calculating $\|\bb{x}\|_2$ accounts for the vast majority of the rounding error so far.
 At iteration $i$, we replace $\bb{x}$ with $\bb{A}[i:m,i]\in\R^{m-i+1}$ and the $i^{th}$ HH constant and vector ($\hat{\beta}_i$,$\bb{v}_i$) both have errors bounded by $\tilde{\gamma}_{m-i+1}$.
 \paragraph{Applying a Single HH Transformation}
 Now we consider lines 4-6 of \cref{algo:hhQR}.
@@ -486,13 +486,13 @@ That is, computing  $\bb{P}_{\bb{v}}\bb{x}$ for any $\bb{x}\in\R^{m}$ is as simp
 Let us assume that $\bb{x}$ is an exact vector and there were errors incurred in forming $\bb{v}$ and $\beta$. 
 The errors incurred from computing $\bb{v}$ and $\beta$ need to be included in addition to the new rounding errors accumulating from the action of applying $\bb{P}_{\bb{v}}$ to a column.
 In practice, $\bb{x}$ is any column in $\bb{A}^{(i-1)}[i+1:m, i+1:n]$, where the superscript $(i-1)$ indicates that this submatrix of $\bb{A}$ has already been transformed by $i-1$ HH transformations that zeroed out components below $\bb{A}[j,j]$ for $j = 1:i-1$.
-We show the error for forming $\hat{\bb{w}}$ where $\bb{w}:=\beta\bb{v}^{\top}\bb{x}\bb{v}$ and $\bb{v},\bb{x}\in\R^{m}$,
+We show the error for forming $\hat{\bb{w}}$ where $\bb{w}:=\beta(\bb{v}^{\top}\bb{x})\bb{v}$ and $\bb{v},\bb{x}\in\R^{m}$,
 \begin{equation*}
-\hat{\bb{w}} =\fl(\hat{\beta}\;\fl(\hat{\bb{v}}^{\top}\bb{x})\hat{v})=(1+\tth_{m})(1+\dd)(1+\dd')(\beta+\Delta\beta)(\bb{v}+\Delta \bb{v})^{\top}\bb{x}(\bb{v}+\Delta \bb{v}),
+\hat{\bb{w}} =\fl(\hat{\beta}\;\fl(\hat{\bb{v}}^{\top}\bb{x})\hat{\bb{v}})=(1+\tth_{m})(1+\dd)(1+\dd')(\beta+\Delta\beta)\left((\bb{v}+\Delta \bb{v})^{\top}\bb{x}\right)(\bb{v}+\Delta \bb{v}),
 \end{equation*}
-where $\tth_{m}$ is from computing the inner product $\hat{\bb{v}}^{\top}\bb{x}$, and $\dd$ and $\dd'$ are from multiplying $\beta$, $\fl(\hat{\bb{v}}^{\top}\bb{x})$, and $\bb{\hat{v}}$.
+where $\tth_{m}$ is from computing the inner product $(\hat{\bb{v}}^{\top}\bb{x})$, and $\dd$ and $\dd'$ are from multiplying $\beta$, $\fl(\hat{\bb{v}}^{\top}\bb{x})$, and $\bb{\hat{v}}$.
 The forward error is
-$\hat{\bb{w}} = \bb{w} + \Delta \bb{w}$, where $|\Delta \bb{w}| \leq \tilde{\gamma}_m|\beta||\bb{v}|^{\top}|\bb{x}||\bb{v}|.$
+$\hat{\bb{w}} = \bb{w} + \Delta \bb{w}$, where $|\Delta \bb{w}| \leq \tilde{\gamma}_m|\beta|\left(|\bb{v}|^{\top}|\bb{x}|\right)|\bb{v}|.$
 Subtracting $\hat{\bb{w}}$ from $\bb{x}$ yields the HH transformation with forward error,
 \begin{equation}
 \fl(\hat{\bb{P_v}}\bb{x}) = \fl(\bb{x}-\bb{\hat{w}}) = (1+\dd)(\bb{x}-\bb{w}-\Delta \bb{w}) = \bb{y} + \Delta \bb{y} = (\bb{P_v} + \Delta \bb{P_v})\bb{x},\label{eqn:applyP}
@@ -567,7 +567,7 @@ Note that this section relies on the WY representation described in \cite{Bischo
 A convenient matrix representation that accumulates $r$ HH reflectors is known as the WY representation (see \cite{Bischof1987,golub2013matrix}).
 \Cref{lem:WY} shows how to update a rank-$j$ update of the identity, $\bb{Q}^{(j)}$, with an HH transformation, $\bb{P}$, to produce a rank-$(j+1)$ update of the identity, $\bb{Q}^{(j+1)}$. 
 With the correct initialization of $\bb{W}$ and $\bb{Y}$, we can build the WY representation of successive HH transformations as shown in \Cref{algo:buildWY}. 
-This algorithm assumes that the HH vectors, $\bb{V}$, and constants,$\bm{\beta}$, have already been computed.
+This algorithm assumes that the HH vectors, $\bb{V}$, and constants, $\bm{\beta}$, have already been computed.
 Since the $\bb{Y}$ factor is exactly $\bb{V}$, we only need to compute the $\bb{W}$ factor.
 \begin{lemma}\label{lem:WY}
 	Suppose $\bb{X}^{(j)}=\bb{I}-\bb{W}^{(j)}\bb{Y}^{(j)\top}\in\R^{m\times m}$ is an orthogonal matrix with $\bb{W}^{(j)},\bb{Y}^{(j)}\in\R^{m\times j}$.
@@ -588,9 +588,9 @@ Since the $\bb{Y}$ factor is exactly $\bb{V}$, we only need to compute the $\bb{
 	\label{algo:buildWY}
 \end{algorithm2e}
 
-In HQR, $\bb{A}$ is transformed into an upper triangular matrix $\bb{R}$ by identifying an HH transformation that zeros out a column below the diagonal, then applying that HH transformation to the bottom right partition. 
-For example, the $k^{th}$ HH transformation finds an $m-k+1$ sized HH transformation that zeros out column $k$ below the diagonal and then applies it to the $(m-k+1)$-by-$(n-k)$ partition of the matrix, $\bb{A}[k:m,k+1:n]$.
-Since the $k+1^{st}$ column is transformed by the $k^{th}$ HH transformation, this algorithm must be executed serially as shown in \cref{algo:hhQR}.
+In HQR, $\bb{A}$ is transformed into an upper triangular matrix $\bb{R}$ by identifying an HH transformation that zeroes out a column below the diagonal, then applying that HH transformation to the bottom right partition. 
+For example, the $k^{th}$ HH transformation finds an $m-k+1$ sized HH transformation that zeroes out column $k$ below the diagonal and then applies it to the $(m-k+1)$-by-$(n-k)$ partition of the matrix, $\bb{A}[k:m,k+1:n]$.
+Since the $(k+1)^{th}$ column is transformed by the $k^{th}$ HH transformation, this algorithm must be executed serially as shown in \cref{algo:hhQR}.
 The highest computational burden at each iteration falls on \cref{algo:hhQR} line 6, which requires Level-2 BLAS operations when computed efficiently. \par
 
 In contrast, BQR replaces this step with Level-3 BLAS operations by partitioning $\bb{A}$ into blocks of columns.
@@ -602,7 +602,7 @@ We write the WY update as
 \end{equation}
 Thus far, \cref{algo:hhQR,algo:buildWY} are rich in Level-2 BLAS operations.
 Next, $\bb{I} -\bb{Y}_{k}\bb{W}_{k}^{\top}$ is applied to $[\bb{C}_2 \cdots  \bb{C}_N]$ with two Level-3 BLAS operations as shown in line 5 of \cref{algo:blockHQR}.
-BQR performs approximately $1-\cO(1/N)$ fraction of its FLOPs in Level-3 BLAS operations (see section 5.2.3 of \cite{golub2013matrix}), and can reap the benefits from the accelerated block FMA feature of TensorCore. 
+BQR performs approximately $1-\cO(1/N)$ fraction of its FLOPs in Level-3 BLAS operations (see section 5.2.3 of \cite{golub2013matrix}), and can reap the benefits from the accelerated block FMA feature of TensorCores. 
 Note that BQR does require strictly more FLOPs when compared to HQR, but these additional FLOPs are negligible negligible in standard precision and does not impact the numerical stability.
 A pseudoalgorithm for BQR is shown in \cref{algo:blockHQR} where we assume that $n=Nr$ to make our error analysis in \cref{sec:BQRerr} simple.
 In practice, an efficient implementation might require $r$ to be a power of two or a product of small prime factors and result a thinner $N^{th}$ block compared to the rest. 
@@ -856,7 +856,7 @@ We compare the error bounds for HQR and TSQR.
 Consider the bounds for $\|\hat{\bb{Q}}-\bb{Q}\|_F$ in \cref{thm:feHQR,thm:moriTSQR}.
 TSQR has a lower worst-case error bound than HQR when integers $m, n > 0$, and $L\geq0$ satisfy
 \begin{equation*}
-1\gg n^{3/2}\gamma_m \gg n^{3/2}(\gamma_{m2^{-L}}+L\gamma_{2n}).
+1\gg n^{3/2}\gamma_m \gg n^{3/2}(\gamma_{2^{-L}m}+L\gamma_{2n}).
 \end{equation*}
 Let us consider as an example the case when $\frac{m}{2^L}=2n$.
 Then, the HQR bound is $2^L/(L+1)$ larger than the bound for TSQR with $L$ levels.
@@ -925,7 +925,7 @@ TensorCore's bFMA computes
 \end{equation}
 and employs \emph{full} precision products and fp32 summation accumulate.
 Here, the \emph{full} precision multiplication is exact as explained in \cref{sec:background}.
-In \cite{Blanchard2020}, the authors investigate all four possible matrix-matrix multiplication routines in TensorCore, which depend on whether $\bb{C}$ and $\bb{D}$ are computed in fp16 or fp32. 
+In \cite{Blanchard2020}, the authors investigate all four possible matrix-matrix multiplication routines in TensorCores, which depend on whether $\bb{C}$ and $\bb{D}$ are computed in fp16 or fp32. 
 They also note that matrices larger than $4$-by-$4$ can still be computed using this block FMA by accumulating matrix sums with $\bb{C}\in\F_{\text{fp32}}^{4\times 4}$.
 Suppose that we aim to compute a fp16 matrix product of two fp16 matrices, $\bb{X}\in\F_{(fp16)}^{m\times p}$, $\bb{Y}\in\F_{(fp16)}^{p\times n}$, and $\bb{Z}=\bb{XY}\in\F_{\text{fp16}}^{m\times n}$.
 We pad $\bb{X},\bb{Y}$ with zeros so that all matrix dimensions are multiples of $4$ and the matrix product can be computed with the TensorCore block FMA.
@@ -1078,7 +1078,7 @@ Therefore, nearly all of the computational tasks for \cref{algo:hhQR,algo:blockH
 Consequently, we return to \cref{assump:mp}, where every inner product is cast down to the lower precision as shown in \cref{eqn:aftercd}. 
 We denote HQR, BQR, and TSQR computed with \cref{assump:mp} with {\tt mpHQR2}, {\tt mpBQR2}, and {\tt mpTSQR2}, where the {\tt 2} represents the mixed precision procedure computed at a level-2 BLAS operation.
 \subsubsection{HQR round down at inner product: {\tt mpHQR2}}
-Consider forming an HH transformation that zeros out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 
+Consider forming an HH transformation that zeroes out $\bb{x}\in\R^m$ below the the $i^{th}$ element. 
 We need to compute $\sigma$, $\beta$, $\tilde{\bb{v}}_1$, and $\bb{v}$ as defined in \cref{sec:HQR},
 \begin{align}
 \fl(\sigma) &= \fl(-\rm{sign}(\bb{x}[1])\|\bb{x}\|_2) = \sigma + \Delta \sigma,\;\;|\Delta\sigma| \leq \left(\gamma_{2}^{(l)}+\gamma_{m}^{(h)}+\gamma_{2}^{(l)}\gamma_{m}^{(h)}\right)|\sigma|,\label{eqn:mpsigma}\\
@@ -1117,7 +1117,8 @@ The analogous mixed precision QR factorization error bounds are shown in \cref{t
 	\|\Delta \bb{Q}[:,j]_{mpHQR2}\|_2&\leq (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)}),\;\; \|\Delta \bb{Q}_{mpHQR2}\|_F \leq n^{1/2} (\tilde{\gamma}_n^{(l)}+n\tilde{\gamma}_m^{(h)})\label{eqn:mpHQR2Q}.
 	\end{align}
 \end{theorem}
-Unsurprisingly, the inner product mixed precision setting yields higher error bounds as it uses more low precision arithmetic than the settings described in \cref{sec:mp-3}. 
+Unsurprisingly, the inner product mixed precision setting yields higher error bounds (see \cref{thm:feHQR})as it uses more low precision arithmetic than the settings described in \cref{sec:mp-3}. 
+Before commenting on the significance of \cref{thm:mpHQR}, we show that the same bounds hold for the BQR variant.
 In the next sections we analyze using {\tt mpHQR2} instead of {\tt HQR} within \cref{algo:blockHQR,algo:par_tsqr}.
 
 \subsubsection{BQR round down at inner product: {\tt mpBQR2}}
@@ -1157,7 +1158,8 @@ If the {\tt mpTSQR2} error bound were to outperform that of {\tt mpHQR2}, we now
 1\gg n^{1/2}\left(\tilde{\gamma}_{n}^{(l)} + n\tilde{\gamma}_{m}^{(h)}\right) \gg n^{1/2}\left((L+1)\tilde{\gamma}_n^{(l)} +n(\tilde{\gamma}_{2^{-L}m}^{(h)} + L\tilde{\gamma}_{ 2n}^{(h)})\right).%,
 \end{equation*}
 In contrast to the analysis for uniform precision settings, large $L$ values do not necessarily reduce the error bounds of TSQR. 
-While large $L$ can imply $m\gg 2^{-L}m+2Ln$, it does not always lead to $d \gg d_1+Ld_2$.
+While large $L$ can imply $m\gg 2^{-L}m+2Ln$, it is not always the case.
+%$d \gg d_1+Ld_2$.
 Although the theoretical error bounds do not give a clear indication of the worst-case performances of HQR and TSQR in mixed precision settings, TSQR outperformed HQR on ill-conditioned matrices within our numerical simulations.
 These experiments are discussed in detail in the next section.
 \section{Numerical Experiments}\label{sec:NE}
@@ -1235,7 +1237,7 @@ Although further studies with larger problem sizes and timings would be benefici
 The development of GPUs that optimize low precision floating point arithmetic have accelerated the interest in half and mixed precision algorithms that naturally reduces the bandwidth and storage needs. 
 Loss in precision, stability, and representable range offset for those advantages, but these shortcomings may have little to no impact in some applications.
 It may even be possible to navigate around those drawbacks with algorithmic design. \par
-We present the algorithm and standard error analysis of HQR and its blocked variants (BQR and TSQR), modify the algorithms to support two mixed precision settings, and performed error analysis that bound the mixed precision versions.
+We present the algorithm and standard error analysis of HQR and its blocked variants (BQR and TSQR), modify the algorithms to support two mixed precision settings, and performed error analyses that bound the mixed precision versions.
 One mixed precision setting is that of NVIDIA's TensorCore bFMAs, and the other is an ad hoc setting that mimics the bFMAs at the level of inner products.
 These two are presented to offer mixed precision arithmetic at both level-2 and 3 BLAS operations and can be applied to other linear algebra tools as well.
 The new error bounds more accurately describe how rounding errors are accumulated in mixed precision settings.
