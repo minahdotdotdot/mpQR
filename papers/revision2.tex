@@ -259,7 +259,8 @@ Although our analysis concerns accuracy and stability and leaves out timing resu
 Note that TCs perform matrix-matrix multiply and accumulate up to 8 times faster than fp32, and up to 16 times faster than fp64 (see \cite{Markidis2018}), and our ad hoc timing assumption is conservative in comparison. 
 Nonetheless, this gives a vague insight into the trade-offs between speediness and accuracy from some mixed precision computations.
 
-The full precision multiplication in \cref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their precisions and exponent ranges.
+%The full precision multiplication in \cref{assump:mp} is exact when the low precision type is fp16 and the high precision type of fp32 due to their precisions and exponent ranges.
+The exact product in \cref{assump:mp} is the result of using full precision products when the low precision type is fp16 and the high precision type is fp32 as is in TC bFMAs.
 As a quick proof, consider $x^{(\text{fp16})} = \pm\mu_x2^{\eta_x -11},y^{(\text{fp16})} = \pm\mu_y2^{\eta_y -11}$ where $\mu_x,\mu_y\in[0,2^{11}-1]$ and $\eta_x,\eta_y\in[-15,16]$, and note that the significand and exponent ranges for fp32 are $[0, 2^{24}-1]$ and $[-127,128]$.
 Then the product in full precision is
 \[x^{(\text{fp16})}y^{(\text{fp16})} = \pm\mu_x\mu_y 2^{\eta_x+\eta_y+2-24},\]
@@ -268,7 +269,7 @@ Thus, when two fp16 numbers are multiplied and stored in fp32, there is no round
 \begin{assump}
 	\label{assump:mp}
 	Let $l$ and $h$ each denote low and high precision types with unit round-off values $u^{(l)}$ and $u^{(h)}$, where $1 \gg u^{(l)} \gg u^{(h)} >0$.
-	Consider an FMA operation for inner products that take vectors stored in precision $l$, compute products in full precision, and sum the products in precision $h$. 
+	Consider an FMA operation for inner products that take vectors stored in precision $l$, compute products exactly, and sum the products in precision $h$. 
 	Finally, the result is then cast back down to precision $l$.
 	Furthermore, we expect this procedure to be approximately twice as fast as if it were done entirely in the higher precision, and about the same as if it were done entirely in the lower precision. 
 \end{assump}
@@ -514,7 +515,7 @@ This is directly applicable to HQR as $\bb{Q}=\bb{P}_{1}\cdots\bb{P}_{n}\bb{I}$ 
 \Cref{lem:3.7} is very useful for any sequence of transformations, where each transformation has a known bound.
 We will invoke this lemma to prove \cref{lem:19.3}, and use it in future sections for other consecutive transformations.
 \begin{lemma}\label{lem:3.7}
-	If $\bb{X}_{j} + \Delta \bb{X}_{j} \in\R^{m\times m}$ satisfies $\|\Delta \bb{X}_{j}\|_F\leq \dd_j \|\bb{X}_{j}\|_2$ for all $j$, then $$\left|\left|\prod_{j=1}^n (\bb{X}_{j} + \Delta \bb{X}_{j})- \prod_{j=1}^n\bb{X}_{j} \right|\right|_F\leq\left(-1+\prod_{j=1}^n(1+\dd_j)\right)\prod_{j=1}^n\|\bb{X}_{j}\|_2.$$
+	If $\bb{X}_{j} + \Delta \bb{X}_{j} \in\R^{m\times m}$ satisfies $\|\Delta \bb{X}_{j}\|_F\leq \tau_j \|\bb{X}_{j}\|_2$ for all $j$, then $$\left|\left|\prod_{j=1}^r (\bb{X}_{j} + \Delta \bb{X}_{j})- \prod_{j=1}^r\bb{X}_{j} \right|\right|_F\leq\left(-1+\prod_{j=1}^n(1+\tau_j)\right)\prod_{j=1}^n\|\bb{X}_{j}\|_2.$$
 \end{lemma}
 
 \begin{lemma}\label{lem:19.3}
@@ -634,12 +635,12 @@ We have adapted the analysis from \cite{Higham2002} to fit this exact variant, a
 First, we analyze the error accumulated from updating $\bb{X}_k^{(j-1)}$ to $\bb{X}_k^{(j)}$, which applies a rank-1 update via the subtraction of the outer product $\hat{\bb{z}}_{k}^{(j)}\hat{\bb{v}}_{k}^{(j)\top}$.
 Since $\bb{z}_{k}^{(j)} = \beta_k^{(j)}\bb{X}_{k}^{(j-1)}\bb{v}_{k}^{(j)}$, this update requires a single HH transformation on the right side in the same efficient implementation that is discussed in \cref{eqn:effH},
 \begin{equation}
-\hat{\bb{X}_k^{(j)}} = \hat{\bb{X}}_k^{(j-1)} - \fl(\hat{\beta}_k^{(j-1)}\hat{\bb{X}}_k^{(j-1)}\hat{\bb{v}}_k^{(j-1)})\hat{\bb{v}}_k^{(j)\top} = \hat{\bb{X}}_k^{(j-1)}(\bb{P}_k^{(j)}+\Delta \bb{P}_k^{(j)}), \label{eqn:Xupdate}
+\hat{\bb{X}}_k^{(j)} = \hat{\bb{X}}_k^{(j-1)} - \fl(\hat{\beta}_k^{(j-1)}\hat{\bb{X}}_k^{(j-1)}\hat{\bb{v}}_k^{(j-1)})\hat{\bb{v}}_k^{(j)\top} = \hat{\bb{X}}_k^{(j-1)}(\bb{P}_k^{(j)}+\Delta \bb{P}_k^{(j)}), \label{eqn:Xupdate}
 \end{equation}
 where $\|\Delta \bb{P}_k^{(j)}\|_F \leq \tilde{\gamma}_{m-(k-1)r}$.
 Since $\hat{\bb{X}}_k^{(1)} = \bb{I} - \hat{\beta}_k^{(1)}\hat{\bb{v}}_k^{(1)}\hat{\bb{v}}_k^{(1)\top} = \bb{P}_k^{(1)} + \Delta \bb{P}_k^{(1)}$, we can travel up the recursion relation in \cref{eqn:Xupdate} and use \cref{lem:3.7} to form
 \begin{equation}
-	\|\Delta \bb{X}_k^{(j)} \|_F \leq j\tilde{\gamma}_{m-(k-1)r}. \label{eqn:deltX}
+	\|\Delta \bb{X}_k^{(j)} \|_F := \|\hat{\bb{X}}_k^{(j)}-\bb{X}_k^{(j)}\|_F \leq j\tilde{\gamma}_{m-(k-1)r}. \label{eqn:deltX}
 \end{equation}
 
 \paragraph{HQR within each block: line 3 of \cref{algo:blockHQR}}
@@ -673,7 +674,7 @@ We now consider applying $\bb{X}_{k}:=\bb{I}-\bb{W}_k\bb{Y}_k^{\top}$ to some ma
 In practice, $\bb{B}$ is the bottom right submatrix, $[\bb{C}_{k+1}\cdots \bb{C}_{N}][(k-1)r+1:m,:]$.
 We can apply \cref{eqn:deltX} directly to the columns of $\bb{B}$, 
 \begin{align}
-	\|\fl(\hat{\bb{X}}_k \bb{B}[:,j])\|_2 = \|\fl(\hat{\bb{X}}_k^{(r)} \bb{B}[:,j])\|_2 \leq r\tilde{\gamma}_{m-(k-1)r} \|\bb{B}[:,j]\|_2
+	\|\fl(\hat{\bb{X}}_k \bb{B}[:,j])\|_2 = \|\fl(\hat{\bb{X}}_k^{(r)} \bb{B}[:,j])\|_2 \leq r\tilde{\gamma}_{m-(k-1)r} \|\bb{B}[:,j]\|_2.
 \end{align}
 A normwise bound for employing a general matrix-matrix multiplication operation is stated in section 19.5 of \cite{Higham2002}.
 \paragraph{Multiple WY updates: line 8-9 of \cref{algo:blockHQR}}
@@ -718,7 +719,7 @@ For example, a 1600-by-100 matrix can be partitioned into 2, 4, 8, or 16 initial
 Our numerical experiments show that the choice in the initial partition, which directly relates to the recursion depth of TSQR, has an impact in the accuracy of the QR factorization. \par
 
 We refer to \emph{level} as the number of recursions in a particular TSQR implementation. 
-An $L$-level TSQR algorithm partitions the original matrix into $2^{(l)}$ submatrices in the initial or $0^{th}$ level of the algorithm, and $2^{L-i}$ QR factorizations are performed in level $i$ for $i = 1 , \cdots, L$. 
+An $L$-level TSQR algorithm partitions the original matrix into $2^{(L)}$ submatrices in the initial or $0^{th}$ level of the algorithm, and $2^{L-i}$ QR factorizations are performed in level $i$ for $i = 1 , \cdots, L$. 
 The set of matrices that are QR factorized at each level $i$ are called $\bb{A}_j^{(i)}$ for $j = 1, \cdots, 2^{L-i}$, where superscript $(i)$ corresponds to the level and the subscript $j$ indexes the row-blocks within level $i$.
 In the following sections, \cref{algo:par_tsqr} ({\tt tsqr}) will find a TSQR factorization of a matrix $A\in\R^{m\times n}$ where $m \gg n$. 
 The inline function {\tt qr} refers to \cref{algo:hhQR} and we use \cref{algo:hh_v2} as a subroutine of {\tt qr}.
@@ -855,7 +856,7 @@ We compare the error bounds for HQR and TSQR.
 Consider the bounds for $\|\hat{\bb{Q}}-\bb{Q}\|_F$ in \cref{thm:feHQR,thm:moriTSQR}.
 TSQR has a lower worst-case error bound than HQR when integers $m, n > 0$, and $L\geq0$ satisfy
 \begin{equation*}
-1\gg n^{3/2}\gamma^{(m)} \gg n^{3/2}(\gamma^{(\frac{m}{2^L})}+L\gamma^{(2n)}).
+1\gg n^{3/2}\gamma_m \gg n^{3/2}(\gamma_{m2^{-L}}+L\gamma_{2n}).
 \end{equation*}
 Let us consider as an example the case when $\frac{m}{2^L}=2n$.
 Then, the HQR bound is $2^L/(L+1)$ larger than the bound for TSQR with $L$ levels.
@@ -1135,7 +1136,8 @@ Note that this error bound is of the same order as the error bound for {\tt mpHQ
 The corresponding error bound for {\tt mpBQR3} of \cref{sec:mp-3b} yielded low precision errors $r$ times smaller than that from 
 using \cref{assump:mp} inner products, an unsurprising result as intermediate results are cast down more often in {\tt mpBQR2}.
 Furthermore, the $\tilde{\gamma}^{(l)}$ in this section requires $c=\cO(25)$, whereas the same notation in \cref{sec:mp-3b} assumes $c$ to be a \emph{small} positive integer.
-Therefore, the numerical stability of {\tt mpBQR2} is guaranteed at smaller matrix sizes than the numerical stability of {\tt mpBQR3} and BQR in high precision.
+%Therefore, the numerical stability of {\tt mpBQR2} is guaranteed at smaller matrix sizes than the numerical stability of {\tt mpBQR3} and BQR in high precision.
+Therefore, guarantees of numerical stability of {\tt mpBQR2} are limited to smaller matrix sizes when compared to those of {\tt mpBQR3} and BQR in high precision.
 While it is technically possible that the low precision errors introduced from utilizing \cref{assump:mp} do not dominate the errors incurred in {\tt mpBQR2} and {\tt mpHQR2} when $m\gg M_{l,h}$ and can result in accuracy comparable to that of {\tt mpBQR3} and high precision BQR, our numerical results in \cref{sec:NE} show that {\tt mpHQR2} is already unstable at $m\approx M_{l,h}$.
 \subsubsection{TSQR round down at inner product: {\tt mpTSQR2}}
 Finally, we consider using \cref{assump:mp} in \cref{algo:par_tsqr}.
@@ -1225,7 +1227,7 @@ These results suggests that TSQR can outperform HQR even in mixed precision sett
 \end{figure}
 
 In conclusion, most of the experiments display the trends that error bounds in \cref{sec:algo,sec:mpanalysis} suggest, and bFMA variants perform in between the high precision and \cref{assump:mp} variants as expected.
-Also, a special case is shown that demonstrate {\tt mpTSQR2} can outperform {\tt mpHQR2} despite having higher error bounds.
+Also, a special case is shown that demonstrate {\tt mpTSQR2} can outperform {\tt mpHQR2} in accuracy despite having higher error bounds.
 All of the experiments showed that the actual errors were many orders of magnitude lower than the error bounds even when ill-conditioned, but this discrepancy varied for different mixed precision settings.
 For example, backward and forward errors of {\tt mpBQR3} were \emph{only} 2-3 orders of magnitude below the error bounds, whereas the fp32 implementation of BQR yielded errors up to 6 orders of magnitude below the error bounds.
 Although further studies with larger problem sizes and timings would be beneficial in developing an {\tt mpBQR3} with the optimal block size, $r$, our experiments confirm the intuition built from the error analysis in \cref{sec:mpanalysis}.
@@ -1233,7 +1235,7 @@ Although further studies with larger problem sizes and timings would be benefici
 The development of GPUs that optimize low precision floating point arithmetic have accelerated the interest in half and mixed precision algorithms that naturally reduces the bandwidth and storage needs. 
 Loss in precision, stability, and representable range offset for those advantages, but these shortcomings may have little to no impact in some applications.
 It may even be possible to navigate around those drawbacks with algorithmic design. \par
-We present the algorithm and standard error analysis of HQR and its blocked variants (BQR and TSQR), modify the algorithms to support two mixed precision settings, and performed error analysis that accurately bound the mixed precision versions.
+We present the algorithm and standard error analysis of HQR and its blocked variants (BQR and TSQR), modify the algorithms to support two mixed precision settings, and performed error analysis that bound the mixed precision versions.
 One mixed precision setting is that of NVIDIA's TensorCore bFMAs, and the other is an ad hoc setting that mimics the bFMAs at the level of inner products.
 These two are presented to offer mixed precision arithmetic at both level-2 and 3 BLAS operations and can be applied to other linear algebra tools as well.
 The new error bounds more accurately describe how rounding errors are accumulated in mixed precision settings.
@@ -1242,6 +1244,8 @@ Then, the speed-ups from the hardware specifications can be considered next to c
 We found that TSQR can outperform HQR under \cref{assump:mp} for ill-conditioned, extremely overdetermined cases even when the error bounds imply the opposite.
 While an optimistic interpretation of this result would be that algorithms like TSQR are more robust against lower precision arithmetic, further research is needed to explore other divide-and-conquer methods that can harness parallel capabilities.
 Meanwhile, we should rely on the error bounds formed in \cref{sec:mpanalysis}.
+\section*{Acknowledgements}
+The authors are grateful to the anonymous reviewers for their constructive criticisms, which imporved the clarity of the presentation.
 \bibliographystyle{siamplain}%ieeetr
 \bibliography{../../../../../library.bib,../../../../../sans_library.bib,./report.bib}
 

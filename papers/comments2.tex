@@ -64,31 +64,48 @@ Our response to the reviews is below.\\
     {\bf Done.}
     \item {\it line 157-160: It might help to give a verbal summary of this, i.e., ``When two fp16 numbers are multiplied and stored in fp32, there is no roundoff error''. }\\
     {\bf Done.}
-    \item {\it line 168: The concept of ``full precision'' needs some additional constraint. By my understanding, this ``full precision'' argument only applies when $u^{(h)} \leq (u^{(l)})^2$. If so, then this constraint should be stated explicitly. This further contrains the values that the ``disparity in the precisions'' $M_{l,h}$ can have (line 192). It would be good to state these bounds on $M_{l,h}$. }
+    \item {\it line 168: The concept of ``full precision'' needs some additional constraint. By my understanding, this ``full precision'' argument only applies when $u^{(h)} \leq (u^{(l)})^2$. If so, then this constraint should be stated explicitly. This further contrains the values that the ``disparity in the precisions'' $M_{l,h}$ can have (line 192). It would be good to state these bounds on $M_{l,h}$. }\\
+    \red{We have had troubles defining ``full precision'' in general terms. We first encountered this term in the NVIDIA's description of the TensorCore technology (see \cite{Nvidia2017}), and determined that for IEEE fp16, fp32, and fp64, this means exact product. We have changed the wording the definition of MP Settin 2.3 to reflect this and to get rid of ambiguities that follow from writing ``full precision''.}
     \item {\it line 288: extra plus sign in ``2(m+2)+''. }\\
     {\bf Done.}
     \item {\it line 288-289: ``swept that minor difference between under'' Some typo/extra word here. }\\
     {\bf Done.}
-    \item {\it Lemma 3.2: This use of ``$\delta$'' is different than before, and different than that defined in Table 1. I would use some other symbol here. }
-    \item {\it line 341: I am confused as to where the "r" exponent is coming from. }
-    \item {\it line 359 (and throughout the text): It is incorrect to refer to $\|\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}\|$as a backward error. This is better referred to as the "residual". The backward error is the quantity which minimizes the difference $\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}$ over all orthogonal matrices Q. The backward error may be bounded in terms of the loss of orthogonality and the residual. }
+    \item {\it Lemma 3.2: This use of ``$\delta$'' is different than before, and different than that defined in Table 1. I would use some other symbol here. }\\
+    {\bf Done. ($\tau$)}
+    \item {\it line 341: I am confused as to where the ``r'' exponent is coming from. }\\
+    {\bf We changed the product in Lemma 3.2 to range from $j=1$ to $r$ (it was previously $n$) to better fit how it is used in the proof of Lemma 3.3. }
+    \item {\it line 359 (and throughout the text): It is incorrect to refer to $\|\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}\|$ as a backward error. This is better referred to as the "residual". The backward error is the quantity which minimizes the difference $\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}$ over all orthogonal matrices Q. The backward error may be bounded in terms of the loss of orthogonality and the residual. } \\
+    \red{ I disagree that $\|\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}\|$ should be understood as the optimal error from having the ``best'' QR factorization. How do we respond to this? }
     \item {\it line 399: ``negligble'' spelling }\\
     {\bf Fixed.}
-    \item {\it line 416: Where is $\Delta X_k^{(j)}$ defined? }
-    \item {\it line 441: missing period after displayed equation }
-    \item {\it line 494: $2^{(l)}$ should be $2^L$, correct? }
+    \item {\it line 416: Where is $\Delta X_k^{(j)}$ defined? }\\
+    {\bf This is now explicitly defined.}
+    \item {\it line 441: missing period after displayed equation }\\
+    {\bf Added.}
+    \item {\it line 494: $2^{(l)}$ should be $2^L$, correct? }\\
+    {\bf Yes! Thanks for catching that.}
     \item {\it line 536 (and elsewhere): $m2^{-L}$ would look nicer as $2^{-L}m$ }\\
     {\bf Done.}
-    \item {\it line 548: The $\gamma$ notation here is not consistent with the rest of the text (gamma with a superscript in parenthesis is used for different precisions; the superscripts here should just be subscripts) }
-    \item {\it lines 552-553: This case ..." Ok, but do we really expect this in practice? Say something about this. }
-    \item {\it line 556: "2Ln" typo }
-    \item {\it line 684-685: "Therefore, the loss ..." But again, there is some constraint on the disparity between precisions in order for the "full precision" assumption to apply, correct? }
-    \item {\it line 694-695: Why is the exact algorithm for mixed precision TSQR omitted? }
-    \item {\it lines 708-710: Are there some factors dropped from the displayed equations here? }
-    \item {\it lines 778-780: "Therefore, the numerical stability of mpBQR2 is guaranteed at smaller matrix sizes than the numerical stability of ... BQR in high precision". I am confused as to how this can be the case. }
-    \item {\it lines 866: "... particularly when HQR is unstable due to larger condition numbers". What is meant by this? Error bounds for HQR do not depend on condition number. (In fact, I don't see a condition number in any of the bounds in the entire paper). }
-    \item {\it line 870: "mpTSQR2 can outperform mpHQR2" - "outperform" in terms of what? }
-    \item {\it line 885: "accurately bound" - I would remove or soften this claim, as you just said in the previous paragraph that the error bounds overestimate by 2-3 orders of magnitude (line 874).}
+    \item {\it line 548: The $\gamma$ notation here is not consistent with the rest of the text (gamma with a superscript in parenthesis is used for different precisions; the superscripts here should just be subscripts) }\\
+    {\bf Fixed.}
+    \item {\it lines 552-553: This case ..." Ok, but do we really expect this in practice? Say something about this. }\\
+    \red{I'm considering adding ``Note that this likely is not the typical situation in practice.'' Any suggestions?}
+    \item {\it line 556: `2Ln'' typo }\\
+    {\bf We got $2Ln$ from the approximation $L\gamma_{2n}=L\frac{2nu}{1-2nu}\approx 2Lnu$.}
+    \item {\it line 684-685: "Therefore, the loss ..." But again, there is some constraint on the disparity between precisions in order for the "full precision" assumption to apply, correct? }\\
+    \red{If we address this, we should go back to defining MP Setting 2.3 with full precision and making a comment about how that affects $M_{l,h}$. Should we do this? Or we could say some blanket statement earlier on about how the disparity we assumed to be large and therefore $M_{l,h}$ is sufficiently large?}
+    \item {\it line 694-695: Why is the exact algorithm for mixed precision TSQR omitted? }\\
+    {\bf Given the length of the manuscript, we omitted this since the procedure of adding mixed precision to TSQR is similar to how we added mixed precision to BQR (which has been explicitly stated in description and in algorithm.)} \red{Is this response ok?}
+    \item {\it lines 708-710: Are there some factors dropped from the displayed equations here? }\\
+    {\bf We believe these are the correct order of coefficients for the $\tilde{\gamma}$ terms.} \red{ Right?}
+    \item {\it lines 778-780: "Therefore, the numerical stability of mpBQR2 is guaranteed at smaller matrix sizes than the numerical stability of ... BQR in high precision". I am confused as to how this can be the case. }\\
+    {\bf This has been reworded in the manuscript. We were pointing out that on top of {\tt mpBQR2} having more cast down operations and rounding errors, the small integer constant argument implicit in the $\tilde{\gamma}$ notation differs in the analysis of {\tt mpBQR2} than in the analyses of {\tt mpBQR3} and in high precision BQR.}
+    \item {\it lines 866: "... particularly when HQR is unstable due to larger condition numbers". What is meant by this? Error bounds for HQR do not depend on condition number. (In fact, I don't see a condition number in any of the bounds in the entire paper). }\\
+    {\bf The condition number is not a part of our rounding error analysis. We use it in this experiment in our attempt to reach the ``worst-case'' scenario since that is what our deterministic error bounds bound. } \red{Should we reword this sentence in the manuscript?}
+    \item {\it line 870: ``mpTSQR2 can outperform mpHQR2'' - ``outperform'' in terms of what? } \\
+    {\bf We have added that this is with respect to accuracy.}
+    \item {\it line 885: ``accurately bound'' - I would remove or soften this claim, as you just said in the previous paragraph that the error bounds overestimate by 2-3 orders of magnitude (line 874).}\\
+    {\bf We have removed ``accurately''.}
 \end{enumerate}
 
 \noindent{\bf Reviewer \#2}
