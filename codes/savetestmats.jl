@@ -11,7 +11,7 @@ function savetestmats!(ms::Vector{Int}, ns::Vector{Int}, κs,
 end
 #start=11;
 ms = exp10.(range(3, stop=log10(14000), length=10));
-ns = 1000. *ones(10);
+ns = 1000 *ones(Int,10);
 ms = ceil.(Int, ms);
 κs = 1e3*ones(length(ms));
 dt = h;
