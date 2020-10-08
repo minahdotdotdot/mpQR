@@ -1015,7 +1015,7 @@ Invoking \cref{lem:3.7} with error bounds for $\fl_{TC}(\hat{\bb{X}}_k^{(l)})$'s
 where $\Delta \bb{q}_j = (\fl_{TC}(\hat{\bb{X}}_1^{(l)})\cdots\fl_{TC}(\hat{\bb{X}}_k^{(l)}) - \bb{X}_1\cdots\bb{X}_k )\hat{\bb{e}}_j.$
 Summing over the columns to find a matrix norm error bound yields
 \begin{equation}
-	\|\hat{\bb{Q}}_{mpBQR}-\bb{Q}\|_F \leq n^{1/2}\left(\tilde{\gamma}_{N}^{(l)} + n\tilde{\gamma}_m^{(h)}\right),
+	\|\hat{\bb{Q}}_{mpBQR}-\bb{Q}\|_F \leq n^{1/2}\left(\tilde{\gamma}_{N}^{(l)} + n\tilde{\gamma}_m^{(h)}\right),\label{eqn:mpBQR3err}
 \end{equation}
 where the summation of the third term in \cref{eqn:mpBQRcol} is swept under the tilde notation in $n^{1/2} \tilde{\gamma}_{N}^{(l)}$.
 This bound shows that \cref{algo:mpBQR} only adds $n^{1/2}\tilde{\gamma}_{N}^{(l)}$ order errors to the bounds in \cref{eqn:BQRmat}.
@@ -1023,11 +1023,15 @@ Using that $u^{(l)}=M_{l,h}u^{(h)}$, this increase corresponds to a multiplicati
 \begin{equation}
 	n^{1/2}\tilde{\gamma}_{N}^{(l)} + n^{(3/2)}\tilde{\gamma}_m^{(h)} \approx \left(1+\frac{M_{l,h}}{rm}\right)n^{(3/2)}\tilde{\gamma}_m^{(h)}. \label{eqn:mpBQR3}
 \end{equation}
-Therefore, the loss in accuracy due to mixed precision computing is relatively small when the disparity in precision ($M_{l,h}$) is small in comparison to the block size, $mr$.
-However, as $r$ grows large, $N=n/r$ decreases which then reduces the portion of {\tt mpBQR3} performed using level-3 BLAS operations and increases the size of high precision HQR being performed at each block.
-%TODO: line T
-Whether this loss in accuracy in the worst-case scenario is worth the speed-ups from using mixed precision hardware is an open question that can be tackled in future research.
-Our analysis shows that the block size $r$, the dimension of the input matrix $m,n$, and hardware specificities will be contributing factors. 
+In practice, we expect hardware specifications to restrict $r$ between $\cO(10)$ and $\cO(100)$ and fix finite options for $u_l$, $u_h$, and therefore $M_{l,h}$.
+This helps narrow our analysis. 
+In general, the loss in accuracy due to mixed precision computing is relatively small when the disparity in precision ($M_{l,h}$) is small in comparison to the block size, $mr$.
+As we can assume $r$ to be fixed at $\cO(100)$ at the largest, the loss of accuracy attributed to mixed precision computing grows small as $m$ grows large, indicating that {\tt mpBQR3} can yield accuracy comparable to its high, uniform precision variant while still benefiting from speed-ups. 
+Next, note that $r=1$ and $r=n$ both revert to HQR with only level-2 BLAS operations, and other values of $r$ determine the proportion of level-2 and level-3 BLAS operations.
+%As $r$ approaches $n$, $N=n/r$ decreases which then reduces the portion of {\tt mpBQR3} performed using level-3 BLAS operations and increases the size of high precision HQR being performed at each block.
+The optimal blocksize only needs to be searched within the permissible ranges for $r$ and $M_{l,h}$.
+Overall, the actual trade-off between speed-ups and accuracy from using mixed precision hardware for the QR factorization is an open question that can be tackled more comprehensively in future research.
+Our analysis shows that the worst-case bounds depend on block width $r$, the dimension of the input matrix $m,n$, as well as hardware specificities. 
 
 \subsubsection{TSQR round down at block level: {\tt mpTSQR3}}\label{sec:mp-3t}
 Unlike BQR which is rich in level-3 BLAS operations, the variant of TSQR in \cref{algo:par_tsqr} uses none.
@@ -1166,12 +1170,12 @@ These experiments are discussed in detail in the next section.
 Finally, the error bounds for the $\bb{Q}$ matrix formed from implementing all of the algorithms discussed in this section are summarized in \cref{table:summary}.
 \begin{table}[H]
 	\center
-	\begin{tabular}{ |p{0.75in}||p{1.3in}|p{1.5in}|p{1.5in}|  }\hline
+	\begin{tabular}{|p{0.75in}||p{1.3in}|p{1.5in}|p{1.5in}|}\hline
  Algorithm& Uniform & Mixed BLAS-2 (\S\ref{sec:mp-2}) & Mixed BLAS-3 (\S\ref{sec:mp-3})\\
  \hline\hline
  HQR (\S\ref{sec:HQR}) & $n^{3/2}\tilde{\gamma}_{m}$ & $n^{1/2}(\tilde{\gamma}_{10n}^{(l)}+n\tilde{\gamma}_{m}^{(h)})$ & n/a \\\hline
  BQR& $n^{3/2}\tilde{\gamma}_{m}$ & $n^{1/2}\tilde{\gamma}_{10N}^{(l)}+n^{3/2}\tilde{\gamma}_{m}^{(h)}$ & $n^{1/2}\left(\tilde{\gamma}_{N}^{(l)} + n\tilde{\gamma}_m^{(h)}\right)$ \\\hline
- TSQR & $n^{3/2}(\tilde{\gamma}_{m2^{-L}}+L\tilde{\gamma}_{2n})$ &  \begin{tabular}{@{}c@{}}$n^{1/2}\tilde{\gamma}_{10(L+1)}^{(l)}$\\ $+n^{3/2}(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)})$\end{tabular} & \begin{tabular}{@{}c@{}}$n^{1/2}\tilde{\gamma}_{L+1}^{(l)}$ \\ $+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{2^{-L}m}^{(h)}\right)$\end{tabular}\\
+ TSQR & $n^{3/2}(\tilde{\gamma}_{m2^{-L}}+L\tilde{\gamma}_{2n})$ &  \begin{tabular}{@{}c@{}}$n^{1/2}\tilde{\gamma}_{10(L+1)}^{(l)}$\\ $+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right)$\end{tabular} & \begin{tabular}{@{}c@{}}$n^{1/2}\tilde{\gamma}_{L+1}^{(l)}$ \\ $+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{2^{-L}m}^{(h)}\right)$\end{tabular}\\
  \hline
 \end{tabular}
 	\caption{Error bounds for $\|\Delta \bb{Q}\|_F$ for all algorithms in \cref{sec:HQR,sec:mpanalysis}.} 
