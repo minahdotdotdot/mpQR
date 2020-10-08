@@ -9,12 +9,12 @@ include("TSQR.jl")
 
 l=Float16; h=Float32; d=Float64
 ms = exp10.(range(3, stop=log10(14000), length=10));
-ns = 1000.*ones(14);
+ns = 1000. *ones(14);
 ms = ceil.(Int, ms);
 L = 2;
 κs = 1e3*ones(length(ms));
 dt = h;
-name="size2_"
+name="size3_"
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
 function addtofile!(name::String, b::AbstractFloat, o::AbstractFloat)
