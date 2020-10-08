@@ -13,14 +13,15 @@ function loadtxt(name::String, ave::Bool=true)
 end
 
 #rs3 = 2 .^(2:12)        # dat
-#m=2^13; n=m;
-m=2^11; n=2^8;
+m=2^12; n=2^8;
+#m=2^11; n=2^8;
 name = string(Int(log2(m)),pad=2)*string(Int(log2(n)),pad=2)*"_"
 rs=ceil.(Int,2 .^range(1, stop=log2(n), length=19))
 rlen = length(rs);
 
 
-#include("W.jl")
+include("W.jl")
+#=
 datb, datf = loadtxt(name, false);
 trials=Int(size(datb)[1]/19);
 datbh = reshape(datb[:,1],rlen,trials); datbh = maximum(datbh, dims=2);
@@ -61,3 +62,4 @@ ylabel("Norm error")
 title("BQRh and mpBQR3 performance on "*string(m)*"-by-"*string(n)*" matrices")
 legend(bbox_to_anchor=(0.1,0.22,.75,.2), ncol=2)
 #legend(bbox_to_anchor=(.15, .5), ncol=2)
+=#
