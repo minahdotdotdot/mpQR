@@ -90,6 +90,7 @@ for i = 1 : 10#length(ms)
     addtofile!(name, b, o);
     
     addtofile!(name, -1., -1.);
+    print("Done with"* string(ms[i])*"!\n")
 end
 
 
