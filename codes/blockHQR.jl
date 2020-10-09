@@ -8,16 +8,28 @@ function WYupdate(V::Matrix{T}, # Columns are householder vectors. (Should be lo
  b::Vector{T};                  # householder constants, if "n2" or "nn", just oens if "n1".
  ) where T<:AbstractFloat
 	r = length(b); m̃ = size(V)[1];
-	W = b[1]*V[1:end,1];
-	for j = 2 : r
-		z = b[j]*(V[:,j] - reshape(W,m̃,j-1) * (V[:,1:j-1]' *V[:,j]))
-		W = hcat(W, z);      # is now m̃ by j
-	end
-	return W
+    if r > 1
+    	W = b[1]*V[1:end,1];
+    	for j = 2 : r
+    		z = b[j]*(V[:,j] - reshape(W,m̃,j-1) * (V[:,1:j-1]' *V[:,j]))
+    		W = hcat(W, z);      # is now m̃ by j
+    	end
+    	return W
+    elseif r == 1
+        return reshape(b[1]*V[1:end,1], length(V),1)
+    end
+end
+
+function WYupdate(V::Vector{T}, # Columns are householder vectors. (Should be lower trapezoidal.)
+ b::Vector{T};                  # householder constants, if "n2" or "nn", just oens if "n1".
+ ) where T<:AbstractFloat
+    r = length(b);
+    return reshape(b[1]*V, length(V),1)
 end
 
 function bhh_QR_n2(
     A::Array{T,2}, r::Int, m::Int, n::Int, n_stop::Int, N::Int;
+    #A, r::Int, m::Int, n::Int, n_stop::Int, N::Int;
     want_Q::Bool=true, 
     thin::Bool=true
     ) where T<:AbstractFloat
@@ -28,7 +40,7 @@ function bhh_QR_n2(
     Y = Vector{Matrix{T}}(undef, N);
     while λ <= n_stop
     	τ = min(λ+r-1, n); k += 1;
-    	b, Y[k], R[λ:end, λ:τ] =hh_QR_n2(R[λ:end, λ:τ], want_Q=false, thin=false);
+    	b, Y[k], R[λ:end, λ:τ] =hh_QR_n2(R[λ:end, λ:τ], want_Q=false, thin=false);#print(k)
     	W[k] = WYupdate(Y[k], b);
     	R[λ:end, τ+1:end] -= Y[k]*(W[k]' * R[λ:end, τ+1:end]);
     	λ = τ + 1;

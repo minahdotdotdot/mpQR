@@ -12,12 +12,16 @@ function buildWY(V::Matrix{h}, # Columns are householder vectors. (Should be low
  b::Vector{h};                  # householder constants, if "n2" or "nn", just oens if "n1".
  )
 	r = length(b); m̃ = size(V)[1];
-	W = b[1]*V[1:end,1];
-	for j = 2 : r
-		z = b[j]*(V[:,j] - reshape(W,m̃,j-1) * (V[:,1:j-1]' *V[:,j]))
-		W = hcat(W, z);      # is now m̃ by j
-	end
-	return W
+    if r > 1
+    	W = b[1]*V[1:end,1];
+    	for j = 2 : r
+    		z = b[j]*(V[:,j] - reshape(W,m̃,j-1) * (V[:,1:j-1]' *V[:,j]))
+    		W = hcat(W, z);      # is now m̃ by j
+    	end
+    	return W
+    elseif r == 1
+        return reshape(b[1]*V[1:end,1], length(V),1)
+    end
 end
 
 function mpbhh_QR(
@@ -47,8 +51,8 @@ function mpbhh_QR(
         W[k] = buildWY(Y[k], b);
 
         # Cast down.
-        R[λ:end, λ:τ] = Matrix{l}(C);
-        W[k] = Matrix{l}(W[k]);
+        R[λ:end, λ:τ] = Matrix{l}(C);#print(k);
+        W[k]=l.(W[k]);#W[k] = Matrix{l}(W[k]);
         Y[k] = Matrix{l}(Y[k]);
 
         # Update right blocks

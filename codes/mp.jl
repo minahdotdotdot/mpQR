@@ -4,8 +4,25 @@ function mpWYupdate(W::Matrix{l}, Y::Matrix{l}, B::Matrix{l};b=4)
     temp = bFMA(W, bFMA(-Y', B,b=b); C=B,b=b);
     return temp
 end
-
-
+function mpWYupdate(W::Matrix{l}, Y::Vector{l}, B::Matrix{l};b=4)
+    h = Float32;
+    Y=reshape(Y,length(Y),1)
+    temp = bFMA(W, bFMA(-Y', B,b=b); C=B,b=b);
+    return temp
+end
+function mpWYupdate(W::Vector{l}, Y::Vector{l}, B::Matrix{l};b=4)
+    h = Float32;
+    Y=reshape(Y,length(Y),1)
+    W=reshape(W,length(Y),1)
+    temp = bFMA(W, bFMA(-Y', B,b=b); C=B,b=b);
+    return temp
+end
+function mpWYupdate(W::Vector{l}, Y::Matrix{l}, B::Matrix{l};b=4)
+    h = Float32;
+    W=reshape(W,length(Y),1)
+    temp = bFMA(W, bFMA(-Y', B,b=b); C=B,b=b);
+    return temp
+end
 # bFMA emulates TensorCore matrix-matrix multiply and accumulate in mixed precision
 function bFMA(A::T, B::Matrix{l}; C=0, b=4) where T<: Union{Matrix{l}, Adjoint{l,Matrix{l}}}
     h=Float32;

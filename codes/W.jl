@@ -7,19 +7,7 @@ include("TSQR.jl")
 using DelimitedFiles
 #name = "sBQR3"
 l = Float16; h=Float32; d=Float64;
-#c=1000.;
-#m=4096;n=2048;
-#rs = 2 .^(6:10); 
-#berr = zeros(d, length(rs), trials,3);
-#oerr = zeros(d, length(rs), trials,3);
-#m=2^13
-#n=m
-#rs = 2 .^ (12:-1:2)
-#m=2^11;
-#n=2^9;
-#rs=ceil.(Int,2 .^range(1, stop=9, length=19))
-#rs = 2 .^(1:9);
-#trials = 10;
+trials = 2;
 writedlm("../txtfiles/"*name*"b.txt", ["Condition backward"])
 writedlm("../txtfiles/"*name*"f.txt", ["Condition orthogonal"])
 for t = 1 : trials

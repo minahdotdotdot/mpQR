@@ -13,17 +13,18 @@ function loadtxt(name::String, ave::Bool=true)
 end
 
 #rs3 = 2 .^(2:12)        # dat
-m=2^12; n=2^8;
+m=2^15; n=2^7;
 #m=2^11; n=2^8;
 name = string(Int(log2(m)),pad=2)*string(Int(log2(n)),pad=2)*"_"
-rs=ceil.(Int,2 .^range(1, stop=log2(n), length=19))
-rlen = length(rs);
+rlen=19
+rs=ceil.(Int,2 .^range(1, stop=log2(n)-1, length=rlen))
+
 
 
 include("W.jl")
-#=
+
 datb, datf = loadtxt(name, false);
-trials=Int(size(datb)[1]/19);
+trials=Int(size(datb)[1]/rlen);
 datbh = reshape(datb[:,1],rlen,trials); datbh = maximum(datbh, dims=2);
 datbmp3 = reshape(datb[:,2],rlen,trials); datbmp3 = maximum(datbmp3, dims=2);
 datfh = reshape(datf[:,1],rlen,trials); datfh = maximum(datfh, dims=2);
@@ -33,7 +34,7 @@ datfmp3 = reshape(datf[:,2],rlen,trials); datfmp3 = maximum(datfmp3, dims=2);
 #datfh = datf[1:2:end,1];
 #datfmp3 = datf[2:2:end,1];
 
-boundh = n^(3/2)*m*uh*ones(19)#length(datbh));
+boundh = n^(3/2)*m*uh*ones(rlen)#length(datbh));
 bound3 = n^(3/2)*(1 ./rs*ul .+ m/4*uh);
 
 
@@ -62,4 +63,3 @@ ylabel("Norm error")
 title("BQRh and mpBQR3 performance on "*string(m)*"-by-"*string(n)*" matrices")
 legend(bbox_to_anchor=(0.1,0.22,.75,.2), ncol=2)
 #legend(bbox_to_anchor=(.15, .5), ncol=2)
-=#
