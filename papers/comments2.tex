@@ -124,7 +124,16 @@ Our response to the reviews is below.\\
     \item {\it Pages 6 and 7, there is a discussion of the speed benefits associated with MP Setting 2.3. I have found this discussion to be slightly confusing/questionable and not really useful, given this article focuses on error analysis and does not provide any performance experiments, as indicated on L212. I suggest removing any detailed discussion of the speed benefits of MP Setting 2.3 vs the TensorCore setting. In particular, I feel that the distinction of the 3 cases is not really meaningful and could be replaced by a simpler discussion comparing the mixed-precision bound with the uniform precisions bounds $mu^{(l)}$ and $mu^{(h)}$.}\\
     \red{I think we can go either way with this comment, and it wouldn't be hard to explain why not or to do as they suggest. What do you think?}
     \item {\it Figure 1 is hard to decipher, mainly due to the use of a color map for the error which can vary by several orders of magnitude. Can the authors use a color map using a log-scale? Or perhaps the figure can be replaced by a simpler, less rich figure with fixed n and varying m on the x-axis, error on the y-axis, and different plots for each variant.}\\
-    \red{From what I recall, the log color range did not change the figure by much. Unfortunately, I have no idea where the code I used to generate this plot is, so I"m going to need to go back and re-do this.}
+    {\bf We have replaced the left plot in \cref{fig:Fig1} with the right plot. The color map is on a log-scale and shows clearly that TSQR with 4 levels can exhibit smaller bounds than the other two. }
+\begin{figure}[h!]
+    \centering
+    \vspace{-10pt}
+    \includegraphics[width=0.45\textwidth]{./figures/paramspace.pdf}
+    \includegraphics[width=0.45\textwidth]{./paramspace2.png}
+    \caption{\label{fig:Fig1}Left plot: Old; Right plot: New}
+    \vspace{-10pt}
+\end{figure} 
+
     \item {\it Section 4: I think the paper would read better by interchanging sections 4.1 and 4.2. The bounds of section 4.2 are weaker, and adding them after section 4.1 therefore seems artificial and unnecessary. Instead, giving first the bounds for the more general MP setting 2.3 would allow to present the bFMA/TensorCore setting as a further improvement, which would neatly emphasize the accuracy benefits brought by this type of hardware.}\\
     \red{I agree. I haven't made this change yet, but will do so if you approve first.}
     \item {\it Equation (4.5): $\gamma_{p/4}^{(fp32)}$ should be replaced by $\gamma_p^{(fp32)}$. In an early preprint version of \cite{Blanchard2020}, the former was indeed given under the assumption that NVIDIA tensor cores implement a “true FMA”, that is, that in (4.4) the additions in the $4\times 4$ product AB are done in full precision. However this is not the case, the additions are performed in fp32, and so there are still p rounding errors that accumulate in a general product of inner dimension p, as indicated in the published version of \cite{Blanchard2020} (cf. [1, Thm 3.1]). Fortunately I do not think this impacts the analysis of this paper beyond equation (4.5).}\\
@@ -141,7 +150,17 @@ Our response to the reviews is below.\\
     \item Figure 2, left plot: I suggest fixing $r$ to a constant rather than $n/4$, which I think is more realistic. Also, have the authors checked what the plots look like for fixed $n$ rather than $n = m/4$ ? The bounds suggest n should not play a significant role in the relative accuracy of the MP block algorithms vs. the uniform precision ones, but it might be worth checking.\\
     \red{I'm still working on this.}
     \item Figure 2, right plot: the chosen m is a bit small, would it be worth giving the errors for a larger $m$ (which would probably lead to the MP and uniform algorithms to be closer in accuracy) ?\\
-    \red{I'm still working on this.}
+    {\bf We had tried increasing $m$, but it looked that the matrices needed to be significantly larger to grow sufficiently closer together. Notably, the rightmost plot show the {\tt mpBQR3} orthogonality error to drop below the unit round-off for fp16. Our goal with this figure was to show that the errors do behave in the same trend as the error bounds suggest. Regardless, below are similar figure with larger matrix sizes.}
+    \red{Should I swap out the old figure with the middle or the right one?}
+    \begin{figure}[h!]
+        \centering
+        \vspace{-10pt}
+        \includegraphics[width=0.32\textwidth]{./figures/12-08.png}
+        \includegraphics[width=0.32\textwidth]{./figures/13-07.png}
+        \includegraphics[width=0.32\textwidth]{./figures/14-07.png}
+        \caption{\label{fig:Fig2} Left: Old figure; Middle: Larger matrices; Right: Largest matrices.}
+        \vspace{-10pt}
+    \end{figure} 
 \end{enumerate}
 
 \textbf{Stylistic suggestions, typos, and other very minor things:}
