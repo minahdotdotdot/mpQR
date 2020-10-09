@@ -128,7 +128,7 @@ Our response to the reviews is below.\\
 \begin{figure}[h!]
     \centering
     \vspace{-10pt}
-    \includegraphics[width=0.45\textwidth]{./figures/paramspace.pdf}
+    \includegraphics[width=0.45\textwidth]{./figures/paramspace.png}
     \includegraphics[width=0.45\textwidth]{./paramspace2.png}
     \caption{\label{fig:Fig1}Left plot: Old; Right plot: New}
     \vspace{-10pt}
@@ -150,8 +150,8 @@ Our response to the reviews is below.\\
     \item Figure 2, left plot: I suggest fixing $r$ to a constant rather than $n/4$, which I think is more realistic. Also, have the authors checked what the plots look like for fixed $n$ rather than $n = m/4$ ? The bounds suggest n should not play a significant role in the relative accuracy of the MP block algorithms vs. the uniform precision ones, but it might be worth checking.\\
     \red{I'm still working on this.}
     \item Figure 2, right plot: the chosen m is a bit small, would it be worth giving the errors for a larger $m$ (which would probably lead to the MP and uniform algorithms to be closer in accuracy) ?\\
-    {\bf We had tried increasing $m$, but it looked that the matrices needed to be significantly larger to grow sufficiently closer together. Notably, the rightmost plot show the {\tt mpBQR3} orthogonality error to drop below the unit round-off for fp16. Our goal with this figure was to show that the errors do behave in the same trend as the error bounds suggest. Regardless, below are similar figure with larger matrix sizes.}
-    \red{Should I swap out the old figure with the middle or the right one?}
+    {\bf We had tried increasing $m$, but it looked that the matrices needed to be significantly larger to grow sufficiently closer together. Figures with larger matrix sizes are shown in \cref{fig:Fig2}. Notably, the rightmost plot show the {\tt mpBQR3} orthogonality error to drop below the unit round-off for fp16. Our goal with this figure was to show that the errors do behave in the same trend as the error bounds suggest. Regardless, below are similar figure with larger matrix sizes.}
+    \red{Should I swap out the old figure with the middle or the right one? or go even larger? The rightmost was what I could run on my laptop quickly.} 
     \begin{figure}[h!]
         \centering
         \vspace{-10pt}
