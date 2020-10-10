@@ -9,7 +9,7 @@ include("TSQR.jl")
 
 l=Float16; h=Float32; d=Float64
 ms = exp10.(range(3, stop=log10(14000), length=10));
-ns = 1000. *ones(10);
+ns = 250 *ones(10);
 ms = ceil.(Int, ms);
 L = 2;
 κs = 1e3*ones(length(ms));
@@ -26,7 +26,7 @@ function addtofile!(name::String, b::AbstractFloat, o::AbstractFloat)
     end
 end
 
-for i = 1 : 10#length(ms)
+for i = 2 : 10#length(ms)
 	varname="st3"*string(i,pad=2)
 	file = matopen("../"*varname*".mat")
 	A = Matrix{l}(read(file, varname))
