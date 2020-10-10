@@ -40,7 +40,7 @@ for i = 2 : 10#length(ms)
     addtofile!(name, b, o);
     
     n = size(A)[2];
-    r = 500;
+    r = ceil(Int, n/4);
     # Block high precision
     Q, R = bhh_QR(Ah, r);
     Q = Matrix{h}(Q);
