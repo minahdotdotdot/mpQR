@@ -12,9 +12,9 @@ function loadtxt(name::String, ave::Bool=true)
 	end
 end
 
-#ms = exp10.(range(3, stop=log10(45000), length=14));
-#ns = floor.(Int,ms/4);
-#ms = ceil.(Int, ms);
+#=ms = exp10.(range(3, stop=log10(45000), length=14));
+ns = floor.(Int,ms/4)[1:10];
+ms = ceil.(Int, ms)[1:10];=#
 ms = exp10.(range(3, stop=log10(14000), length=10));
 ns = 1000. *ones(10);
 ms = ceil.(Int, ms);
@@ -54,11 +54,11 @@ plot(rs3, boundh,label="BQR bound", c=:blue)
 plot(rs3, bound3,label="mpBQR3 bound", c=:green)
 =#
 xticks()
-xlim(minimum(ms)*.9, maximum(ms)/.9)
+xlim(minimum(ms)*.9, 45000)
 ylim(.1*eps(h), maximum(ssb)/.8)
 xlabel("m, number of rows")
 ylabel("Backward Frobenius norm error")
-#title(L"QR relative backward errors of $m$-by-$\frac{m}{4}$ matrices")
+#title(L"QR relative backward errors of $m$-by-$\frac{m}{4}$ matrices, r=500")
 title(L"QR relative backward errors of $m$-by-$250$ matrices")
 legend()
 #legend(bbox_to_anchor=(.95, .8))

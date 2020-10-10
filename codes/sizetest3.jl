@@ -1,4 +1,4 @@
-#FIX n to 1000.
+#FIX n to 250.
 using MAT, DelimitedFiles
 include("genmat.jl")
 include("blockHQR.jl")
