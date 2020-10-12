@@ -1,7 +1,7 @@
 \documentclass[review,onefignum,onetabnum]{siamart190516}
 %DIF LATEXDIFF DIFFERENCE FILE
 %DIF DEL all.tex         Wed Sep 30 07:57:27 2020
-%DIF ADD revision2.tex   Fri Oct  9 20:44:04 2020
+%DIF ADD revision2.tex   Mon Oct 12 09:05:32 2020
 %Packages
 \usepackage[utf8]{inputenc}
 \usepackage{geometry, graphicx,wrapfig}
@@ -118,7 +118,7 @@ The existing rounding error analyses \DIFaddbegin \DIFadd{of linear algebra rout
 In this work, we develop mixed precision variants of existing Householder (HH) QR factorization algorithms and perform mixed precision error analysis.
 This work focuses on analyzing a few algorithms that use fp16/fp32 as the low/high precision types, but the error analysis can be easily modified for different floating point types (such as bfloat16 in \cite{tagliavini2018floating}).
 The standard HH QR algorithm and its block variants that partition the columns (level-3 BLAS variant, see \cite{golub2013matrix,Higham2002}) and those that partition the \DIFdelbegin \DIFdel{columns }\DIFdelend \DIFaddbegin \DIFadd{rows }\DIFaddend (communication-avoiding algorithms of \cite{Demmel2012}) are presented in \cref{sec:algo}, then modified to support bFMAs and an ad hoc mixed precision setting that mimics NVIDIA TensorCores in \cref{sec:mpanalysis}.
-Our key findings are that mixed precision error analyses produce tighter error bounds as supported by experiments in \cref{sec:NE}, algorithms that utilize level-3 BLAS operations can easily be modified to incorporate TensorCore bFMAs, and a row partition block algorithm operates  more robustly in mixed precision than non-block techniques in certain regimes.
+Our key findings are that mixed precision error analyses produce tighter error bounds as supported by experiments in \cref{sec:NE}, algorithms that utilize level-3 BLAS operations can easily be modified to incorporate TensorCore bFMAs, and \DIFdelbegin \DIFdel{a row partition block algorithm operates  }\DIFdelend \DIFaddbegin \DIFadd{some block algorithms operate }\DIFaddend more robustly in mixed precision than non-block techniques in certain regimes.
 \section{Background: Build up to rounding error analysis for inner products}\label{sec:background}
 In this section, we introduce the basic motivations and tools for mixed precision rounding error analysis needed for the {\it QR factorization}.
 A matrix $\bb{A} \in \R^{m \times n}$ for $m\geq n$ can be written as
@@ -128,8 +128,8 @@ where an orthogonal $\bb{Q}\in\R^{m\times m}$ and an upper trapezoidal $\bb{R}$ 
 If $\bb{A}$ is full rank then the columns of $\bb{Q}_{1}$ are orthonormal
 and $\bb{R}_1$ is upper triangular.
 In many applications, \DIFdelbegin \DIFdel{computing the }\DIFdelend \DIFaddbegin \DIFadd{only a }\DIFaddend \emph{thin} decomposition \DIFdelbegin \DIFdel{requires }\DIFdelend \DIFaddbegin \DIFadd{is needed as it produces an orthonormal basis for the column space of $\bb{A}$ while requiring }\DIFaddend less computation and \DIFdelbegin \DIFdel{is sufficient in performance.
-}\DIFdelend \DIFaddbegin \DIFadd{storage.}\par
-\DIFadd{Lastly, suppose that $\hat{y}$ is the result of implementing an algorithm that approximates $y=f(x)$.
+}\DIFdelend \DIFaddbegin \DIFadd{storage.
+Suppose that $\hat{y}$ is the result of implementing an algorithm that approximates $y=f(x)$.
 The forward error is $|\hat{y}-y|$, and the backward error is defined as $|\Delta x|$ or $\min |\Delta x|$ that satisfies $\hat{y}=f(x+\Delta x)$. 
 We use the first definition of backward error for the remainder of this paper. 
 %DIF > and is sufficient in performance. 
@@ -332,7 +332,7 @@ Thus, }\DIFdelend the summation and the final cast down operations are the only 
 }\DIFdelend %DIF > Furthermore, we expect this procedure to be approximately twice as fast as if it were done entirely in the higher precision, and about the same as if it were done entirely in the lower precision. 
 \end{assump}
 We now analyze the rounding error for the inner product scheme described in \cref{assump:mp} and hypothesize that the guaranteed accuracy for this mixed precision inner product should be better than that of the low precision inner product and worse than that of the high precision inner product.
-Let $\bb{x}^{(l)},\bb{y}^{(l)}$ be $m$-length vectors stored in a low precision type ($\F_l^m$), $s_k$ be the exact $k^{th}$ partial sum, and \DIFdelbegin \DIFdel{$\hat{s_k}$ }\DIFdelend \DIFaddbegin \DIFadd{$\hat{s}_k$ }\DIFaddend be $s_k$ computed with FLOPs.
+Let \DIFdelbegin \DIFdel{$\bb{x}^{(l)},\bb{y}^{(l)}$ }\DIFdelend \DIFaddbegin \DIFadd{$\bb{x},\bb{y}$ }\DIFaddend be $m$-length vectors stored in a low precision type ($\F_l^m$), $s_k$ be the exact $k^{th}$ partial sum, and \DIFdelbegin \DIFdel{$\hat{s_k}$ }\DIFdelend \DIFaddbegin \DIFadd{$\hat{s}_k$ }\DIFaddend be $s_k$ computed with FLOPs.
 Then the first three partial sums are,
 \begin{align*}
 \hat{s}_1 &= \fl (\bb{x}[1]\bb{y}[1]) = \bb{x}[1]\bb{y}[1],\quad \hat{s}_2 = \fl(\DIFdelbegin %DIFDELCMD < \hat{s_1} %%%
@@ -411,8 +411,12 @@ We summarize these ways of combining $\gamma$ terms of different precisions in \
 	\end{align}
 \end{lemma}
 Note that \cref{eqn:mpgamma} drops the term $\tilde{\gamma}_{k_l}^{(l)}\tilde{\gamma}_{k_h}^{(h)}$ since both $\tilde{\gamma}_{k_l}^{(l)}$ and $\tilde{\gamma}_{k_h}^{(h)}$ are larger than their product and this product can be swept under the small integer $c > 0$ assumption implicitly included in the tilde notation.
-the two mixed precision settings add {\tt castdown} operations at different parts of the HQR algorithms we consider.
-In general, error bounds in the fashion of \cref{eqn:beforecd} can be used before the cast down operations and the action of the cast down is best represented by error bounds similar to \cref{eqn:aftercd}.\par
+\DIFdelbegin \DIFdel{the }\DIFdelend \DIFaddbegin \DIFadd{Using these }\DIFaddend two mixed precision settings \DIFdelbegin \DIFdel{add }%DIFDELCMD < {\tt %%%
+\DIFdel{castdown}%DIFDELCMD < } %%%
+\DIFdel{operations }\DIFdelend \DIFaddbegin \DIFadd{in HQR algorithms results in casting down to the low precision }\DIFaddend at different parts of the \DIFdelbegin \DIFdel{HQR algorithmswe consider.
+}\DIFdelend \DIFaddbegin \DIFadd{algorithms.
+%DIF > The two mixed precision settings add {\tt castdown} operations at different parts of the HQR algorithms we consider.
+}\DIFaddend In general, error bounds in the fashion of \cref{eqn:beforecd} \DIFdelbegin \DIFdel{can be used before the }\DIFdelend \DIFaddbegin \DIFadd{correspond to rounding errors prior to }\DIFaddend cast down operations\DIFdelbegin \DIFdel{and the action of the cast down is best represented by error bounds similar to }\DIFdelend \DIFaddbegin \DIFadd{, and cast down operations introduce an additional error term as in }\DIFaddend \cref{eqn:aftercd}.\par
 
 We have demonstrated a need for rounding error analysis that is accurate for mixed precision procedures and analyzed the inner product in an ad hoc mixed precision inner product that mimics the TensorCore bFMA.
 We will use this to analyze various Householder (HH) QR factorization algorithms.
@@ -1192,7 +1196,6 @@ are summarized below in \mbox{%DIFAUXCMD
 	\label{table:summary}\DIFaddFL{,
 }\end{table} 
 \vspace{-1cm}
-
 \DIFaddend %\input{mp2}
 \subsection{Round down at inner product: level-2 BLAS mixed precision setting}\label{sec:mp-2}
 \DIFdelbegin \DIFdel{While the previous section discussed blocked variants of HQR that can be easily adapted for the mixed precision setting specific to TensorCore bFMA's, we want to provide a more general mixed precision environment in this section.
@@ -1373,8 +1376,10 @@ These results suggests that TSQR can outperform HQR \DIFdelbegin \DIFdel{even }\
 	\includegraphics[width=\textwidth]{./figures/allTSQR3.pdf}
 	\vspace{-15pt}
 	\caption{\label{fig:allTSQR} All plots show the backward relative error for 4000-by-100 sized test matrices. Left: {\tt mpHQR2} on condition numbers ranging from 1.1 to 101;  Middle: {\tt mpTSQR2} on condition numbers ranging from 5.3 to 101; Right:  {\tt mpTSQR2} on condition numbers ranging from 1.1 to 5.3. }
-	\vspace{-15pt}
-\end{figure}
+	\DIFdelbeginFL %DIFDELCMD < \vspace{-15pt}
+%DIFDELCMD < %%%
+\DIFdelendFL \DIFaddbeginFL \vspace{-5pt}
+\DIFaddendFL \end{figure}
 
 In conclusion, most of the experiments display the trends that error bounds in \cref{sec:algo,sec:mpanalysis} suggest, and bFMA variants perform in between the high precision and \cref{assump:mp} variants as expected.
 Also, a special case is shown that demonstrate {\tt mpTSQR2} can outperform {\tt mpHQR2} \DIFaddbegin \DIFadd{in accuracy }\DIFaddend despite having higher error bounds.

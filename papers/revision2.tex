@@ -76,7 +76,7 @@ The existing rounding error analyses of linear algebra routines are built within
 In this work, we develop mixed precision variants of existing Householder (HH) QR factorization algorithms and perform mixed precision error analysis.
 This work focuses on analyzing a few algorithms that use fp16/fp32 as the low/high precision types, but the error analysis can be easily modified for different floating point types (such as bfloat16 in \cite{tagliavini2018floating}).
 The standard HH QR algorithm and its block variants that partition the columns (level-3 BLAS variant, see \cite{golub2013matrix,Higham2002}) and those that partition the rows (communication-avoiding algorithms of \cite{Demmel2012}) are presented in \cref{sec:algo}, then modified to support bFMAs and an ad hoc mixed precision setting that mimics NVIDIA TensorCores in \cref{sec:mpanalysis}.
-Our key findings are that mixed precision error analyses produce tighter error bounds as supported by experiments in \cref{sec:NE}, algorithms that utilize level-3 BLAS operations can easily be modified to incorporate TensorCore bFMAs, and a row partition block algorithm operates  more robustly in mixed precision than non-block techniques in certain regimes.
+Our key findings are that mixed precision error analyses produce tighter error bounds as supported by experiments in \cref{sec:NE}, algorithms that utilize level-3 BLAS operations can easily be modified to incorporate TensorCore bFMAs, and some block algorithms operate more robustly in mixed precision than non-block techniques in certain regimes.
 \section{Background: Build up to rounding error analysis for inner products}\label{sec:background}
 In this section, we introduce the basic motivations and tools for mixed precision rounding error analysis needed for the {\it QR factorization}.
 A matrix $\bb{A} \in \R^{m \times n}$ for $m\geq n$ can be written as
@@ -85,8 +85,8 @@ A matrix $\bb{A} \in \R^{m \times n}$ for $m\geq n$ can be written as
 where an orthogonal $\bb{Q}\in\R^{m\times m}$ and an upper trapezoidal $\bb{R}$ form a \emph{full} QR factorization, and $\bb{Q}_{1}\in\R^{m\times n},\bb{R}_{1}\in\R^{n\times n}$ form a \emph{thin} QR factorization.
 If $\bb{A}$ is full rank then the columns of $\bb{Q}_{1}$ are orthonormal
 and $\bb{R}_1$ is upper triangular.
-In many applications, only a \emph{thin} decomposition is needed as it produces an orthonormal basis for the column space of $\bb{A}$ while requiring less computation and storage.\par
-Lastly, suppose that $\hat{y}$ is the result of implementing an algorithm that approximates $y=f(x)$.
+In many applications, only a \emph{thin} decomposition is needed as it produces an orthonormal basis for the column space of $\bb{A}$ while requiring less computation and storage.
+Suppose that $\hat{y}$ is the result of implementing an algorithm that approximates $y=f(x)$.
 The forward error is $|\hat{y}-y|$, and the backward error is defined as $|\Delta x|$ or $\min |\Delta x|$ that satisfies $\hat{y}=f(x+\Delta x)$. 
 We use the first definition of backward error for the remainder of this paper. 
 %and is sufficient in performance. 
@@ -279,7 +279,7 @@ Thus, when two fp16 numbers are multiplied and stored in fp32, there is no round
 	%Furthermore, we expect this procedure to be approximately twice as fast as if it were done entirely in the higher precision, and about the same as if it were done entirely in the lower precision. 
 \end{assump}
 We now analyze the rounding error for the inner product scheme described in \cref{assump:mp} and hypothesize that the guaranteed accuracy for this mixed precision inner product should be better than that of the low precision inner product and worse than that of the high precision inner product.
-Let $\bb{x}^{(l)},\bb{y}^{(l)}$ be $m$-length vectors stored in a low precision type ($\F_l^m$), $s_k$ be the exact $k^{th}$ partial sum, and $\hat{s}_k$ be $s_k$ computed with FLOPs.
+Let $\bb{x},\bb{y}$ be $m$-length vectors stored in a low precision type ($\F_l^m$), $s_k$ be the exact $k^{th}$ partial sum, and $\hat{s}_k$ be $s_k$ computed with FLOPs.
 Then the first three partial sums are,
 \begin{align*}
 \hat{s}_1 &= \fl (\bb{x}[1]\bb{y}[1]) = \bb{x}[1]\bb{y}[1],\quad \hat{s}_2 = \fl(\hat{s}_1 + \bb{x}[2]\bb{y}[2]) = \left(\bb{x}[1]\bb{y}[1]+ \bb{x}[2]\bb{y}[2]\right)(1+\dd_{1}^{(h)}),\\
@@ -349,8 +349,9 @@ We summarize these ways of combining $\gamma$ terms of different precisions in \
 	\end{align}
 \end{lemma}
 Note that \cref{eqn:mpgamma} drops the term $\tilde{\gamma}_{k_l}^{(l)}\tilde{\gamma}_{k_h}^{(h)}$ since both $\tilde{\gamma}_{k_l}^{(l)}$ and $\tilde{\gamma}_{k_h}^{(h)}$ are larger than their product and this product can be swept under the small integer $c > 0$ assumption implicitly included in the tilde notation.
-the two mixed precision settings add {\tt castdown} operations at different parts of the HQR algorithms we consider.
-In general, error bounds in the fashion of \cref{eqn:beforecd} can be used before the cast down operations and the action of the cast down is best represented by error bounds similar to \cref{eqn:aftercd}.\par
+Using these two mixed precision settings in HQR algorithms results in casting down to the low precision at different parts of the algorithms.
+%The two mixed precision settings add {\tt castdown} operations at different parts of the HQR algorithms we consider.
+In general, error bounds in the fashion of \cref{eqn:beforecd} correspond to rounding errors prior to cast down operations, and cast down operations introduce an additional error term as in and error bounds similar to \cref{eqn:aftercd}.\par
 
 We have demonstrated a need for rounding error analysis that is accurate for mixed precision procedures and analyzed the inner product in an ad hoc mixed precision inner product that mimics the TensorCore bFMA.
 We will use this to analyze various Householder (HH) QR factorization algorithms.
@@ -1260,7 +1261,7 @@ These results suggests that TSQR can outperform HQR in mixed precision settings,
 	\includegraphics[width=\textwidth]{./figures/allTSQR3.pdf}
 	\vspace{-15pt}
 	\caption{\label{fig:allTSQR} All plots show the backward relative error for 4000-by-100 sized test matrices. Left: {\tt mpHQR2} on condition numbers ranging from 1.1 to 101;  Middle: {\tt mpTSQR2} on condition numbers ranging from 5.3 to 101; Right:  {\tt mpTSQR2} on condition numbers ranging from 1.1 to 5.3. }
-	\vspace{-15pt}
+	\vspace{-5pt}
 \end{figure}
 
 In conclusion, most of the experiments display the trends that error bounds in \cref{sec:algo,sec:mpanalysis} suggest, and bFMA variants perform in between the high precision and \cref{assump:mp} variants as expected.
