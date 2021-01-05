@@ -1,0 +1,106 @@
+%\documentclass{article}
+
+\documentclass[review,onefignum,onetabnum]{siamart190516}
+
+%Packages
+\usepackage[utf8]{inputenc}
+\usepackage{geometry, graphicx,wrapfig}
+\usepackage{enumerate}
+%\usepackage{amsmath,amssymb,amsfonts,amsthm, bm}
+\usepackage{amsmath,amssymb,amsfonts,bm}
+\usepackage{xcolor} %just for visible comments.
+\usepackage[linesnumbered,ruled,vlined,algo2e]{algorithm2e}
+\usepackage[toc,page]{appendix}
+\usepackage{makecell}
+\usepackage{cleveref}
+
+% New theorems and commands
+%\newtheorem{theorem}{Theorem}[section]
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{assump}[theorem]{MP Setting}
+\newcommand\mycommfont[1]{\ttfamily\textcolor{orange}{#1}}
+%\SetCommentSty{mycommfont}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\dd}{\delta}
+\newcommand{\tth}{\theta}
+\newcommand{\bb}[1]{\mathbf{#1}}
+\newcommand{\fl}{\mathrm{fl}}
+\newcommand{\cO}{\mathcal{O}}
+
+\newcommand\blfootnote[1]{%
+	\begingroup
+	\renewcommand\thefootnote{}\footnote{#1}%
+	\addtocounter{footnote}{-1}%
+	\endgroup
+}
+
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\crefname{algocf}{alg.}{algs.}
+\Crefname{algocf}{Algorithm}{Algorithms}
+%\theoremstyle{definition}
+%\newtheorem{definition}{Definition}[section]
+% Document
+\title{Rounding Error Analysis of Mixed Precision Block Householder QR Algorithms}
+\author{L. Minah Yang, Alyson Fox, and Geoffrey Sanders}
+\date{\today}
+\begin{document}
+
+\maketitle
+\begin{abstract}
+	Although mixed precision arithmetic has recently garnered interest for training dense neural networks, many other applications could benefit from the  speed-ups and lower storage if applied appropriately. 
+	The growing interest in employing mixed precision computations motivates the need for rounding error analysis that properly handles behavior from mixed precision arithmetic.
+	We develop mixed precision variants of existing Householder QR algorithms and show error analyses supported by numerical experiments.
+	%We present a framework for mixed precision analysis that builds on the foundations of rounding error analysis presented in \cite{Higham2002} and demonstrate its practicality by applying the analysis to various Householder QR Algorithms. 
+	%In addition, we present successful results from using mixed precision QR factorization for some small-scale benchmark problems in graph clustering. 
+	\blfootnote{This work was performed under the auspices of the U.S. Department of Energy by Lawrence Livermore National Laboratory under Contract DE-AC52-07NA27344 and was supported by the LLNL-LDRD Program under Project No. 17-SI-004, LLNL-JRNL-795525-DRAFT.}
+\end{abstract}
+%TODO: remove graph stuff.
+\section{Introduction}\label{sec:intro}
+\input{intro2}
+\section{Background: Build up to rounding error analysis for inner products}\label{sec:background}
+\input{background}
+\section{Algorithms and existing round-off error analyses}\label{sec:algo}
+\input{algo}
+\section{Mixed precision error analysis}\label{sec:mpanalysis}
+\input{mpanalysis}
+\section{Numerical Experiments}\label{sec:NE}
+\input{NE2}
+%Can see first submitted draft by uncommenting below. 
+%\input{intro}
+%\input{roundingerr}
+%\input{HQR}
+%\input{TSQR}
+%\input{applications}
+\section{Conclusion}
+The development of GPUs that optimize low precision floating point arithmetic have accelerated the interest in half and mixed precision algorithms that naturally reduces the bandwidth and storage needs. 
+%the interest in half precision and mixed precision algorithms that demonstrate speedier times, lower energy consumption, and lower memory usage. 
+Loss in precision, stability, and representable range offset for those advantages, but these shortcomings may have little to no impact in some applications.
+It may even be possible to navigate around those drawbacks with algorithmic design. \par 
+%Since existing rounding error analysis cannot accurately bound the behavior of mixed precision arithmetic.
+%We have developed a new framework for mixed precision rounding error analysis and applied it to HQR, a widely used linear algebra routine, and implemented it in an iterative eigensolver in the context of spectral clustering. 
+We present the algorithm and standard error analysis of HQR and its blocked variants (BQR and TSQR), modify the algorithms to support two mixed precision settings, and performed error analysis that accurately bound the mixed precision versions.
+One mixed precision setting is that of NVIDIA's TensorCore bFMAs, and the other is an ad hoc setting that mimics the bFMAs at the level of inner products.
+These two are presented to offer mixed precision arithmetic at both level-2 and 3 BLAS operations and 
+%The mixed precision error analysis builds from the inner product routine, which 
+can be applied to other linear algebra tools as well.
+The new error bounds more accurately describe how rounding errors are accumulated in mixed precision settings.
+For a given problem, available hardware, and some error tolerance, these bounds can be used to first narrow down which QR factorization algorithms are feasible. 
+Then, the speed-ups from the hardware specifications can be considered next to choose the most appropriate settings within the algorithms (i.e. block size $r$ in BQR or number of levels, $L$, in TSQR).
+We found that TSQR can outperform HQR under \cref{assump:mp} for ill-conditioned, extremely overdetermined cases even when the error bounds imply the opposite.
+While an optimistic interpretation of this result would be that algorithms like TSQR are more robust against lower precision arithmetic, further research is needed to explore other divide-and-conquer methods that can harness parallel capabilities.
+Meanwhile, we should rely on the error bounds formed in \cref{sec:mpanalysis}.
+%TODO: line P
+%In general, more work is needed to test larger problem sizes with timed experiments to compare the loss in accuracy with the benefits of speed ups, and to implement these for specific applications.
+% and 
+%, more ill-conditioned problems with different mixed precision settings, and to 
+%explore other divide-and-conquer methods like TSQR that can harness parallel capabilities of GPUs while withstanding lower precisions. 
+%\appendix
+%\input{BQRdeets}
+%\input{appendixMPD}
+\bibliography{../../../../../library.bib,../../../../../sans_library.bib,./report.bib}
+\bibliographystyle{siamplain}%ieeetr
+\end{document}

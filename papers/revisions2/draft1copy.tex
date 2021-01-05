@@ -1,0 +1,117 @@
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$\bb{x}_{\text{half}}, \bb{y}_{\text{half}}\in\F_{\text{half}}^m$, $f:\R^{m}\times \R^m \rightarrow \R^n$}
+	\KwOut{$\fl(f(\bb{x}_{\text{half}}, \bb{y}_{\text{half}}))\in\F_{\text{half}}^n$}
+	$\bb{x}_{\text{single}}, \bb{y}_{\text{single}} \gets$ {\tt castup}$([\bb{x}_{\text{half}},\bb{y}_{\text{half}}])$\\
+	$\bb{z}_{\text{single}} \gets \fl(f(\bb{x}_{\text{single}}, \bb{y}_{\text{single}}))$\\
+	$\bb{z}_{\text{half}} \gets$ {\tt castdown}$(\bb{z}_{\text{single}})$\\
+	\Return $\bb{z}_{\text{half}}$\\
+	\caption{$\bb{z}_{\text{half}} = {\tt simHalf}(f, \bb{x}_{\text{half}}, \bb{y}_{\text{half}})$ Simulate function $f\in$ OP$\cup \{{\tt dot\_product} \}$ in half precision arithmetic given input variables $\bb{x},\bb{y}$. Function {\tt castup} converts half precision floats to single precision floats, and {\tt castdown} converts single precision floats to half precision floats by rounding to the nearest half precision float.}
+	\label{algo:simulate}
+\end{algorithm2e}
+
+
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$\bb{x}\in\R^m$}
+	\KwOut{$\bb{v}\in\R^m$, and $\sigma, \beta\in\R$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} = \pm \|\bb{x}\|_2 \hat{e_1} = \sigma\hat{e_1}$ }
+	\tcc{We choose the sign of sigma to avoid cancellation of $\bb{x}_1$ (As is the standard in LAPACK, LINPACK packages {Higham2002}). This makes $\beta>0$.}
+	$\bb{v}\gets \bb{x}$\\
+	$\sigma \gets -\rm{sign}(\bb{x}_1)\|\bb{x}\|_2$\\
+	$\bb{v}_1 \gets \bb{x}_1-\sigma$ \tcp*{This is referred to as $\bb{\tilde{v}}_1$ later on.} 
+	$\beta \gets -\frac{\bb{v}_1}{\sigma}$\\
+	$\bb{v} \gets \frac{1}{\bb{v}_1}\bb{v}$\\
+	\Return $\beta$, $\bb{v}$, $\sigma$
+	\caption{$\beta$, $\bb{v}$, $\sigma = {\tt hh\_vec}(\bb{x})$. Given a vector $\bb{x}\in\R^n$, return the Householder vector, $\bb{v}$; a Householder constant, $\beta$; and $\sigma$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} =\sigma(\hat{e_1})$ and $\bb{v}_1=1$, (see {LAPACK, Higham2002}).}
+	\label{algo:hh_v2}
+\end{algorithm2e}
+
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$A\in\R^{m \times n}$ where $m \geq n$.}
+	
+	\KwOut{$\bb{V}$,$\bm{\beta}$, $\bb{R}$}
+	%	\tcc{$\bb{v}_i = V[i:m, i] \in \R^{m-(i-1)}$ and $\bb{B}_i = \bb{B}[i:m, i:d] \in \R^{(m-(i-1))\times(d-(i-1))}$.}
+	$\bb{V}, \bm{\beta} \gets \bb{0}_{m\times n}, \bb{0}_m$ \\
+	
+	\For{$i=1 : n$}{
+		$\bb{v}, \beta, \sigma \gets \mathrm{hh\_vec}(\bb{A}[i:\mathrm{end}, i])$\\	
+		$\bb{V}[i:\mathrm{end},i]$, $\bm{\beta}_i$,  $\bb{A}[i,i] \gets \bb{v}, \beta, \sigma$\tcp*{Stores the Householder vectors and constants.}
+		\tcc{The next two steps update $\bb{A}$.}
+		$\bb{A}[i+1:\mathrm{end}, i]\gets \mathrm{zeros}(m-i)$\\
+		$\bb{A}[i:\mathrm{end}, i+1:\mathrm{end}]\gets \bb{A}[i:\mathrm{end}, i+1:\mathrm{end}] - \beta \bb{v} \bb{v}^{\top}\bb{A}[i:\mathrm{end}, i+1:\mathrm{end}]$
+		
+	}
+	\Return $\bb{V}$, $\bm{\beta}$, $\bb{A}[1:n, 1:n]$
+	\caption{$\bb{V}$, $\bm{\beta}$, $\bb{R}$ = ${\tt qr}(A)$. Given a matrix $A\in\R^{m\times n}$ where $m\geq n$, return matrix $\bb{V}\in\R^{m\times n}$, vector $\bm{\beta}\in\R^{n}$, and upper triangular matrix $\bb{R}$. An orthogonal matrix $\bb{Q}$ can be generated from $\bb{V}$ and $\bm{\beta}$, and $\bb{QR}=\bb{A}$.}
+	\label{algo:hhQR}
+\end{algorithm2e}
+
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$\bb{V}\in\R^{m \times n}$, $\bm{\beta}\in\R^{n}$ where $m \geq n$. $\bb{B} \in\R^{m\times d}$.  }
+	
+	\KwOut{$\bb{Q}\bb{B}$}
+	\tcc{$\bb{v}_i = V[i:m, i] \in \R^{m-(i-1)}$ and $\bb{B}_i = \bb{B}[i:\mathrm{end}, i:\mathrm{end}] \in \R^{(m-(i-1))\times(d-(i-1))}$.}
+	\For{$i=1 : n$}{
+		$\bb{B}_i \gets \bb{B}_i - \bm{\beta}_i \bb{v}_i(\bb{v}_i^{\top}\bb{B}_i)$}
+	\Return $\bb{B}$
+	\caption{$\bb{Q}\bb{B}\gets {\tt hh\_mult}(V, \bb{B})$: Given a set of householder vectors $\{\bb{v}_i\}_{i=1}^n$ and their corresponding constants $\{\bm{\beta}_i\}_{i=1}^n$, compute $\bb{P}_1\cdots \bb{P}_n\bb{B}$, where $\bb{P}_i := \bb{I} - \bm{\beta}_i\bb{v}_i\bb{v}_i^{\top}$}
+	\label{algo:hh_mult}
+\end{algorithm2e}
+
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$\bb{A}\in\R^{m \times n}$ where $m \gg n$, $L\leq\lfloor\log_2\left(\frac{m}{n}\right)\rfloor$, and $2^L$ is the initial number of blocks. }
+	
+	\KwOut{$\bb{Q}\in\R^{m \times n}$, $\bb{R} \in\R^{n\times n}$ such that 	$\bb{Q}\bb{R} = \bb{A}$.}
+	$h \gets \lfloor \frac{m}{2^L} \rfloor$ \tcp*{Number of rows for all but the last block.}
+	$r \gets m - (2^L-1)h$ \tcp*{Number of rows for the last block ($h\leq r <2h$).}
+	\tcc{Split $\bb{A}$ into $2^L$ blocks. Note that level $(i)$ has $ 2^{L-i}$ blocks.}
+	\For {$j = 1 : 2^L-1$}{
+		$\bb{A}_j^{(0)} \gets \bb{A}[(j-1)h+1: jh, :]$ %\bb{I}_{(j-1)h, jh}^{\top}\bb{A}$
+	}
+	$\bb{A}_{2^L}^{(0)} \gets \bb{A}[(2^L-1)h:m, :]$ \tcp*{Last block may have more rows.} %\bb{I}_{(2^L-1)h, m}^{\top}\bb{A}
+	\tcc{Store Householder vectors as columns of matrix $\bb{V}_j^{(i)}$, Householder constants as components of vector $\bm{\beta}_j^{(i)}$, and set up the next level.}
+	\For{$i = 0 : L-1$}{
+		\tcc{The inner loop can be parallelized.}
+		\For {$j = 1 : 2^{L-i}$ }{
+			$\bb{V}_{2j-1}^{(i)}$, $\bm{\beta}_{2j-1}^{(i)}$, $\bb{R}_{2j-1}^{(i)} \gets{\tt qr}(\bb{A}_{2j-1}^{(i)})$ \;
+			$\bb{V}_{2j}^{(i)}$, $\bm{\beta}_{2j}^{(i)}$, $\bb{R}_{2j}^{(i)} \gets{\tt qr}(\bb{A}_{2j}^{(i)})$\;
+			% \tcp*{$\bb{V}_j^{(i)} \in \R^{2n\times n}$ for $i > 0$ and $\bb{R}_j^{(i)} \in \R^{n\times n}$ always.} 
+			\(\bb{A}_{j}^{(i+1)} \gets \begin{bmatrix}
+			\bb{R}_{2j-1}^{(i)}\\
+			\bb{R}_{2j}^{(i)}
+			\end{bmatrix}\)
+		}
+	}
+	\tcc{At the bottom-most level, get the final $\bb{R}$ factor.}
+	$\bb{V}_{1}^{(L)}$, $\bm{\beta}_1^{(L)}$, $\bb{R}  \gets{\tt qr}(\bb{A}_{1}^{(L)})$ \;
+	$\bb{Q}_{1}^{(L)} \gets {\tt hh\_mult}(\bb{V}_{1}^{(L)}, I_{2n\times n})$\;
+	\tcc{Compute $\bb{Q}^{(i)}$ factors by applying $\bb{V}^{(i)}$ to $\bb{Q}^{(i+1)}$ factors.}
+	%\tcc{Combine $\bb{Q}$ factors from bottom-up-- look at Notation (4).}
+	\For {$i = L-1 : -1 : 1$}{
+		\For {$j = 1 : 2^{L-i}$}{
+			\(\bb{Q}_{j}^{(i)} \gets {\tt hh\_mult}\left(\bb{V}_{j}^{(i)}, \begin{bmatrix}
+			\tilde{\bb{Q}}_{\alpha(j), \phi(j)}^{(i+1)}\\
+			\bb{0}_{n,n}
+			\end{bmatrix}\right)\)
+			%\bb{Q}_{j}^{(i)} \gets $ {\tt hh\_mult} $(\bb{V}_{j}^{(i)}, [\tilde{\bb{Q}}_{\alpha(j), \phi(j)}^{(i+1)}; O_{n,n}])$
+		}
+	}
+	\tcc{At the top-most level, construct the final $\bb{Q}$ factor.}% from $\bb{Q}^{0}$ factors.}
+	$\bb{Q} \gets [];$\;
+	\For{$ j = 1 : 2^L $}{
+		\(\bb{Q} \gets \begin{bmatrix}
+		\bb{Q} \\
+		{\tt hh\_mult}\left(\bb{V}_{j}^{(0)} , \begin{bmatrix}
+		\tilde{\bb{Q}}_{\alpha(j), \phi(j)}^{(1)}\\
+		O_{\tilde{h},n}
+		\end{bmatrix} \right)
+		
+		\end{bmatrix}\)
+	}
+	\Return{$\bb{Q}$, $\bb{R}$}
+	\caption{$\bb{Q},\bb{R}={\tt tsqr}(\bb{A}, L)$.  Finds a QR factorization of a tall, skinny matrix, $\bb{A}$. }
+	\label{algo:par_tsqr}
+\end{algorithm2e}

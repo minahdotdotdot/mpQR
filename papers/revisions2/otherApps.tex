@@ -1,0 +1,146 @@
+\documentclass{article}
+%Packages
+\usepackage[utf8]{inputenc}
+\usepackage{geometry, graphicx,wrapfig}
+\usepackage{enumerate}
+\usepackage{amsmath,amssymb,amsfonts,amsthm, bm}
+\usepackage{xcolor} %just for visible comments.
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage[toc,page]{appendix}
+\usepackage{makecell}
+
+% New theorems and commands
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{assump}[theorem]{Assumption}
+\newcommand\mycommfont[1]{\ttfamily\textcolor{orange}{#1}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\dd}{\delta}
+\newcommand{\tth}{\theta}
+\newcommand{\ddt}{\frac{\mathrm{d}}{\mathrm{d}t}}
+\newcommand{\bb}[1]{\mathbf{#1}}
+\newcommand{\fl}{\mathrm{fl}}
+\SetCommentSty{mycommfont}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newcommand\comment[1]{\color{blue}#1}
+% Document
+\title{Applications for Mixed-precision HQR}
+\date{\today}
+\begin{document}
+\maketitle
+\section{Discovery of Equations}
+There is growing interest in data-driven ``discovery of equations'' (c.f.~\cite{Brunton2016}). 
+The simplest example finds an autonomous system of ODEs given noisy data of the state variables. 
+Consider some ODE,
+\begin{equation}
+\dot{\bb{x}} = \vec{f}(\bb{x}),  
+\end{equation}
+where $\bb{x}, \ddt \bb{x} \in\R^{m}$, and $\vec{f}:\R^m\rightarrow \R^m$ may be linear or nonlinear.
+Suppose further that \[\bb{x}=\begin{bmatrix}
+x\\
+y\\
+z
+\end{bmatrix},\]
+and we have at our disposal time-series data of these variables,
+\begin{align*}
+\bb{X} &= [\bb{X}_1, \cdots, \bb{X}_n]^{\top}
+\\
+\bb{Y} &= [\bb{Y}_1, \cdots, \bb{Y}_n]^{\top}\\
+\bb{Z} &= [\bb{Z}_1, \cdots, \bb{Z}_n]^{\top}.\\
+\end{align*}
+Our goal is to identify the function $\vec{f}$ as some function of $x$, $y$, and $z$.
+Let's also assume that the data was collected at regular time intervals.  
+The approach suggested in \cite{Brunton2016} is as follows. 
+\begin{enumerate} [Step 1.]
+	\item Generate the left hand side, the time derivative,  from the data. This can be done with any finite difference scheme or more complex schemes, and we show a 2nd order central difference scheme, 
+	\begin{align*}
+	\dot{\bb{X}} &= (\bb{X}[3:n] - \bb{X}[1:n-2])/(2\Delta t) \\
+	\dot{\bb{Y}} &=(\bb{Y}[3:n] - \bb{Y}[1:n-2])/(2\Delta t) \\
+	\dot{\bb{Z} }&= (\bb{Z}[3:n] - \bb{Z}[1:n-2])/(2\Delta t) .
+	\end{align*}.
+	\item Generate a \emph{library} of terms from the data. \[
+	\Theta(\bb{X}, \bb{Y}, \bb{Z}) = \begin{bmatrix}
+	\bb{X}_2 & 	\bb{Y}_2& 	\bb{Z}_2 & \bb{X}_2^2 & \bb{X}_2\bb{Y}_2 & \cdots \\
+	\bb{X}_3 & 	\bb{Y}_3 & 	\bb{Z}_3 & \bb{X}_3^2 & \bb{X}_3\bb{Y}_3 & \cdots\\
+	\vdots & \vdots & \vdots & \vdots & \vdots & \ddots \\
+	\bb{X}_{n-1} & 	\bb{Y}_{n-1} & 	\bb{Z}_{n-1} & \bb{X}_{n-1}^2 & \bb{X}_{n-1}\bb{Y}_{n-1}& \cdots
+	\end{bmatrix}\]
+	\item Solve for $\bb{w}_x, \bb{w}_y, \bb{w}_z$ where,
+	\begin{align}
+	\dot{\bb{X}} &= \Theta(\bb{X}, \bb{Y}, \bb{Z}) \bb{w}_x \\ 
+	\dot{\bb{Y}} &= \Theta(\bb{X}, \bb{Y}, \bb{Z}) \bb{w}_y \\ 
+	\dot{\bb{Z}} &= \Theta(\bb{X}, \bb{Y}, \bb{Z}) \bb{w}_z. \\ 
+	\end{align}
+\end{enumerate}
+
+In Step 3, we may use any type of linear regression techniques, although we may want to use to our advantage the following facts.
+\begin{itemize}
+	\item The library should contain as many possible terms as possible  because we need the true solution to be some linear combination of the terms in the library. 
+	\item However, the solution probably contains much fewer terms than what is included in the library. 
+\end{itemize}
+
+While methods such as LASSO regularization encourages sparse solutions, \cite{Brunton2016} suggests another simple approach that can be added to LASSO and other methods. 
+Suppose that we start with a large library, $\Theta(\bb{X}, \bb{Y}, \bb{Z}) $.
+With some tolerance value, $\epsilon$, we repeat until some stopping criterion:
+\begin{enumerate}[Step 1.]
+	\item Solve for $\bb{w}$.
+	\item Update $\bb{w}$ by dropping all indices of $\bb{w}$ that are smaller than $\epsilon$. 
+	\item Update $\Theta(\bb{X}, \bb{Y}, \bb{Z})$ by dropping the corresponding columns.
+\end{enumerate}
+
+This requires multiple linear regression solves where the accuracy of each solve only matters in whether the weights fall below or above the tolerance value, $\epsilon$. 
+\subsection{Lower precision HQR as Linear Solve}
+The procedure described in the previous section is iterative, and it appears that high precision may not be necessary in each iteration. 
+This motivates the use of mixed-precision HQR as the linear solve in the procedure, and Section~\ref{sec:ED} shows details and results from our experiments. 
+However, the authors in \cite{Brunton2016}  now suggest a different approach for sparse relaxed regularized regression, called SR3 (c.f. \cite{Zheng2018}).
+This method seems to rely on conjugate gradient based implementation, which I think might be worth looking into in a mixed-precision setting since they also heavily rely on inner products.\par
+
+\subsubsection{Experiment Details} \label{sec:ED} 
+To test whether mixed-precision HQR is a good candidate for this application, we picked the Lorenz system (Equations~\ref{eqn:L1} - \ref{eqn:L3}) as our test ODE system, and generated data via a generic ODE solver. 
+
+\begin{align}
+\dot{x} &= \sigma (y-x) \label{eqn:L1}\\
+\dot{y} &= x(\rho -z)-y\label{eqn:L2} \\
+\dot{z} &= xy - \beta z\label{eqn:L3}
+\end{align}
+
+We used a fourth-order central finite difference scheme (Equation~\ref{eqn:4FD}) and added an iid $\alpha$ standard normal sample, where $\alpha$ is the noise amplitude to generate $\dot{\bb{X}}$, $\dot{\bb{Y}}$, and $\dot{\bb{Z}}$.
+\begin{equation}
+	\dot{u}(t)|_{t=i} = \frac{-u_{i+2}+8u_{i+1}-8u_{i-1}+u_{i-2}}{12\Delta t} + \mathcal{O}(\Delta t^4) \label{eqn:4FD}
+\end{equation}
+
+%Some preliminary results show that same accuracy can be achieved from mixed-precision and single precision QR solves as the double-precision QR can produce, especially in simulated data with high noise. 
+
+\subsubsection{Regularization}
+I only tried L2-norm regularization (Tikhonov) since it is easy to implement on a matrix linear solve. 
+However, it is the L1-norm regularization (LASSO) that induces sparsity. 
+
+\subsubsection{Tolerance within SINDy scheme}
+
+\subsubsection{Row sampling}
+
+
+
+%\begin{figure}[!h]%{l}{.45\textwidth}
+%	\centering
+%	%\vspace{-15pt}
+%	\includegraphics[width=.45\textwidth]{./sindyfigures/34.png}
+%	\includegraphics[width=.45\textwidth]{./sindyfigures/37.png}
+%	\includegraphics[width=.45\textwidth]{./sindyfigures/38.png}
+%	\includegraphics[width=.45\textwidth]{./sindyfigures/45.png}
+%	\includegraphics[width=.45\textwidth]{./sindyfigures/57.png}
+%	\includegraphics[width=.45\textwidth]{./sindyfigures/58.png}
+%	%\caption{\label{fig:paramspace} Non-white space indicates allowable matrix sizes for each scheme, and color map represents error bounds for $\|\bb{\Delta Q}\|_F$ in double precision.}
+%	%\vspace{-10pt}	
+%\end{figure}
+
+%\section{Fiedler Value}
+
+
+\bibliography{report2}
+\bibliographystyle{ieeetr}
+
+\end{document}
