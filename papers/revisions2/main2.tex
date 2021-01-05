@@ -1,0 +1,381 @@
+\documentclass[review,onefignum,onetabnum]{siamart190516}
+%Packages
+\usepackage[utf8]{inputenc}
+\usepackage{geometry, graphicx,wrapfig}
+\usepackage{enumerate}
+\usepackage{amsmath,amssymb,amsfonts,bm}
+\usepackage{xcolor} %just for visible comments.
+\usepackage[linesnumbered,ruled,vlined,algo2e]{algorithm2e}
+\usepackage{cleveref}
+\usepackage[toc,page]{appendix}
+\usepackage{makecell}
+
+
+% New theorems and commands
+\newtheorem{assump}[theorem]{Assumption}
+\newcommand\mycommfont[1]{\ttfamily\textcolor{orange}{#1}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\dd}{\delta}
+\newcommand{\tth}{\theta}
+\newcommand{\bb}[1]{\mathbf{#1}}
+\newcommand{\fl}{\mathrm{fl}}
+\newcommand{\cO}{\mathcal{O}}
+
+\newcommand\blfootnote[1]{%
+	\begingroup
+	\renewcommand\thefootnote{}\footnote{#1}%
+	\addtocounter{footnote}{-1}%
+	\endgroup
+}
+\SetCommentSty{mycommfont}
+
+\crefname{algocf}{alg.}{algs.}
+\Crefname{algocf}{Algorithm}{Algorithms}
+
+\begin{document}
+\section{BLAS-3 Implementation of HQR for TensorCore Technology Assumptions}
+I think it would be very suitable if we add another block Householder QR algorithm for this paper. 
+We already have TSQR, which partitions the rows. 
+Partitioning the columns of a matrix is actually the better known ``block'' HQR algorithm that can employ BLAS-3 operations for the majority of FLOPs required. 
+I picked out the main details from section Chapter 5 of \cite{golub2013matrix}.
+\subsection{Algorithms}
+%\subsubsection{The WY Representation}
+%A convenient matrix representation that accumulates $r$ Householder reflectors is known as the WY representation.
+%%TODO: cite
+%\begin{lemma}\label{lem:WY}
+%	Suppose $\bb{Q}=\bb{I}_{m}-\bb{WY}^{\top}\in\R^{m\times m}$ is an orthogonal matrix with $\bb{W},\bb{Y}\in\R^{m\times j}$. If $\bb{P}=\bb{I}_{m}-\beta\bb{vv}^{\top}$ with $\bb{v}\in\R^m$ and $\bb{z}=\beta\bb{Q}\bb{v}$, then \[\bb{Q}_+ = \bb{Q}\bb{P} = \bb{I} - \bb{W}_+\bb{Y}_+^{\top}, \]where $ \bb{W}_+ =[\bb{W}|\bb{z}]$ and $ \bb{Y}_+ =[\bb{Y}|\bb{v}]$ are each $m$-by-$(j+1)$. 
+%\end{lemma}
+%If $\bb{Q}$ was already the accumulation of $j$ Householder transformations, then \cref{lem:WY} shows us a clever way to build the WY representation of successive Householder transformations.
+%Let us now show the proof for \cref{lem:WY}.
+%\begin{proof}
+%	A direct right multiplication of $\bb{P}:=\bb{I}_m - \beta\bb{v}\bb{v}^{\top}$ onto $\bb{Q}$ can be written as
+%	\begin{equation*}
+%		\bb{QP}=\bb{Q}-\beta\bb{Q}\bb{v}\bb{v}^{\top}.
+%	\end{equation*}
+%	Let us use the WY representation of $\bb{Q}$.
+%	\begin{equation*}
+%		\bb{QP}= \bb{I}_m - \bb{WY}^{\top} -\beta\bb{Q}\bb{v}\bb{v}^{\top} = \bb{I}_m - \bb{WY}^{\top} - \bb{z}\bb{v}^{\top}
+%	\end{equation*}
+%	Now note that the two subtracted terms are exactly the updated WY factors:
+%	\[ \bb{W}_+\bb{Y}_+^{\top} = [\bb{W} \quad \bb{z}]\begin{bmatrix}
+%	\bb{Y}^{\top}\\ 
+%	\bb{v}^{\top}
+%	\end{bmatrix} = \bb{WY}^{\top} + \bb{z}\bb{v}^{\top}.\]
+%\end{proof}
+%With the correct initialization of $\bb{W}$ and $\bb{Y}$, we can build the WY representation of successive Householder transformations as shown in \Cref{algo:buildWY}. 
+%\begin{algorithm2e}
+%	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+%	\KwIn{$\bb{V}\in\R^{m \times r}$, $\bm{\beta}\in\R^{r}$ where $m > r$.}
+%	
+%	\KwOut{$\bb{W},\bb{Y}$}
+%	Initialize: $\bb{W}:=\bm{\beta}_1\bb{V}[:,1]$ and $\bb{Y}:=\bb{V}[:,1]$.\\
+%	\For{$j=2:r$}{
+%		$\bb{z}\gets \bm{\beta}_j \left[\bb{V}[:,j] - \bb{W}\left(\bb{Y}^{\top}\bb{V}[:,j]\right)\right]$\\
+%		$\bb{W} \gets [\bb{W}\quad \bb{z}]$ \tcc*{Update $\bb{W}$.}
+%		$\bb{Y} \gets [\bb{Y}\quad \bb{V}[:,j]]$ \tcc*{Update $\bb{Y}$.}
+%		\tcp{$\bb{W}$ and $\bb{Y}$ are now $m$-by-$j$ matrices.}
+%	}
+%	\Return $\bb{W},\bb{Y}$
+%	\caption{$\bb{W},\bb{Y}\gets {\tt buidlWY}(V, \bm{\beta})$: Given a set of householder vectors $\{\bb{V}[:,i]\}_{i=1}^r$ and their corresponding constants $\{\bm{\beta}_i\}_{i=1}^r$, form the final $\bb{W}$ and $\bb{Y}$ factors of the WY representation of $\bb{P}_1\cdots \bb{P}_r$, where $\bb{P}_i := \bb{I}_m - \bm{\beta}_i\bb{v}_i\bb{v}_i^{\top}$}
+%	\label{algo:buildWY}
+%\end{algorithm2e}
+%
+%In the traditional HQR, $\bb{A}$ is transformed into an upper triangular matrix $\bb{R}$ by first computing the Householder transformation to zero out a column below the diagonal, then applying that Householder transformation to all of the remaining columns to the right. 
+%For example, the $k^{th}$ Householder transformation finds an $m-k+1$ length Householder vector, $\bb{v}_k$, and applies it to an $(m-k+1)$-by-$(n-k)$ matrix.
+%The bulk of FLOPs of this step (line 6 in \cref{algo:hhQR}) requires two Level-2 BLAS operations when computed efficiently, which are $\bb{C}:=\bb{v}_k^{\top}\bb{A}_{k:m,k+1:n}\R^{1\times(n-k)}$ and $\bb{v}\bb{C}$, an outer product.
+%
+%In BQR, the columns of $\bb{A}$ are partitioned by groups of $r$ with $\bb{A} = [\bb{C}_1 \cdots  \bb{C}_N]$ except for the last block which is $\bb{C}_N = \bb{A}[:,(N-1)r+1:n]$ and $N=\lceil\frac{n}{r}\rceil$.
+%The first block is triangularized using HQR and the WY representation of $\bb{P}_1\cdots\bb{P}_r = \bb{I}_m -\bb{W}_1\bb{Y}_1^{\top}$ is built at the end.
+%Both of these operations are rich in Level-2 BLAS operations.
+%Then, $\bb{I}_m -\bb{Y}_1\bb{W}_1^{\top}=\bb{P}_r\cdots\bb{P}_1$ is applied to $[\bb{C}_2 \cdots  \bb{C}_N]$ with two Level-3 BLAS operations:
+%\begin{enumerate}
+%	\item $A:=\bb{W}_1^{\top}[\bb{C}_2 \cdots  \bb{C}_N] $ is a matrix-matrix multiply with $m$-length inner products. 
+%	\item $[\bb{C}_2 \cdots  \bb{C}_N] - \bb{Y}_1 A $ is a matrix-matrix multiply with subtraction where the product $\bb{Y}_1 A$ computes $r$-length inner products.
+%\end{enumerate}
+%We are now ready to triangularize the second block and update rows $r+1:m$ of $[\bb{C}_3 \cdots  \bb{C}_N]$, and so on.
+%\Cref{algo:blockHQR} shows the pseudoalgorithm of the described procedure and performs approximately $1-\cO(1/N)$ fraction of FLOPs in Level-3 BLAS operations (see section 5.2.3 of \cite{golub2013matrix}). 
+%\begin{algorithm2e}
+%	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+%	\KwIn{$\bb{A}\in\R^{m \times n}$, $r\in\R$ where $r < n$.}
+%	
+%	\KwOut{$\bb{Q},\bb{R}$}
+%	$N=\lceil \frac{n}{r}\rceil$\\
+%	\tcp{Let $n_i=ri$ for $i=1:N-1$ and $n_N=n$.} 
+%	\For{$i=1:N$}{
+%		$\bb{V}_i,\bm{\beta}_i,\bb{A}_{n_{i-1}+1:m,n_{i-1}+1:n_i}\gets$ {\tt hhQR}$(\bb{A}_{n_{i-1}:m,n_{i-1}+1:n_i})$\tcc*{\Cref{algo:hhQR}}
+%		$\bb{W}_i,\bb{Y}_i \gets $ {\tt buildWY}$(\bb{V}_i,\bm{\beta}_i)$ \tcc*{\Cref{algo:buildWY}}
+%		\If {$i< N$}{
+%		$\bb{A}_{n_i+1:m,n_i+1:n}$ -= $\bb{Y}_i \left(\bb{W}_i^{\top}\bb{A}_{n_i+1:m,n_i+1:n}\right) $ \tcc*{update the rest: BLAS-3}
+%	}
+%	}
+%%	\tcp{Upper-triangularize the last set of columns and get the last WY factors.}
+%%	$\bb{V}_N,\bm{\beta}_N,\bb{A}_{n_{}:m,n_{N-1}+1:n}\gets$ {\tt hhQR}$(\bb{A}_{m_N+1:m,n_{N-1}+1:n})$\tcc*{\Cref{algo:hhQR}}
+%%	$\bb{W}_N,\bb{Y}_N \gets $ {\tt buildWY}$(\bb{V}_N,\bm{\beta}_N)$ \tcc*{\Cref{algo:buildWY}}
+%	\tcp{$\bb{A}$ has been transformed into $\bb{R}=\bb{Q}^{\top}\bb{A}$.}
+%	\tcp{Now build $\bb{Q}$.}
+%	$\bb{Q}\gets \bb{I}$\tcc*{$\bb{I}_m$ if full QR, and $\bb{I}_{m\times n}$ if thin QR.}
+%	\For{$i=N:-1:1$}{
+%		$\bb{Q}_{n_{i-1}+1:m,n_{i-1}+1:n} $-= $\bb{W}_i \left(\bb{Y}_i^{\top}\bb{Q}_{n_{i-1}+1:m,n_{i-1}+1:n}\right)$\tcc*{BLAS-3}
+%	}
+%	\Return $\bb{Q},\bb{A}$
+%	\caption{$\bb{Q},\bb{R}\gets {\tt blockHQR}(\bb{A}, r)$: Perform Householder QR factorization of matrix $\bb{A}$ with column partitions of size $r$.}
+%	\label{algo:blockHQR}
+%\end{algorithm2e}
+%TODO: -=? Add to notation table or just rewrite.
+
+\subsection{Analysis}
+
+Things (I think) I need to work on:
+\begin{itemize}
+	\item Simplify analysis by using $\tilde{\gamma}_n$ notation and only keep track of leading order stuff.
+	\item asdf
+	\item asdf
+\end{itemize}
+
+Now that we have discussed the block HQR, let's now set the assumptions for our mixed-precision analysis. 
+I will consider two cases, the first is where $\bb{A}$ is cast down to the lower precision after updating each block. (i.e. After line 5 within the forloop in \cref{algo:blockHQR}, and the second is where casting down only happens at the end of the factorization.
+Everything will be done in the higher precision except for the cast down operations.
+
+Recall that an $m$-length inner product results in a relative error bounded by $\gamma_{m}$.
+Therefore, if $\bb{C}=\bb{AB}$ where $A\in\R^{m\times p}$, $B\in\R^{p\times n}$, each element of $\bb{C}$ has accumulated rounding errors bounded by $\gamma_p$.
+
+\subsubsection{Round to lower precision at the end of factorization}
+Since we're not considering casting down until the very end, this is a uniform precision analysis.
+
+\begin{itemize}
+	\item The $i^{th}$ block (for $i=1:N-1$), goes through $(i-1)$ WY updates (line 5 in \cref{algo:blockHQR}), and then is triangularized via \Cref{algo:hhQR}.  
+	\item Let $m_i = m-r(i-1)$. The WY factors at block $i$ are $m_i$-by-$r$ sized.
+	\item Therefore, the update itself should accumulate errors bounded by $\tilde{\gamma}_{m_i+r}$.
+	\item $m_i+r = m-r(i-1) +r = m-ri + 2r = m-r(i-2)=m_{i-1}$
+	\item How much rounding errors are accumulated for forming the WY factor? 
+	\begin{itemize}
+		\item The largest error bound (componentwise) from forming the WY factors from the Householder constant and vectors is $\tilde{\gamma}_{m_k+r}$.
+	\end{itemize}
+	\item The Householder constant and vectors calculated during the triangularization (line 3 in \cref{algo:blockHQR}) accumulated errors bounded by $\tilde{\gamma}_{m_k}$. This bound could be tighter, but I think it's best to keep the analysis block-wise. So, $\hat{\bm{\beta_k}} = \bm{\beta_k} + \Delta \bm{\beta_k}$, $\hat{\bb{V_k}}=\bb{V_k}+\Delta\bb{V_k}$, where $|\Delta \bm{\beta_k}|\leq \tilde{\gamma}_{m_k} |\bm{\beta_k}|$ and $|\Delta\bb{V_k}|\leq\tilde{\gamma}_{m_k}|\bb{V_k}|$. Here the subscripts are boldfaced because they refer to all of the Householder constants and vectors formed from the $k^{th}$ block.
+	\item The triangularization itself also accumulated rounding errors bounded by $r\tilde{\gamma}_{m_k}$. This is from applying  $\bb{P_k}=\bb{P_{k,}}_r\cdots\bb{P_{k,}}_1$ to the $r^{th}$ column of block $k$, assuming that that column was exact.
+	\item Let's use $\bb{R_i} = \bb{A}_{n_i+1:m, n_{i-1}+1:n_i}$ to simplify notation. Recall $m_i=m- r(i-1)+1$, $n_i=ri$ for $i=1:N-1$, and $n_N=n$.
+\end{itemize}
+
+
+\textbf{The first block:} This block only goes through $r$ Householder transformations. Note that $m_1 = m$.
+\[\boxed{ \hat{\bb{R_1}} = \bb{R_1}+\Delta\bb{R_1},\text{ where}\quad |\Delta\bb{R_1}| \leq r\tilde{\gamma}_{
+m_1}	|\bb{R_1}| 
+}\]
+\textbf{The second block:} This block was transformed via $\bb{I}_m-\hat{\bb{Y_1}}\hat{{\bb{W_1}}}^{\top}$, where
+\begin{align*}
+ \hat{\bb{W_1}} = \bb{W_1}+\Delta\bb{W_1},\quad &  |\Delta\bb{W_1}| \leq \tilde{\gamma}_{m_1+r}|\bb{W_1}|  \\
+ \hat{\bb{Y_1}} = \bb{Y_1}+\Delta\bb{Y_1},\quad &  |\Delta\bb{Y_1}| \leq \tilde{\gamma}_{m_1+r}|\bb{Y_1}|.
+\end{align*}
+The action of applying this transformation also accumulates relative rounding error bounded by $\tilde{\gamma}_{m_1+r}$.
+Finally, this block goes through $r$ Householder transformations of length $m_2 = m-r$.
+ \[\boxed{ \hat{\bb{R_2}} = \bb{R_2}+\Delta\bb{R_2},\text{ where}\quad |\Delta\bb{R_2}| \leq\left[\left(1+ r\tilde{\gamma}_{
+ 		m_2}\right)\left(1 + \tilde{\gamma}_{m_1+r}\right)-1\right]|\bb{R_2}| 
+ }\]
+\textbf{The third block:} This block was transformed via $(\bb{I}_m-\hat{\bb{Y_2}}\hat{{\bb{W_2}}}^{\top})(\bb{I}_m-\hat{\bb{Y_1}}\hat{{\bb{W_1}}}^{\top})$, where
+\begin{align*}
+\hat{\bb{W_2}} = \bb{W_2}+\Delta\bb{W_2},\quad &  |\Delta\bb{W_2}| \leq \tilde{\gamma}_{m_1+r +m_2+r}|\bb{W_2}|  \\
+\hat{\bb{Y_2}} = \bb{Y_2}+\Delta\bb{Y_2},\quad &  |\Delta\bb{Y_2}| \leq \tilde{\gamma}_{m_1+r +m_2+r}|\bb{Y_2}|.
+\end{align*}
+The action of applying this transformation also accumulates relative rounding error bounded by $\tilde{\gamma}_{m_2+r}$.
+Finally, this block goes through $r$ Householder transformations of length $m_3 = m-2r$.
+ \[\boxed{ \hat{\bb{R_3}} = \bb{R_3}+\Delta\bb{R_3},\text{ where}\quad |\Delta\bb{R_3}| \leq\left[\left(1+ r\tilde{\gamma}_{
+		m_3}\right)\left(1 + \tilde{\gamma}_{m_1+r +m_2+r}\right)-1\right]|\bb{R_3}| 
+}\]
+
+\textbf{(Can we see a pattern yet?) The $\mathbf{i^{th}}$ block: } This block was transformed via $$(\bb{I}_m-\hat{\bb{Y_{i-1}}}\hat{{\bb{W_{i-1}}}}^{\top})\cdots (\bb{I}_m-\hat{\bb{Y_1}}\hat{{\bb{W_1}}}^{\top}),$$ where
+\begin{align*}
+\hat{\bb{W_{i-1}}} = \bb{W_{i-1}}+\Delta\bb{W_{i-1}},\quad &  |\Delta\bb{W_{i-1}}| \leq \tilde{\gamma}_{m_1+\cdots+m_{i-1}+r(i-1)}|\bb{W_{i-1}}|  \\
+\hat{\bb{Y_{i-1}}} = \bb{Y_{i-1}}+\Delta\bb{Y_{i-1}},\quad &  |\Delta\bb{Y_{i-1}}| \leq \tilde{\gamma}_{m_1+\cdots+m_{i-1}+r(i-1)}|\bb{Y_{i-1}}|.
+\end{align*}
+What is this crazy sum :$m_1+\cdots+m_{i-1}+r(i-1)$??
+\begin{align*}
+	m_1+\cdots+m_{i-1}+r(i-1) &= r(i-1) + \sum_{k=1}^{i-1} m_k = r(i-1) + \sum_{k=1}^{i-1} \left(m-(k-1)r\right) \\
+	&= (m+r)(i-1) + r\sum_{k=1}^{i-1} (k-1) = (m+r-r)(i-1) r\sum_{k=1}^{i-1} k\\
+	&= m(i-1) + r\frac{i(i-1)}{2} = (m+ri/2)(i-1) \approxeq mi +ri^2/2
+\end{align*}
+
+The action of applying this transformation also accumulates relative rounding error bounded by $\tilde{\gamma}_{m_{i-1}+r}$.
+We can kind of drop this one since $m_{i-1}<m_{i-2},\cdots m_1=m$, and should be swept under $\tilde{\gamma}_{mi+ri^2/2}$.
+Finally, this block goes through $r$ Householder transformations of length $m_i$.
+\[\boxed{ \hat{\bb{R_i}} = \bb{R_i}+\Delta\bb{R_i},\text{ where}\quad |\Delta\bb{R_i}| \leq\left[\left(1+ r\tilde{\gamma}_{
+		m_i}\right)\left(1 + \tilde{\gamma}_{mi+ri^2/2}\right)-1\right]|\bb{R_i}|} 
+\]
+
+Let's now consider the last block.\\
+\textbf{The $\mathbf{(N)^{th}}$ block: }
+\begin{equation*}
+		m_1+\cdots+m_{N-1}+r(N-1) = (m+r(N)/2)(N-1) \approxeq mN +rN^2/2 \approxeq (m+n/2)N
+\end{equation*}
+Note that since $N=\lceil n/r\rceil$, $rN \approx n$. 
+
+ This block was transformed via $$(\bb{I}_m-\hat{\bb{Y_{N-1}}}\hat{{\bb{W_{N-1}}}}^{\top})\cdots (\bb{I}_m-\hat{\bb{Y_1}}\hat{{\bb{W_1}}}^{\top}),$$ where
+\begin{align*}
+\hat{\bb{W_{N-1}}} = \bb{W_{N-1}}+\Delta\bb{W_{N-1}},\quad &  |\Delta\bb{W_{N-1}}| \leq \tilde{\gamma}_{(m+n/2)N}|\bb{W_{N-1}}|  \\
+\hat{\bb{Y_{N-1}}} = \bb{Y_{N-1}}+\Delta\bb{Y_{N-1}},\quad &  |\Delta\bb{Y_{N-1}}| \leq \tilde{\gamma}_{(m+n/2)N}|\bb{Y_{N-1}}|.
+\end{align*}
+The action of applying this transformation also accumulates relative rounding error bounded by $\tilde{\gamma}_{m_{N-2}+r}$.
+Finally, this block goes through $n-(N-1)r$ Householder transformations of length $m_{N}$.
+Since $N=\lceil n/r\rceil$, $n-(N-1)r <r$.\\
+If $n-(N-1)r \geq r$, then $n-(N-1)r-r = n-Nr\geq 0$ which implies $n\geq Nr$. $\Rightarrow\Leftarrow$!!!
+So I'll just use $r$. 
+\[\boxed{ \hat{\bb{R_{N}}} = \bb{R_{N}}+\Delta\bb{R_{N}},\text{ where}\quad |\Delta\bb{R_{N}}| \leq\left[\left(1+ r\tilde{\gamma}_{
+		m_{N}}\right)\left(1 + \tilde{\gamma}_{(m+n/2)N}\right)-1\right]|\bb{R_{N}}|} 
+\]
+
+\textbf{Building $\bb{Q}$}: 
+\begin{equation*}
+m_1+\cdots+m_{N}+r(N) = (m+r(N+1)/2)(N) \approxeq mN +rN^2/2 \approxeq (m+n/2)N
+\end{equation*}
+Is this a slight underestimate?
+
+
+The identity matrix (thin or full) is transformed via 
+$$(\bb{I}_m-\hat{\bb{W_{1}}}\hat{{\bb{Y_{1}}}}^{\top})\cdots (\bb{I}_m-\hat{\bb{W_N}}\hat{{\bb{Y_N}}}^{\top}),$$
+where
+\begin{align*}
+\hat{\bb{W_{N}}} = \bb{W_{N}}+\Delta\bb{W_{N}},\quad &  |\Delta\bb{W_{N}}| \leq \tilde{\gamma}_{(m+n/2)N}|\bb{W_{N-1}}|  \\
+\hat{\bb{Y_{N}}} = \bb{Y_{N}}+\Delta\bb{Y_{N}},\quad &  |\Delta\bb{Y_{N}}| \leq \tilde{\gamma}_{(m+n/2)N}|\bb{Y_{N-1}}|.
+\end{align*}
+\[\boxed{ \hat{\bb{Q}} = \bb{Q}+\Delta\bb{Q},\text{ where}\quad |\Delta\bb{Q}| \leq \tilde{\gamma}_{(m+n/2)N}|\bb{Q}|} 
+\]
+Overall, this accumulates to $$(m+n/2)N \approxeq (m+n/2)\frac{n}{r} \approxeq mn/r + mn^2/2r.$$\\
+
+TODO: 
+\begin{itemize}
+	\item check algebra/analysis.
+	\item How does this compare to traditional HQR?
+	\item \cite{golub2013matrix} said it requires MORE FLOPs, so it probably should be slightly worse. 
+\end{itemize}
+
+\subsubsection{Round to lower precision at the end of each block.}
+The only change in the analysis that I foresee is going from 
+$$ \sum_{k=1}^{i-1} m_k +r\text{ in the higher precision}$$
+to 
+
+$$ \sum_{k=1}^{i-1} \lceil (m_k +r)\frac{u_{high}}{u_{low}} \rceil\text{ in the lower precision}.$$
+I think we can make some statement saying that if $r\ll n$, the two should be comparable.
+If $r = \cO(n)$, then $N$ is small so there are some trade-offs. 
+
+\bibliography{../../../../library.bib,../../../../sans_library.bib}
+\bibliographystyle{siamplain}
+\section{Algorithms I may need to reference in above sections:}
+
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$\bb{x}_{\text{half}}, \bb{y}_{\text{half}}\in\F_{\text{half}}^m$, $f:\R^{m}\times \R^m \rightarrow \R^n$}
+	\KwOut{$\fl(f(\bb{x}_{\text{half}}, \bb{y}_{\text{half}}))\in\F_{\text{half}}^n$}
+	$\bb{x}_{\text{single}}, \bb{y}_{\text{single}} \gets$ {\tt castup}$([\bb{x}_{\text{half}},\bb{y}_{\text{half}}])$\\
+	$\bb{z}_{\text{single}} \gets \fl(f(\bb{x}_{\text{single}}, \bb{y}_{\text{single}}))$\\
+	$\bb{z}_{\text{half}} \gets$ {\tt castdown}$(\bb{z}_{\text{single}})$\\
+	\Return $\bb{z}_{\text{half}}$\\
+	\caption{$\bb{z}_{\text{half}} = {\tt simHalf}(f, \bb{x}_{\text{half}}, \bb{y}_{\text{half}})$ Simulate function $f\in$ OP$\cup \{{\tt dot\_product} \}$ in half precision arithmetic given input variables $\bb{x},\bb{y}$. Function {\tt castup} converts half precision floats to single precision floats, and {\tt castdown} converts single precision floats to half precision floats by rounding to the nearest half precision float.}
+	\label{algo:simulate}
+\end{algorithm2e}
+
+
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$\bb{x}\in\R^m$}
+	\KwOut{$\bb{v}\in\R^m$, and $\sigma, \beta\in\R$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} = \pm \|\bb{x}\|_2 \hat{e_1} = \sigma\hat{e_1}$ }
+	\tcc{We choose the sign of sigma to avoid cancellation of $\bb{x}_1$ (As is the standard in LAPACK, LINPACK packages {Higham2002}). This makes $\beta>0$.}
+	$\bb{v}\gets \bb{x}$\\
+	$\sigma \gets -\rm{sign}(\bb{x}_1)\|\bb{x}\|_2$\\
+	$\bb{v}_1 \gets \bb{x}_1-\sigma$ \tcp*{This is referred to as $\bb{\tilde{v}}_1$ later on.} 
+	$\beta \gets -\frac{\bb{v}_1}{\sigma}$\\
+	$\bb{v} \gets \frac{1}{\bb{v}_1}\bb{v}$\\
+	\Return $\beta$, $\bb{v}$, $\sigma$
+	\caption{$\beta$, $\bb{v}$, $\sigma = {\tt hh\_vec}(\bb{x})$. Given a vector $\bb{x}\in\R^n$, return the Householder vector, $\bb{v}$; a Householder constant, $\beta$; and $\sigma$ such that $(I-\beta \bb{v}\bb{v}^{\top})\bb{x} =\sigma(\hat{e_1})$ and $\bb{v}_1=1$, (see {LAPACK, Higham2002}).}
+	\label{algo:hh_v2}
+\end{algorithm2e}
+
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$A\in\R^{m \times n}$ where $m \geq n$.}
+	
+	\KwOut{$\bb{V}$,$\bm{\beta}$, $\bb{R}$}
+	%	\tcc{$\bb{v}_i = V[i:m, i] \in \R^{m-(i-1)}$ and $\bb{B}_i = \bb{B}[i:m, i:d] \in \R^{(m-(i-1))\times(d-(i-1))}$.}
+	$\bb{V}, \bm{\beta} \gets \bb{0}_{m\times n}, \bb{0}_m$ \\
+	
+	\For{$i=1 : n$}{
+		$\bb{v}, \beta, \sigma \gets \mathrm{hh\_vec}(\bb{A}[i:\mathrm{end}, i])$\\	
+		$\bb{V}[i:\mathrm{end},i]$, $\bm{\beta}_i$,  $\bb{A}[i,i] \gets \bb{v}, \beta, \sigma$\tcp*{Stores the Householder vectors and constants.}
+		\tcc{The next two steps update $\bb{A}$.}
+		$\bb{A}[i+1:\mathrm{end}, i]\gets \mathrm{zeros}(m-i)$\\
+		$\bb{A}[i:\mathrm{end}, i+1:\mathrm{end}]\gets \bb{A}[i:\mathrm{end}, i+1:\mathrm{end}] - \beta \bb{v} \bb{v}^{\top}\bb{A}[i:\mathrm{end}, i+1:\mathrm{end}]$
+		
+	}
+	\Return $\bb{V}$, $\bm{\beta}$, $\bb{A}[1:n, 1:n]$
+	\caption{$\bb{V}$, $\bm{\beta}$, $\bb{R}$ = ${\tt qr}(A)$. Given a matrix $A\in\R^{m\times n}$ where $m\geq n$, return matrix $\bb{V}\in\R^{m\times n}$, vector $\bm{\beta}\in\R^{n}$, and upper triangular matrix $\bb{R}$. An orthogonal matrix $\bb{Q}$ can be generated from $\bb{V}$ and $\bm{\beta}$, and $\bb{QR}=\bb{A}$.}
+	\label{algo:hhQR}
+\end{algorithm2e}
+
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$\bb{V}\in\R^{m \times n}$, $\bm{\beta}\in\R^{n}$ where $m \geq n$. $\bb{B} \in\R^{m\times d}$.  }
+	
+	\KwOut{$\bb{Q}\bb{B}$}
+	\tcc{$\bb{v}_i = V[i:m, i] \in \R^{m-(i-1)}$ and $\bb{B}_i = \bb{B}[i:\mathrm{end}, i:\mathrm{end}] \in \R^{(m-(i-1))\times(d-(i-1))}$.}
+	\For{$i=1 : n$}{
+		$\bb{B}_i \gets \bb{B}_i - \bm{\beta}_i \bb{v}_i(\bb{v}_i^{\top}\bb{B}_i)$}
+	\Return $\bb{B}$
+	\caption{$\bb{Q}\bb{B}\gets {\tt hh\_mult}(V, \bb{B})$: Given a set of householder vectors $\{\bb{v}_i\}_{i=1}^n$ and their corresponding constants $\{\bm{\beta}_i\}_{i=1}^n$, compute $\bb{P}_1\cdots \bb{P}_n\bb{B}$, where $\bb{P}_i := \bb{I} - \bm{\beta}_i\bb{v}_i\bb{v}_i^{\top}$}
+	\label{algo:hh_mult}
+\end{algorithm2e}
+
+\begin{algorithm2e}
+	\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+	\KwIn{$\bb{A}\in\R^{m \times n}$ where $m \gg n$, $L\leq\lfloor\log_2\left(\frac{m}{n}\right)\rfloor$, and $2^L$ is the initial number of blocks. }
+	
+	\KwOut{$\bb{Q}\in\R^{m \times n}$, $\bb{R} \in\R^{n\times n}$ such that 	$\bb{Q}\bb{R} = \bb{A}$.}
+	$h \gets \lfloor \frac{m}{2^L} \rfloor$ \tcp*{Number of rows for all but the last block.}
+	$r \gets m - (2^L-1)h$ \tcp*{Number of rows for the last block ($h\leq r <2h$).}
+	\tcc{Split $\bb{A}$ into $2^L$ blocks. Note that level $(i)$ has $ 2^{L-i}$ blocks.}
+	\For {$j = 1 : 2^L-1$}{
+		$\bb{A}_j^{(0)} \gets \bb{A}[(j-1)h+1: jh, :]$ %\bb{I}_{(j-1)h, jh}^{\top}\bb{A}$
+	}
+	$\bb{A}_{2^L}^{(0)} \gets \bb{A}[(2^L-1)h:m, :]$ \tcp*{Last block may have more rows.} %\bb{I}_{(2^L-1)h, m}^{\top}\bb{A}
+	\tcc{Store Householder vectors as columns of matrix $\bb{V}_j^{(i)}$, Householder constants as components of vector $\bm{\beta}_j^{(i)}$, and set up the next level.}
+	\For{$i = 0 : L-1$}{
+		\tcc{The inner loop can be parallelized.}
+		\For {$j = 1 : 2^{L-i}$ }{
+			$\bb{V}_{2j-1}^{(i)}$, $\bm{\beta}_{2j-1}^{(i)}$, $\bb{R}_{2j-1}^{(i)} \gets{\tt qr}(\bb{A}_{2j-1}^{(i)})$ \;
+			$\bb{V}_{2j}^{(i)}$, $\bm{\beta}_{2j}^{(i)}$, $\bb{R}_{2j}^{(i)} \gets{\tt qr}(\bb{A}_{2j}^{(i)})$\;
+			% \tcp*{$\bb{V}_j^{(i)} \in \R^{2n\times n}$ for $i > 0$ and $\bb{R}_j^{(i)} \in \R^{n\times n}$ always.} 
+			\(\bb{A}_{j}^{(i+1)} \gets \begin{bmatrix}
+			\bb{R}_{2j-1}^{(i)}\\
+			\bb{R}_{2j}^{(i)}
+			\end{bmatrix}\)
+		}
+	}
+	\tcc{At the bottom-most level, get the final $\bb{R}$ factor.}
+	$\bb{V}_{1}^{(L)}$, $\bm{\beta}_1^{(L)}$, $\bb{R}  \gets{\tt qr}(\bb{A}_{1}^{(L)})$ \;
+	$\bb{Q}_{1}^{(L)} \gets {\tt hh\_mult}(\bb{V}_{1}^{(L)}, I_{2n\times n})$\;
+	\tcc{Compute $\bb{Q}^{(i)}$ factors by applying $\bb{V}^{(i)}$ to $\bb{Q}^{(i+1)}$ factors.}
+	%\tcc{Combine $\bb{Q}$ factors from bottom-up-- look at Notation (4).}
+	\For {$i = L-1 : -1 : 1$}{
+		\For {$j = 1 : 2^{L-i}$}{
+			\(\bb{Q}_{j}^{(i)} \gets {\tt hh\_mult}\left(\bb{V}_{j}^{(i)}, \begin{bmatrix}
+			\tilde{\bb{Q}}_{\alpha(j), \phi(j)}^{(i+1)}\\
+			\bb{0}_{n,n}
+			\end{bmatrix}\right)\)
+			%\bb{Q}_{j}^{(i)} \gets $ {\tt hh\_mult} $(\bb{V}_{j}^{(i)}, [\tilde{\bb{Q}}_{\alpha(j), \phi(j)}^{(i+1)}; O_{n,n}])$
+		}
+	}
+	\tcc{At the top-most level, construct the final $\bb{Q}$ factor.}% from $\bb{Q}^{0}$ factors.}
+	$\bb{Q} \gets [];$\;
+	\For{$ j = 1 : 2^L $}{
+		\(\bb{Q} \gets \begin{bmatrix}
+		\bb{Q} \\
+		{\tt hh\_mult}\left(\bb{V}_{j}^{(0)} , \begin{bmatrix}
+		\tilde{\bb{Q}}_{\alpha(j), \phi(j)}^{(1)}\\
+		O_{\tilde{h},n}
+		\end{bmatrix} \right)
+		
+		\end{bmatrix}\)
+	}
+	\Return{$\bb{Q}$, $\bb{R}$}
+	\caption{$\bb{Q},\bb{R}={\tt tsqr}(\bb{A}, L)$.  Finds a QR factorization of a tall, skinny matrix, $\bb{A}$. }
+	\label{algo:par_tsqr}
+\end{algorithm2e}
+\end{document}

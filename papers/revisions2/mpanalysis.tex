@@ -1,0 +1,101 @@
+In this section, we consider three different mixed precision settings for the QR factorization, all of which take in a matrix $\bb{A}$ stored in low precision and return $\bb{Q},\bb{R}$ both represented in low precision. 
+First, we consider a trivial mixed precision setting where HQR, BQR, and TSQR are computed in high precision after casting up the input matrix at the beginning, and casting down the resulting high precision factors to low precision. 
+Then in \cref{sec:mp-3}, we modify BQR and TSQR to utilize level-3 BLAS operations and TensorCore bFMAs for the matrix product subroutines. 
+Finally, we impose \cref{assump:mp} in \cref{sec:mp-2} to see how a mixed precision inner product impacts HQR, BQR, and TSQR when applied in level-2 BLAS operations.
+
+\paragraph{Backward error of casting down vectors} First, consider 
+%casting down a scalar $x\in\F_h$ to $\F_l$.
+%Without overflow or underflow, this results in \[\text{\tt castdown}_{l}(x) = x(1+\dd^{(l)}),\;\; |\dd^{(l)}| < u^{(l)},\]
+%and accrues a single rounding error in the lower precision.
+%Now, let us consider 
+casting down a vector  $\bb{x}\in\F_h^{(m)}$.
+The componentwise forward error is, \[\text{\tt castdown}_{l}(\bb{x}) = \bb{x} + \Delta {\bb{x}},\;\; |\Delta\bb{x}| < u^{(l)}|\bb{x}|.\]
+We use this to represent the backward error of a casting down a vector with a linear transformation, $\bb{I}^{(l)}:=\bb{I} +\bb{E}\in\R^{m\times m}$, a diagonal perturbation of the identity.
+%That is, 
+%For some vector $\bb{x}\in\F_h$, the cast down operation yields
+We write,
+\begin{equation}
+\bb{x}^{(l)} := \text{\tt castdown}(\bb{x}^{(h)}) = \bb{I}^{(l)}\bb{x}^{(h)} = (\bb{I}+\bb{E})\bb{x}^{(h)} = \bb{x}^{(h)}+\Delta \bb{x},
+\end{equation}
+where $|\Delta \bb{x}| \leq u^{(l)} |\bb{x}^{(h)}|$ and  $\|\Delta \bb{x}\|_2 \leq u^{(l)} \|\bb{x}^{(h)}\|_2$.
+Thus, $\bb{E} = \Delta \bb{x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same argument as in \cref{eqn:outer} to form a backward matrix norm bound, 
+\begin{equation}
+\|\bb{E}\|_F\leq u^{(l)}. \label{eqn:castdown}
+\end{equation}
+
+\paragraph{Casting down after HQR in high precision} Let us consider the trivial case of carrying out HQR in high precision and casting down at the very end.
+This is useful for the analysis of mixed precision
+%applications that require economical storage but have enough memory to carry out HQR in higher precision, or in 
+block algorithms as will be shown in \cref{sec:mp-3}.
+If the two floating point types $\F_{l}$ and $\F_{h}$ satisfy $\F_{l}\subseteq \F_{h}$
+% and for all $x,y\in\F_{l}$, the exact product $xy$ can be represented in $\F_{h}$.
+%Some example pairs of $\{\F_{l}, \F_{h}\}$ include $\{\text{fp16}, \text{fp32}\}$, $\{\text{fp32}, \text{fp64}\}$, and $\{\text{fp16}, \text{fp64}\}$.
+%Suppose that 
+and the matrix to be factorized is stored with low precision numbers, $\bb{A}\in\F_{l}^{m\times n}$, then casting up adds no rounding errors.
+Therefore, we can directly apply the analysis that culminated in \cref{thm:feHQR}, and we only consider the columnwise forward error in the $\bb{Q}$ factor.
+Then, the $j^{th}$ column of $\hat{\bb{Q}}_{HQR} = \bb{Q} + \Delta \bb{Q}_{HQR}$ is bounded normwise via $\|\Delta \bb{Q}_{HQR}[:,j]\|_2 \leq n\tilde{\gamma}_{m}^{h},$ and incurs an extra rounding error when $\hat{\bb{Q}}_{HQR}\in\F_{h}^{m\times n}$ is cast down to $\F_{l}^{m\times n}$.
+%Casting down $x\in\F_h$ to $\F_l$ without overflow or underflow results in \[\text{\tt castdown}(x) = x(1+\dd^{(l)}),\;\; |\dd^{(l)}| < u^{(l)},\]
+%and accrues a single rounding error in the lower precision.
+%Extending this result, we represent the backward error of a casting down a vector in $\F_h^{(m)}$ with a linear transformation, $\bb{I}^{(l)}\in\R^{m\times m}$.
+%This transformation is a diagonal perturbation of the identity, $\bb{I}_m$.
+%For some vector $\bb{x}\in\F_h$, the cast down operation yields
+%\begin{equation}
+%	\bb{x}^{(l)} := \text{\tt castdown}(\bb{x}^{(h)}) = \bb{I}_{l}\bb{x}^{(h)} = (\bb{I}+\bb{E})\bb{x}^{(h)} = \bb{x}^{(h)}+\Delta \bb{x},
+%\end{equation}
+%where $|\Delta \bb{x}| \leq u^{(l)} |\bb{x}^{(h)}|$ and  $\|\Delta \bb{x}\|_2 \leq u^{(l)} \|\bb{x}^{(h)}\|_2$.
+%Then, $\bb{E} = \Delta \bb{x x}^{\top}/\|\bb{x}\|_2^2$ and we can use the same argument as in \cref{eqn:outer} to form a backward matrix norm bound, 
+%\begin{equation}
+%	\|\bb{E}\|_F\leq u^{(l)}. \label{eqn:castdown}
+%\end{equation}
+Using this in \cref{lem:3.7} to analyze the forward norm error for the $j^{th}$ column of the $\bb{Q}$ factor computed with \cref{algo:hhQR} yields
+\begin{equation}
+	\|(\text{\tt castdown}(\hat{\bb{Q}}_{HQR})- \bb{Q})[:,j]\|_2 = \|(\bb{I}^{(l)}\hat{\bb{P}}_{1}\cdots\hat{\bb{P}}_{n}-\bb{P}_{1}\cdots\bb{P}_{n})\hat{\bb{e}}_j\|_2 \leq u^{(l)}+n\tilde{\gamma}_m^{(h)} + nu^{(l)}\tilde{\gamma}_m^{(h)}.\label{eqn:HQR-mp}
+\end{equation}
+The final castdown operation increases the upper bound by $u^{(l)}$ and the size of $\bb{A}$ has no impact on this extra rounding error. 
+%To convert this bound to the lower precision, we define function $d$,
+%\begin{equation}
+%d(m,u^{(h)}, q,u^{(l)}) := \lceil (qu^{(l)}+mu^{(h)})/u^{(l)}\rceil = \cO(q+mu^{(h)}/u^{(l)}),\label{eqn:d}
+%\end{equation} 
+%so that if $\|\hat{\bb{x}}-\bb{x}\|_2 \leq \gamma_m^{(h)}$, then $\|\text{\tt castdown}(\hat{\bb{x}})-\bb{x}\|_2 \leq \gamma_{d(m,u^{(h)}, q,u^{(l)})}^{(l)}$.
+%This is a looser bound but it allows us to easily compare the errors to the uniform, low precision implementation of forming $\hat{\bb{x}}$.
+%A looser upper bound is given by $\tilde{\gamma}_d^{(l)}$ where $d = \lceil u^{(l)}_+mu^{(h)}/u^{(l)}\rceil$ and we benefit from being able to represent it in terms of the low precision . 
+%Additionally, we can use this to identify a function that allows us to formulate the new error bound after applying a castdown operation to vectors whose error bounds were known in high precision,
+%Let $d = \lceil nmu^{(h)}/u^{(l)}\rceil$, so that $nmu^{(h)}\leq du^{(l)}$, and there exists some $r\leq \lfloor u^{(h)}/u^{(l)} \rfloor$ so that $nmu^{(h)} = (d-1)u^{(l)}+ru^{(h)}$.
+%This $d$ value allows us to convert the error in terms of the higher precision to the lower precision while also adding in the extra rounding error that may be incurred in the casting down step. 
+%Then, the componentwise error is bounded by
+%\begin{equation}
+%	|\text{{\tt castdown}}(\Delta \bb{Q}_{HQR}[i,j])| \leq \frac{cnmu^{(h)}}{1-cmu^{(h)}} \leq \frac{cdu^{(l)}}{1-cmu^{(h)}} \leq \tilde{\gamma}_{d}^{(l)},
+%\end{equation}
+%and the columnwise error is 
+%\begin{equation}
+%	\|\text{{\tt castdown}}(\Delta \bb{Q}_{HQR}[:,j])\|_2 \leq \left(\sum_{i=1}^m |\tilde{\tth}_d^{(l)}|^2 \right)^{1/2} \leq \sqrt{m}\gamma_d^{(l)}
+%\end{equation}
+%Since $\hat{\bb{Q}}_{HQR}$ should be almost orthogonal with respect to the higher precision, we can expect all components to be within the dynamic range of $\F_{l}$.
+%In \ref{sec:mp-f}, we look at the rounding errors incurred from carrying out a QR factorization in a high precision, then cast down at the very end.
+%Since this requires only one cast down operation, this is very similar to the results from the standard uniform precision analysis.
+%Similarly, we can apply the operator $\bb{I}^{(l)}$ to cast down any quantity stored in the higher precision. 
+%We consider this trivial case for HQR since BQR and TSQR use it as a subroutine. 
+%If we consider the same trivial mixed precision setting for BQR and TSQR, then the corresponding forward matrix norm errors on the $\bb{Q}$ factor are
+%\begin{align*}
+%	\|\hat{\bb{Q}}_{BQR}\|_F&\leq u^{(l)}+n\tilde{\gamma}_m^{(h)} +u^{(l)}n\tilde{\gamma}_m^{(h)},\\
+%	%\leq \tilde{\gamma}_{d(nm,u^{(h)},u^{(l)})}^{(l)},\\
+%	\|\hat{\bb{Q}}_{TSQR}\|_F&\leq u^{(l)}+n(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}) +u^{(l)}n(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}).
+%	%\leq \tilde{\gamma}_{d(n(L2n+m2^{-L}),u^{(h)},1,u^{(l)})}^{(l)}.
+%\end{align*}
+Applying this trivial mixed precision setting to BQR and TSQR would simply increases the error bound by approximately $u^{(l)}$ all the while taking an even longer time than the high precision implementation due the extra cast down and cast up operations.
+Therefore, we do not analyze the rounding error analysis of this mixed precision variant of BQR and TSQR.
+However, we will use this mixed precision HQR as a subroutine of the mixed precision BQR and TSQR in the following section. 
+%We will modify BQR and TSQR so that matrix-matrix multiply and accumulate operations can be performed on TensorCore block FMAs which work on $4$-by-$4$ matrices, $\bb{A},\bb{B},\bb{C},$, and $\bb{D}$ that compute \[
+%\bb{D} = \fl( \bb{C} +\bb{A}\bb{B}),\]
+%where $\bb{A},\bb{B}\in \F_{\text{fp16}}^{4\times 4}$ and  $\bb{C},\bb{D}\in \F_{\text{fp16}}^{4\times 4}$ or $\bb{C},\bb{D}\in \F_{\text{fp32}}^{4\times 4}$.
+%The inner product step in forming $\bb{A}\bb{B}$ is similar to \cref{assump:mp} in that full precision (exact) products are accumulated in the higher precision, fp32.
+%One difference is that the cast down operation at the end of the inner product is optional.
+%Matrices larger than $4$-by-$4$'s can be multiplied and added using this optional cast down feature and by using block matrix multiplication with $4$-by-$4$ blocks.
+%In \cref{sec:mp-3}, we consider performing BQR and TSQR with high precision FLOPs within a block/level, but cast down to low precision in between blocks and at the very end.
+%%Finally, in \cref{sec:mp-2}, we consider all 3 algorithms with the ad hoc mixed precision setting described in \cref{assump:mp} where inner products are performed in high precision before being cast down, and all other operations are computed in low precision.
+%\subsection{Round down at the end of the factorization}\label{sec:mp-f}
+%Results in this section are quite straight forward, but 
+%\subsubsection{HQR}
+\input{mp3}
+\input{mp2}
+%TODO: conclude
