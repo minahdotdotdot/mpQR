@@ -33,15 +33,33 @@ Our response to the reviews is below, and we have appended a diff file at the en
 In my opinion, the manuscript is still in need of major revision. 
 Please note that line numbers here correspond to those in the diff file.
 \begin{enumerate}
-	\item I still have some issue with the lack of assumptions on $u^{(h)}$ vs. $u^{(l)}$ in the ``ad hoc'' setting. I still don't see how you can get around needing $u^{(h)} \lesssim (u^{(l)})^2$, as otherwise you can not guarantee "exact" products as you do in your proof in lines 167-172 and thus you cannot ignore errors from computing the products as you do in (2.8). \\
-	In your response you said ``However, we are trying to leave the analysis general so that other combinations of floating point numbers can be considered as well'', but there is nothing general about the proof in lines 167-172.  Also, in lines 165-166, you say here that the exact products in MP Setting 2.3 are done by using fp16 as low precision and fp32 as high precision. So is that the case (in which case the value of the disparity in precisions is clear), or are you trying to be more general (in which case I still think you need h to be at least double the precision of l)? I do not think that the assumption $u^{(h)} \lesssim (u^{(l)})^2$ will limit you technically, since this is actually the case in TensoreCore bFMAs.
+	\item {\it I still have some issue with the lack of assumptions on $u^{(h)}$ vs. $u^{(l)}$ in the ``ad hoc'' setting. I still don't see how you can get around needing $u^{(h)} \lesssim (u^{(l)})^2$, as otherwise you can not guarantee "exact" products as you do in your proof in lines 167-172 and thus you cannot ignore errors from computing the products as you do in (2.8). \\
+	In your response you said ``However, we are trying to leave the analysis general so that other combinations of floating point numbers can be considered as well'', but there is nothing general about the proof in lines 167-172.  Also, in lines 165-166, you say here that the exact products in MP Setting 2.3 are done by using fp16 as low precision and fp32 as high precision. So is that the case (in which case the value of the disparity in precisions is clear), or are you trying to be more general (in which case I still think you need h to be at least double the precision of l)? I do not think that the assumption $u^{(h)} \lesssim (u^{(l)})^2$ will limit you technically, since this is actually the case in TensoreCore bFMAs.}\\
+\red{I feel like I'm rambling. I just wanted point out that the extra requirement this reviewer wants us to add is not a fix-all, but maybe it's nicer to not point this out. Feel free to cut any of the response below.}\\
+	{\bf We have added this requirement, but this requirement alone does not guarantee exact products.
+		For example, consider Google's bfloat16, which has the same number of exponent bits as fp32, but still is a 16-bit floating point number. 
+		The unit round-off for bfloat16 is approximately {\tt 3.91e-3}, and its square is certainly larger than the unit round-off for fp32, which is approximately {\tt 5.96e-8}. 
+		However, there exist products of two bfloat16 numbers that are outside the range of numbers represented by fp32, and therefore fails the requirement in MP Setting 2.3 that products are computed exactly.
+	    This now points to a separate issue of underflow and overflow, which is the reason why we can't apply MP Setting 2.3 directly to the pair bfloat16/fp32 even when it meets the requirement $u^{(h)} \lesssim (u^{(l)})^2$.  \par 
+	    
+	    If we restrict the analysis to the inner products of bfloat16 vectors that avoid under/overflow when being accumulated in fp32, then we can apply our analysis. 
+	    Of course, the fp16/fp32 pair can still run into issues of under/overflow at the final cast down step, and this possibility is now mentioned in the manuscript.
+	    Additionally, the final cast down step is precisely the main difference between MP Setting 2.3 and the TC bFMAs: By enforcing the cast down step after every inner product, this ad hoc mixed precision setting belongs to level-2 BLAS operations, whereas the TC bFMAs allow for inner products to return the high precision floats and allow for mixed precision algorithms work at level-3 BLAS operations.   
+        Note that the standard rounding error analysis ignores underflow and overflow, and we follow that example in our analysis. 
+    }
 	
-	\item Another major point is that looking at the plots in Figure 2, I am curious how uniform precision methods in fp16 would do compared to the "mp*2" variants. In other words, is there any benefit at all to doing "mp*2" variants, or would it be just as good numerically to do the whole thing in fp16?
+	\item {\it Another major point is that looking at the plots in Figure 2, I am curious how uniform precision methods in fp16 would do compared to the ``mp*2" variants. In other words, is there any benefit at all to doing ``mp*2" variants, or would it be just as good numerically to do the whole thing in fp16?}\\
+	{\bf If the whole thing is done in fp16, then the rounding errors accumulated in the summation would be of order $u_{\text{fp16}}$  as opposed to the ``mp2'' variants which would have summation accumulation errors in the order of $u_{\text{fp32}}$.}
 	
-	\item Another general comment is that it seems like a large amount of text is devoted to comparing accuracy of and bounds for TSQR vs. HQR, but I'm not sure this comparison is very meaningful; the differences seem very minor (as evidenced in Figure 2).
+	\item {\it Another general comment is that it seems like a large amount of text is devoted to comparing accuracy of and bounds for TSQR vs. HQR, but I'm not sure this comparison is very meaningful; the differences seem very minor (as evidenced in Figure 2).}\\
+	{\bf We know that TSQR can be much faster when performed in parallel. The large amount of text comparing the accuracies of TSQR and HQR are needed to show that TSQR can still perform in similar accuracies, while we expect the computations to be faster.}
 	
 	\item {\it line 17: These are not my areas of expertise, but I did not think that QR factorization was used in any of the mentioned applications (clustering, ranking graph algorithms, neural network training). It therefore sounds strange to say that the investigation of mixed precision QR is a "first step" towards mixed precision implementations of such applications.}\\
-	\red{ Not sure how to reply to this. }
+	\red{ Not sure how to reply to this other than: }\\
+	{\bf We have removed the word ``first''. 
+	In the following paragraphs we discuss application that already use mixed precision computing, which is mainly restricted to training neural networks. 
+	Our goal in investigating the QR factorization is to increase the breadth of applications that can benefit from mixed precision computations.
+}
 	
 	\item {\it line 40-41: I still disagree with the way this sentence is written, which makes it sound like no mixed precision analyses exist. There are certainly mixed precision analyses of linear algebra routines, dating back to the 60s. You could change the sentence to something like ``Many existing rounding error analyses ...''}\\
 	{\bf Done.}
@@ -116,8 +134,8 @@ Please note that line numbers here correspond to those in the diff file.
 	\item {\it line 538: Remove comma after "matrix".}\\
 	{\bf Removed.}
 	
-	\item {\it line 564: "stability is not guaranteed in HQR"..."the method is stable when using TQSR". This needs a more careful definition of what you mean by "stability". HQR is indeed normwise backward stable (we know this from a result of Wilkinson), and indeed, your example here obeys the known bounds on the normwise relative backward error if you plug in the parameters you used. It is not that the method isn't backward stable, it is simply that the choice of parameters here means that the computed quantites are not very good. }\\
-	\red{ Not sure how to reply to this. }
+	\item {\it line 564: ``stability is not guaranteed in HQR"...``the method is stable when using TQSR". This needs a more careful definition of what you mean by ``stability". HQR is indeed normwise backward stable (we know this from a result of Wilkinson), and indeed, your example here obeys the known bounds on the normwise relative backward error if you plug in the parameters you used. It is not that the method isn't backward stable, it is simply that the choice of parameters here means that the computed quantites are not very good. }\\
+	{\bf Changed to: ``This case exemplifies a situation in which high accuracy is not guaranteed in HQR, but it is guaranteed when using TSQR. ''}
 	
 	
 	\item {\it line 565: Clarify this sentence. Something like "Note that these worst-case bounds are likely overestimates in practice".}\\
@@ -154,10 +172,11 @@ Please note that line numbers here correspond to those in the diff file.
 	{\bf We have increased the font size the best we could with the legend holding all of the labels, and ``h'' here refers to high precision which is single precision in this experiment.}
 	
 	\item Figure 3: I am very confused as to why the condition number has any effect. Overall, it is entirely unclear what the right plots are showing. What do the colors mean, and what does each line represent? What are the horizontal red lines? I would recommend just omitting this. 
-	\red{Not sure how to respond. I have explained this many times to both reviewers, and the other reviewer seems to have no problem with it.}
+	\red{Is this response okay?}
+	{\bf In this experiment, we use the condition number to reach the ``worst-case'' error bounds. We have added explanations of the colors in the caption as well as the text. }
 	
 \end{enumerate}
-\noindent{\bf Reviewer \#1}
+\noindent{\bf Reviewer \#2}
 The authors have satisfactorily responded to all my comments and suggestions. I recommend the paper to be accepted and provide a few more comments and suggestions that do not require another review round.
 \begin{enumerate}
 	\item {\it L61-63: the sentence defining the backward error that has been added is not so easy to understand , for clarity I would explicitly add that in the context of this paper the backward error is defined as $\|A- \hat{Q}\hat{R}\|$. Regarding the other reviewer’s comment, while it is true that $\|A-Q\hat{R}\|$  may more commonly be called backward error, $\|A-\hat{Q}\hat{R}\|$ is certainly also a valid definition. }\\
