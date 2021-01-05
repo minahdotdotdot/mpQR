@@ -88,7 +88,7 @@ and $\bb{R}_1$ is upper triangular.
 In many applications, only a \emph{thin} decomposition is needed as it produces an orthonormal basis for the column space of $\bb{A}$ while requiring less computation and storage.
 Suppose that $\hat{y}$ is the result of implementing an algorithm that approximates $y=f(x)$.
 The forward error is $|\hat{y}-y|$, and the backward error is defined as $|\Delta x|$ or $\min |\Delta x|$ that satisfies $\hat{y}=f(x+\Delta x)$. 
-We use the first definition of backward error for the remainder of this paper. 
+We use the first definition of backward error for the remainder of this paper, which for the QR factorization is: $\|\bb{A}-\hat{\bb{Q}}\hat{\bb{R}}\|$.
 %and is sufficient in performance. 
 While important definitions are stated explicitly in the text, Table~\ref{table:notation} serves to establish basic notation.
 %\input{deftable}
@@ -317,7 +317,7 @@ It is likely that this factor of $M_{l,h}/m$ increase in the worst case error bo
 \textbf{Case 2: ($m = M_{l,h}$)}
 Both terms are now leading order. 
 This is still an improvement in comparison to the lower precision arithmetic as the error bound is reduced from $mu^{(l)}$ to $2u^{(l)}$.
-Comparing this to the high precision inner product shows that the error bound has doubled from $mu^{(h)}$ to $2mu^{(h)}$.
+Comparing this with the high precision inner product shows that the error bound has doubled from $mu^{(h)}$ to $2mu^{(h)}$.
 %, but gained a factor of 2 in speed instead. 
 %One can argue that the loss in accuracy guarantee and the improvement in speed cancel each other out especially if $2mu^{(h)}\ll 1$ or if the speed-up greatly exceeds a factor of 2. \\
 \textbf{Case 3: ($m \gg M_{l,h}$)}
@@ -325,7 +325,7 @@ Now $\gamma_{m-1}^{(h)}$ is the leading order term.
 As in the above two cases, this is an improvement in the context of the low precision accuracy since the error has been reduced from $\gamma_m^{(l)}$ to $\gamma_{m/M_{l,h}}^{(l)}\equiv \gamma_m^{(h)}$. 
 Since $u^{(l)} = M_{l,h}u^{(h)} \ll mu^{(h)}$, the mixed precision error bound has the same \emph{order} as the error bound from carrying the computation out in the higher precision. 
 Therefore, we can expect about the same level of accuracy.\par
-% but a factor of 2 or greater reduction in speed when compared to the higher precision.\par
+% but a factor of 2 or greater reduction in speed when compared with the higher precision.\par
 %While the above cases establish 3 regimes of guarantees for accuracy in mixed precision computing, the remainder of this paper focuses only on accuracy and does not consider the impact of mixed precision computations on speed.
 Finally, we present alternative representations of the error bound in \cref{eqn:aftercd},
 \begin{align*}
@@ -614,9 +614,9 @@ We write the WY update as
 Thus far, \cref{algo:hhQR,algo:buildWY} are rich in Level-2 BLAS operations.
 Next, $\bb{I} -\bb{Y}_{k}\bb{W}_{k}^{\top}$ is applied to $[\bb{C}_2 \cdots  \bb{C}_N]$ with two Level-3 BLAS operations as shown in line 5 of \cref{algo:blockHQR}.
 BQR performs approximately $1-\cO(1/N)$ fraction of its FLOPs in Level-3 BLAS operations (see section 5.2.3 of \cite{golub2013matrix}), and can reap the benefits from the accelerated bFMA feature of TensorCores. 
-Note that BQR does require strictly more FLOPs when compared to HQR, but these additional FLOPs are negligible in standard precision and do not impact the numerical stability.
+Note that BQR does require strictly more FLOPs when compared with HQR, but these additional FLOPs are negligible in standard precision and do not impact the numerical stability.
 A pseudoalgorithm for BQR is shown in \cref{algo:blockHQR} where we assume that $n=Nr$ to make our error analysis in \cref{sec:BQRerr} simple.
-In practice, an efficient implementation might require $r$ to be a power of two or a product of small prime factors and result in a thinner $N^{th}$ block compared to the rest. 
+In practice, an efficient implementation might require $r$ to be a power of two or a product of small prime factors and result in a thinner $N^{th}$ block compared with the rest. 
 This discrepancy is easily fixed by padding the matrix with zeros, a standard procedure for standard algorithms like the Fast Fourier Transform (FFT).
 For any variable $x$ in $\{\bb{X},\bb{W}, \bb{Y}, \bb{z}, \beta, \bb{v}, \bb{P}\}$,  $x_k^{(j)}$ corresponds to the $j^{th}$ update for the $k^{th}$ block.
 \begin{algorithm2e}
@@ -973,7 +973,7 @@ The analogous mixed precision QR factorization error bounds are shown in \cref{t
 	\|\Delta \bb{Q}[:,j]_{mpHQR2}\|_2&\leq (\tilde{\gamma}_{10n}^{(l)}+n\tilde{\gamma}_m^{(h)}),\;\; \|\Delta \bb{Q}_{mpHQR2}\|_F \leq n^{1/2} (\tilde{\gamma}_{10n}^{(l)}+n\tilde{\gamma}_m^{(h)})\label{eqn:mpHQR2Q}.
 	\end{align}
 \end{theorem}
-Unsurprisingly, the inner product mixed precision setting yields higher error bounds (see \cref{thm:feHQR})as it uses more low precision arithmetic than the settings described in \cref{sec:mp-3}. 
+
 Before commenting on the significance of \cref{thm:mpHQR}, we show that the same bounds hold for the BQR variant.
 In the next sections we analyze using {\tt mpHQR2} instead of {\tt HQR} within \cref{algo:blockHQR,algo:par_tsqr}.
 
@@ -990,12 +990,6 @@ Then, the 2-norm bound for the $j^{th}$ column of the $\bb{R}$ factor and the Fr
 \|\hat{\bb{Q}}_{mpBQR2}\|_F &\leq n^{1/2}\left(N\tilde{\gamma}_{10r}^{(l)} + n\tilde{\gamma}_{m}^{(h)}\right) \approx \left(1+\frac{10M_{l,h}}{m}\right)n^{3/2}\tilde{\gamma}_{m}^{(h)}. \label{eqn:mpBQR2}
 \end{align}
 Note that this error bound is of the same order as the error bound for {\tt mpHQR2}, shown in \cref{eqn:mpHQR2Q}.
-The corresponding error bound for {\tt mpBQR3} of \cref{sec:mp-3b} yielded low precision errors $r$ times smaller than that from 
-using \cref{assump:mp} inner products, an unsurprising result as intermediate results are cast down more often in {\tt mpBQR2}.
-%Furthermore, the $\tilde{\gamma}^{(l)}$ in this section requires $c=\cO(14)$, whereas the same notation in \cref{sec:mp-3b} assumes $c$ to be a \emph{small} positive integer.
-%Therefore, the numerical stability of {\tt mpBQR2} is guaranteed at smaller matrix sizes than the numerical stability of {\tt mpBQR3} and BQR in high precision.
-Therefore, guarantees of numerical stability of {\tt mpBQR2} are limited to smaller matrix sizes when compared to those of {\tt mpBQR3} and BQR in high precision.
-While it is technically possible that the low precision errors introduced from utilizing \cref{assump:mp} do not dominate the errors incurred in {\tt mpBQR2} and {\tt mpHQR2} when $m\gg M_{l,h}$ and can result in accuracy comparable to that of {\tt mpBQR3} and high precision BQR, our numerical results in \cref{sec:NE} show that {\tt mpHQR2} is already unstable at $m\approx M_{l,h}$.
 \subsubsection{TSQR round down at inner product: {\tt mpTSQR2}}
 Finally, we consider using \cref{assump:mp} in \cref{algo:par_tsqr}.
 This corresponds to replacing every instance of $n\tilde{\gamma}_{m'}$ for $m'\in\{2n, 2^{-L}m\}$ in \cref{thm:moriTSQR} with $\tilde{\gamma}_{10n}^{(l)} + n\tilde{\gamma}_{m'}^{(h)}$.
@@ -1189,14 +1183,19 @@ Finally, the error bounds for the $\bb{Q}$ matrix formed from implementing all o
  Algorithm& Uniform & Mixed BLAS-2 (\S\ref{sec:mp-2}) & Mixed BLAS-3 (\S\ref{sec:mp-3})\\
  \hline\hline
  HQR (\S\ref{sec:HQR}) & $n^{3/2}\tilde{\gamma}_{m}$ & $n^{1/2}(\tilde{\gamma}_{10n}^{(l)}+n\tilde{\gamma}_{m}^{(h)})$ & n/a \\\hline
- BQR& $n^{3/2}\tilde{\gamma}_{m}$ & $n^{1/2}\tilde{\gamma}_{10N}^{(l)}+n^{3/2}\tilde{\gamma}_{m}^{(h)}$ & $n^{1/2}\left(\tilde{\gamma}_{N}^{(l)} + n\tilde{\gamma}_m^{(h)}\right)$ \\\hline
- TSQR & $n^{3/2}(\tilde{\gamma}_{m2^{-L}}+L\tilde{\gamma}_{2n})$ &  \begin{tabular}{@{}c@{}}$n^{1/2}\tilde{\gamma}_{10(L+1)}^{(l)}$\\ $+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right)$\end{tabular} & \begin{tabular}{@{}c@{}}$n^{1/2}\tilde{\gamma}_{L+1}^{(l)}$ \\ $+n^{3/2}\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{2^{-L}m}^{(h)}\right)$\end{tabular}\\
+ BQR& $n^{3/2}\tilde{\gamma}_{m}$ & $n^{1/2}\left(\tilde{\gamma}_{10N}^{(l)}+n\tilde{\gamma}_{m}^{(h)}\right)$ & $n^{1/2}\left(\tilde{\gamma}_{N}^{(l)} + n\tilde{\gamma}_m^{(h)}\right)$ \\\hline
+ TSQR & $n^{3/2}(\tilde{\gamma}_{m2^{-L}}+L\tilde{\gamma}_{2n})$ &  \begin{tabular}{@{}c@{}}$n^{1/2}\left[\right.\tilde{\gamma}_{10(L+1)}^{(l)}$\\ $+n\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{m2^{-L}}^{(h)}\right)\left.\right]$\end{tabular} & \begin{tabular}{@{}c@{}}$n^{1/2}\left[\right.\tilde{\gamma}_{L+1}^{(l)}$ \\ $+n\left(L\tilde{\gamma}_{2n}^{(h)}+\tilde{\gamma}_{2^{-L}m}^{(h)}\right)\left.\right]$\end{tabular}\\
  \hline
 \end{tabular}
-	\caption{Error bounds for $\|\Delta \bb{Q}\|_F$ for all algorithms in \cref{sec:algo,sec:mpanalysis}.} 
+	\caption{Error bounds for $\|\Delta \bb{Q}\|_F$ for all algorithms in \cref{sec:algo,sec:mpanalysis} for a matrix with $m$ rows and $n$ columns. The TSQR algorithms are performed with $L$ levels, and the BQR algorithms are performed with $N$ blocks. Low precision is denoted with $l$, and high precision, $h$.} 
 	\label{table:summary},
 \end{table} 
 \vspace{-1cm}
+
+Unsurprisingly, the inner product mixed precision setting from \cref{sec:mp-2} yields higher error bounds (see \cref{thm:feHQR}) as it uses more low precision arithmetic than the settings used in \cref{sec:mp-3}. 
+For example, the error bound for {\tt mpBQR3} of \cref{sec:mp-3b} yielded low precision errors $r$ times smaller than that of {\tt mpBQR2} of \cref{sec:mp-2} , as intermediate results are cast down more often in {\tt mpBQR2}.
+Therefore, guarantees of numerical stability of {\tt mpBQR2} are limited to smaller matrix sizes when compared with those of {\tt mpBQR3} and BQR in high precision.
+While it is technically possible that the low precision errors introduced from utilizing \cref{assump:mp} do not dominate the errors incurred in {\tt mpBQR2} and {\tt mpHQR2} when $m\gg M_{l,h}$ and can result in accuracy comparable to that of {\tt mpBQR3} and high precision BQR, our numerical results in \cref{sec:NE} show that {\tt mpHQR2} is already unstable at $m\approx M_{l,h}$.
 
 \section{Numerical Experiments}\label{sec:NE}
 %\input{NE2}
@@ -1224,8 +1223,10 @@ However, a more careful comparison of {\tt mpHQR2} and {\tt mpTSQR2} show that t
 	\centering
 	\vspace{-10pt}
 	%\includegraphics[width=0.45\textwidth]{./figures/sizefig.png}
-	\includegraphics[width=0.45\textwidth]{../figures/fixedn.png}
-	\includegraphics[width=0.45\textwidth]{../figures/mpBQR3-blocksize-1108.png}
+	%\includegraphics[width=0.45\textwidth]{../figures/fixedn_a.png}
+	%\includegraphics[width=0.45\textwidth]{../figures/mpBQR3-blocksize-1108c.png}
+	\includegraphics[width=\textwidth]{../figures/fig2a.png}
+	\vspace{-22pt}
 	\caption{\label{fig:sizemp3}Left plot: Backward errors of HH QR factorization algorithms in \cref{sec:algo,sec:mpanalysis} with varying matrix sizes.
 		Right plot: Norm errors of fp32 BQR and {\tt mpBQR3} for $2048$-by-$256$ matrices for varying block sizes.}
 	\vspace{-10pt}
@@ -1286,7 +1287,7 @@ We found that TSQR can outperform HQR under \cref{assump:mp} for ill-conditioned
 While an optimistic interpretation of this result would be that algorithms like TSQR are more robust against lower precision arithmetic, further research is needed to explore other divide-and-conquer methods that can harness parallel capabilities.
 Meanwhile, we should rely on the error bounds formed in \cref{sec:mpanalysis}.
 \section*{Acknowledgements}
-The authors are grateful to the anonymous reviewers for their constructive criticisms, which imporved the clarity of the presentation.
+The authors are grateful to the anonymous reviewers for their constructive criticisms, which improved the clarity of the presentation.
 \bibliographystyle{siamplain}%ieeetr
 \bibliography{../../../../../../library.bib,../../../../../../sans_library.bib,./report.bib}
 

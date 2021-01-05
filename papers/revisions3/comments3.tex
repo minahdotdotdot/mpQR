@@ -150,29 +150,36 @@ Please note that line numbers here correspond to those in the diff file.
 	\item {\it lines 830: ``varying size" $\rightarrow$ ``varying matrix size"}\\
 	{\bf Done.}
 	
-	\item Figure 2: Font needs to be much bigger. What does the "h" mean here in the uniform precision setting, e.g., what is "HQRh" in the legend? The "h" in the label makes me think it is HQR in half precision, but the text says that the uniform precision is single. 
-	
+	\item {\it Figure 2: Font needs to be much bigger. What does the ``h" mean here in the uniform precision setting, e.g., what is ``HQRh" in the legend? The "h" in the label makes me think it is HQR in half precision, but the text says that the uniform precision is single. }
+	{\bf We have increased the font size the best we could with the legend holding all of the labels, and ``h'' here refers to high precision which is single precision in this experiment.}
 	
 	\item Figure 3: I am very confused as to why the condition number has any effect. Overall, it is entirely unclear what the right plots are showing. What do the colors mean, and what does each line represent? What are the horizontal red lines? I would recommend just omitting this. 
+	\red{Not sure how to respond. I have explained this many times to both reviewers, and the other reviewer seems to have no problem with it.}
 	
 \end{enumerate}
 \noindent{\bf Reviewer \#1}
-The authors have satisfactorily responded to all my comments and suggestions. I
-recommend the paper to be accepted and provide a few more comments and suggestions
-that do not require another review round.
+The authors have satisfactorily responded to all my comments and suggestions. I recommend the paper to be accepted and provide a few more comments and suggestions that do not require another review round.
 \begin{enumerate}
-	\item L61-63: the sentence defining the backward error that has been added is not so easy to understand , for clarity I would explicitly add that in the context of this paper the backward error is defined as $\|A- \hat{Q}\hat{R}\|$. Regarding the other reviewer’s comment, while it is true that $\|A-Q\hat{R}\|$  may more commonly be called backward error, $\|A-\hat{Q}\hat{R}\|$ is certainly also a valid definition.
-	\item L388–389: negligible is repeated
-	\item L388, 392, 653: compared to $\rightarrow$ compared with
-	\item L635–636: this sentence refers to a result from subsection 4.2 which comes after. I would move this comment to subsection 4.2.
-	\item L650–657: again, this would be better placed after section 4.2.
-	\item Table 5: I suggest adding in the caption the definition of every variable: $m$, $n$, $N$, etc. The objective being to make this table self-contained for other articles to refer to it.
-	\item Table 5, mpBQR2,3: be consistent in whether you factorize the $n^{1/2}$.
-	\item L901: imporved (typo)
+	\item {\it L61-63: the sentence defining the backward error that has been added is not so easy to understand , for clarity I would explicitly add that in the context of this paper the backward error is defined as $\|A- \hat{Q}\hat{R}\|$. Regarding the other reviewer’s comment, while it is true that $\|A-Q\hat{R}\|$  may more commonly be called backward error, $\|A-\hat{Q}\hat{R}\|$ is certainly also a valid definition. }\\
+	{\bf Clarified.}
+	\item {\it L388–389: negligible is repeated.}\\
+	{\bf Removed.}
+	\item {\it L388, 392, 653: compared to $\rightarrow$ compared with}\\
+	{\bf Done.}
+	\item {\it L635–636: this sentence refers to a result from subsection 4.2 which comes after. I would move this comment to subsection 4.2.}\\
+	{\bf Moved.}
+	\item {\it L650–657: again, this would be better placed after section 4.2.}\\
+{\bf Moved.}
+	\item {\it Table 5: I suggest adding in the caption the definition of every variable: $m$, $n$, $N$, etc. The objective being to make this table self-contained for other articles to refer to it.}\\
+{\bf Added.}
+	\item {\it Table 5, mpBQR2,3: be consistent in whether you factorize the $n^{1/2}$.}\\
+	{\bf Fixed.}
+	\item {\it L901: imporved (typo)}\\
+	{\bf Fixed.}
 \end{enumerate}
 
-\bibliographystyle{siamplain}%ieeetr
-\bibliography{../../../../../library.bib,../../../../../sans_library.bib,./report.bib}
+%\bibliographystyle{siamplain}%ieeetr
+%\bibliography{../../../../../library.bib,../../../../../sans_library.bib,./report.bib}
 
 %\includepdf[pages=-]{diff.pdf}
 \end{document}
